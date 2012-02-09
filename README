@@ -1,0 +1,5 @@
+Midonet API client library for python applications.
+Currently used by:
+
+https://github.com/midokura/midolman-nova
+https://github.com/midokura/midostack-dashboard
