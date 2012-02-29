@@ -24,8 +24,8 @@ class TestRouter(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         mc = MidonetClient()
-        cls.tenant = mc(Tenant())
-        cls.router = mc(Router())
+        cls.tenant = mc.tenants()
+        cls.router = mc.routers()
 
         try:
             cls.tenant.create(cls.test_tenant_name)

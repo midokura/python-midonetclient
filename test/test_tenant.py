@@ -19,7 +19,7 @@ class TestTenant(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         mc = MidonetClient()
-        cls.t = mc(Tenant())
+        cls.t = mc.tenants()
         cls.t.delete("Ika")
 
     def test_list(self):

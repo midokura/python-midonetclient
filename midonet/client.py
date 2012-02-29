@@ -8,7 +8,12 @@ import os.path
 import settings
 import sys
 
+import tenants
+import routers
+
 class MidonetClient(object):
+    t = tenants.Tenant()
+    r = routers.Router()
 
     def __init__(self, base_url=None, token=None):
         self.h = httplib2.Http()
@@ -22,6 +27,14 @@ class MidonetClient(object):
         path = resource.__class__.__name__.lower() + 's'
         resource.accept(self, path)
         return resource
+
+    def tenants(self):
+        self.t.accept(self, 'tenants')
+        return self.t
+
+    def routers(self):
+        self.r.accept(self, 'routes')
+        return self.r
 
     def _do_request(self, path, method, body='{}'):
         response, content = self.h.request(
