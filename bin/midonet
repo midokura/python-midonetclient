@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+# Copyright 2012 Midokura Japan KK
+#
+#  THIS IS NOT MEANT TO BE A CLI FOR USERS
+#  JUST FOR DEV/TEST PURPOSE
+
+import os
+import sys
+import unittest
+
+TOPDIR = os.path.normpath(os.path.join(os.path.abspath(sys.argv[0]),
+                                   os.pardir,
+                                   os.pardir))
+sys.path.insert(0, TOPDIR)
+
+from midonet.client import MidonetClient
+from midonet.tenants import Tenant
+from midonet.routers import Router
+
+
+def main():
+    def _process_arg(arg):
+        if arg == "None":
+            return None
+        if all([c.isdigit() for c in arg]):
+            return int(arg) # just assume int
+        else:
+            return arg
+
+    # simple repl.
+    client = MidonetClient()
+    while True:
+        try:
+            input = raw_input('midonet_client> ')
+            input = map(_process_arg, input.split())
+            resource, req, args = input[0], input[1], input[2:]
+
+            clazz = resource.capitalize()
+            mod = resource + 's'
+
+#            print "-----------"
+#            print sys.modules['midonet']
+#            print dir(sys.modules['midonet'])
+
+            m = getattr(sys.modules['midonet'], mod)
+            cls = getattr(m, clazz)
+            method = getattr(client(cls()), req)
+
+            # Execute
+            r, c = method(*args)
+            print "response: ", r
+            print "content: ", c
+        except Exception as e:
+            print "Caught exeption: ", e
+
+if __name__ == '__main__':
+    sys.exit(main())
