@@ -12,6 +12,7 @@ class ResourceBase(object):
     def accept(self, client, path):
         self.path = path
         self.cl = client
+        return self
 
     def create(self, body):
         assert body != None

@@ -1,5 +1,6 @@
 from utils import debug_print
 
+import exceptions
 import httplib2
 import inspect
 import json
@@ -8,18 +9,19 @@ import os.path
 import settings
 import sys
 
-import exceptions
-import tenants
-import routers
 import ports
+import routes
+import routers
+import tenants
 
 class MidonetClient(object):
 
     t = tenants.Tenant()
-    r = routers.Router()
+    l3sw = routers.Router()
     p = ports.Port()
     rp = ports.Port.RouterPort()
     bp = ports.Port.BridgePort()
+    r = routes.Route()
 
     def __init__(self, base_url=None, token=None):
         self.h = httplib2.Http()
@@ -35,24 +37,23 @@ class MidonetClient(object):
         return resource
 
     def tenants(self):
-        self.t.accept(self, 'tenants')
-        return self.t
+        return self.t.accept(self, 'tenants')
+
 
     def routers(self):
-        self.r.accept(self, 'routers')
-        return self.r
+        return self.l3sw.accept(self, 'routers')
 
     def ports(self):
-        self.p.accept(self, 'ports')
-        return self.p
+        return self.p.accept(self, 'ports')
 
     def router_ports(self):
-        self.rp.accept(self, 'ports')
-        return self.rp
+        return self.rp.accept(self, 'ports')
 
     def bridge_ports(self):
-        self.bp.accept(self, 'ports')
-        return self.bp
+        return self.bp.accept(self, 'ports')
+
+    def routes(self):
+        return self.r.accept(self, 'routes')
 
     def _do_request(self, path, method, body='{}'):
         response, content = self.h.request(

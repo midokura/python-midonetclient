@@ -1,15 +1,32 @@
-# vim: tabstop=4 shiftwidth=4 softtabstop=4
-# Copyright 2011 Midokura KK
-#
-#    Unless required by applicable law or agreed to in writing, software
-#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-#    License for the specific language governing permissions and limitations
-#    under the License.
+# Copyright 2012 Midokura Japan KK
 
-from django.conf import settings
-from utils import debug_print
-from client import MidonetClient
+from resource import ResourceBase
+
+class Route(ResourceBase):
+
+    def create(self, router_uuid, type, srcNetworkAddr, srcNetworkLength,
+                        dstNetworkAddr, dstNetworkLength, weight,
+                        nextHopPort=None, nextHopGateway=None ):
+
+        path =  'routers/%s/routes' % router_uuid
+        body ={ "type": type,
+                "srcNetworkAddr": srcNetworkAddr,
+                "srcNetworkLength": srcNetworkLength, #int
+                "dstNetworkAddr": dstNetworkAddr,
+                "dstNetworkLength": dstNetworkLength, #int
+                "weight": weight } #int
+
+        if type == 'Normal':
+            body["nextHopPort"] = nextHopPort
+        if nextHopGateway:
+            body["nextHopGateway"] = nextHopGateway
+
+        return self.cl.post(path, body)
+
+
+    def list(self, router_uuid):
+        path = 'routers/%s/routes' % router_uuid
+        return self.cl.get(path)
 
 
 def list_routes(request, router_id):
