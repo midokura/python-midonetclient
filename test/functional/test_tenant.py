@@ -6,6 +6,7 @@ import unittest
 
 TOPDIR = os.path.normpath(os.path.join(os.path.abspath(sys.argv[0]),
                                    os.pardir,
+                                   os.pardir,
                                    os.pardir))
 sys.path.insert(0, TOPDIR)
 
