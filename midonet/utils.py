@@ -5,6 +5,8 @@ Internal Utility Functions
 """
 
 import logging
+import os.path
+
 logging.basicConfig(level=logging.DEBUG)
 
 def debug_print(msg, resp, body):
@@ -13,3 +15,6 @@ def debug_print(msg, resp, body):
     logging.debug("Resp: %s" % resp)
     logging.debug("Body: %s" % body)
     logging.debug('-' * 10)
+
+get_uuid = os.path.basename
+

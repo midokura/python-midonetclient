@@ -14,6 +14,7 @@ sys.path.insert(0, TOPDIR)
 from midonet.client import MidonetClient
 from midonet.routers import Router
 from midonet.tenants import Tenant
+from midonet import utils 
 
 
 class TestRouter(unittest.TestCase):
@@ -43,11 +44,10 @@ class TestRouter(unittest.TestCase):
 
     def test_create_get_delete(self):
         resp, content = self.router.create(self.test_tenant_name, self.test_router_name)
-        print resp['location']
-        router_uuid = resp['location'].split('/')[-1]
+        router_uuid = utils.get_uuid(resp['location'])
         self.router.get(router_uuid)
         self.router.delete(router_uuid)
-        #NOTE: shouldn't this be HTTPNotFounnd?
+        #NOTE: shouldn't mgmt return HTTPNotFounnd?
         self.assertRaises(exc.HTTPInternalServerError, self.router.get, router_uuid)
 
 

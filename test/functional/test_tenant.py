@@ -12,6 +12,7 @@ sys.path.insert(0, TOPDIR)
 
 from midonet.client import MidonetClient
 from midonet.tenants import Tenant
+from midonet import utils
 
 class TestTenant(unittest.TestCase):
 
@@ -33,7 +34,7 @@ class TestTenant(unittest.TestCase):
 
     def test_create_without_id_get_delete(self):
         resp, content = self.t.create()
-        id_ =  resp['location'].split('/')[-1]
+        id_ = utils.get_uuid(resp['location'])
         self.t.get(id_)
         self.t.delete(id_)
 
