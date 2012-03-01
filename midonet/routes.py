@@ -11,7 +11,7 @@ class Route(ResourceBase):
                         nextHopPort=None, nextHopGateway=None ):
 
         path =  'routers/%s/routes' % router_uuid
-        body ={ "type": type,
+        data ={ "type": type,
                 "srcNetworkAddr": srcNetworkAddr,
                 "srcNetworkLength": srcNetworkLength, #int
                 "dstNetworkAddr": dstNetworkAddr,
@@ -19,11 +19,11 @@ class Route(ResourceBase):
                 "weight": weight } #int
 
         if type == 'Normal':
-            body["nextHopPort"] = nextHopPort
+            data["nextHopPort"] = nextHopPort
         if nextHopGateway:
-            body["nextHopGateway"] = nextHopGateway
+            data["nextHopGateway"] = nextHopGateway
 
-        return self.cl.post(path, body)
+        return self.cl.post(path, data)
 
 
     def list(self, router_uuid):

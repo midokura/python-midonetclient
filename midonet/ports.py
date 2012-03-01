@@ -14,12 +14,12 @@ class Port(ResourceBase):
                    localNetworkAddress, localNetworkLength):
 
             path = 'routers/%s/ports' % router_uuid
-            body = { "networkAddress": networkAddress,
+            data = { "networkAddress": networkAddress,
                      "networkLength": networkLength, #int
                      "portAddress": portAddress,
                      "localNetworkAddress": localNetworkAddress,
                      "localNetworkLength": localNetworkLength } #int
-            return self.cl.post(path, body)
+            return self.cl.post(path, data)
 
         def list(self, router_uuid):
             path = 'routers/%s/ports' % router_uuid

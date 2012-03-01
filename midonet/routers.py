@@ -7,9 +7,9 @@ class Router(ResourceBase):
     path = 'routers'
 
     def create(self, tenant_id, name):
-        body = {"name": name}
+        data = {"name": name}
         path = 'tenants/%s/routers'% tenant_id
-        return self.cl.post(path, body)
+        return self.cl.post(path, data)
 
     def list(self, tenant_id):
         path = 'tenants/%s/routers'% tenant_id
@@ -17,9 +17,9 @@ class Router(ResourceBase):
 
     def update(self, router_uuid, name):
 
-        body = {"name": name}
+        data = {"name": name}
         path = self.path + '/' + router_uuid
-        return self.cl.put(path, body)
+        return self.cl.put(path, data)
 
     # get() and delete() are implemented in the super class
 
@@ -29,14 +29,14 @@ class Router(ResourceBase):
 
         path = 'routers/%s/routers' % router_uuid
 
-        body = {
+        data = {
             "networkAddress": network_address,
             "networkLength": network_length,
             "portAddress": port_address,
             "peerPortAddress": peer_port_address,
             "peerRouterId": peer_router_uuid
             }
-        return self.cl.post(path, body)
+        return self.cl.post(path, data)
 
 
     def link_list(self, router_uuid):
