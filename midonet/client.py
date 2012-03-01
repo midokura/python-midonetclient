@@ -50,6 +50,9 @@ class MidonetClient(object):
     def routes(self):
         return self.r.accept(self)
 
+    def vifs(self):
+        return self.v.accept(self)
+
     def _do_request(self, path, method, body='{}'):
         response, content = self.h.request(
             self.base_url + path, method, body, headers={
