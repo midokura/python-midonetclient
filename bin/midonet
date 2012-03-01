@@ -35,16 +35,17 @@ def main():
             input = map(_process_arg, input.split())
             resource, req, args = input[0], input[1], input[2:]
 
-            clazz = resource.capitalize()
-            mod = resource + 's'
+#            clazz = resource.capitalize()
+            resource += 's'
 
 #            print "-----------"
 #            print sys.modules['midonet']
 #            print dir(sys.modules['midonet'])
 
-            m = getattr(sys.modules['midonet'], mod)
-            cls = getattr(m, clazz)
-            method = getattr(client(cls()), req)
+#            m = getattr(sys.modules['midonet'], mod)
+#            cls = getattr(m, clazz)
+#            method = getattr(client(cls()), req)
+            method = getattr(getattr(client, resource)(), req)
 
             # Execute
             r, c = method(*args)

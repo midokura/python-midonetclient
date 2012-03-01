@@ -11,10 +11,15 @@ import sys
 import exceptions
 import tenants
 import routers
+import ports
 
 class MidonetClient(object):
+
     t = tenants.Tenant()
     r = routers.Router()
+    p = ports.Port()
+    rp = ports.Port.RouterPort()
+    bp = ports.Port.BridgePort()
 
     def __init__(self, base_url=None, token=None):
         self.h = httplib2.Http()
@@ -37,6 +42,18 @@ class MidonetClient(object):
         self.r.accept(self, 'routers')
         return self.r
 
+    def ports(self):
+        self.p.accept(self, 'ports')
+        return self.p
+
+    def router_ports(self):
+        self.rp.accept(self, 'ports')
+        return self.rp
+
+    def bridge_ports(self):
+        self.bp.accept(self, 'ports')
+        return self.bp
+
     def _do_request(self, path, method, body='{}'):
         response, content = self.h.request(
             self.base_url + path, method, body, headers={
@@ -48,6 +65,7 @@ class MidonetClient(object):
 #            fi = inspect.getframeinfo(frame)
 #            msg = "Call: " + os.path.basename(fi.filename)[:-2] + fi.function
         req = "Request: (%s on %s) " % (method, path)
+        logging.error("Body: %r", body)
         debug_print(req, response, content)
         
         if int(response['status']) > 300:
