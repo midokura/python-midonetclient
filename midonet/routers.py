@@ -1,7 +1,5 @@
 # Copyright 2012 Midokura Japan KK
 
-
-
 from resource import ResourceBase
 
 class Router(ResourceBase):
@@ -23,7 +21,7 @@ class Router(ResourceBase):
 
     # get() and delete() are implemented in the super class
 
-    def link(self, router_uuid,
+    def link_create(self, router_uuid,
              network_address, network_length,
              port_address, peer_port_address,  peer_router_uuid):
 
