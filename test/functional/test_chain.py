@@ -39,13 +39,11 @@ class TestRouter(unittest.TestCase):
         cls.tenant.delete(cls.test_tenant_name)
 
     def test_create_get_delete(self):
-        resp, content = self.router.create(self.test_tenant_name, self.test_router_name)
-        router_uuid = utils.get_uuid(resp['location'])
+        r, c = self.router.create(self.test_tenant_name, self.test_router_name)
+        router_uuid = utils.get_uuid(r)
 
         r, c = self.chain.create(router_uuid, 'TEST_CHAIN')
-
-
-        chain_uuid = utils.get_uuid(r['location'])
+        chain_uuid = utils.get_uuid(r)
 
         self.chain.list(router_uuid)
         self.chain.get(chain_uuid)

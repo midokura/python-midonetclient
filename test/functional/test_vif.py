@@ -1,9 +1,11 @@
 # Copyright 2012 Midokura Japan KK
 
+
+from webob import exc
 import os
 import sys
 import unittest
-from webob import exc
+import uuid
 
 TOPDIR = os.path.normpath(os.path.join(os.path.abspath(sys.argv[0]),
                                    os.pardir,
@@ -12,9 +14,6 @@ TOPDIR = os.path.normpath(os.path.join(os.path.abspath(sys.argv[0]),
 sys.path.insert(0, TOPDIR)
 
 from midonet.client import MidonetClient
-from midonet.routers import Router
-from midonet.tenants import Tenant
-from midonet.ports import Port
 from midonet import utils
 
 
@@ -44,18 +43,17 @@ class TestPort(unittest.TestCase):
         cls.tenant.delete(cls.test_tenant_name)
 
     def test_create_list_get_delete(self):
-        resp, content = self.router.create(self.test_tenant_name, self.test_router_name)
-        router_uuid = utils.get_uuid(resp['location'])
+        r, c = self.router.create(self.test_tenant_name, self.test_router_name)
+        router_uuid = utils.get_uuid(r)
 
-        resp, content = self.router_port.create(router_uuid, "192.168.10.0", 24,
+        r, c = self.router_port.create(router_uuid, "192.168.10.0", 24,
                                 "192.168.10.2", "1.1.1.1", 32)
 
-        port_uuid = utils.get_uuid(resp['location'])
-        import uuid
+        port_uuid = utils.get_uuid(r)
 
         vif_uuid = str(uuid.uuid4())
         r, c = self.vif.create(vif_uuid, port_uuid)
-        vif_uuid = utils.get_uuid(r['location'])
+        vif_uuid = utils.get_uuid(r)
 
         self.vif.list()
         self.vif.get(vif_uuid)

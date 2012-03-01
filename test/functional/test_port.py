@@ -12,9 +12,6 @@ TOPDIR = os.path.normpath(os.path.join(os.path.abspath(sys.argv[0]),
 sys.path.insert(0, TOPDIR)
 
 from midonet.client import MidonetClient
-from midonet.routers import Router
-from midonet.tenants import Tenant
-from midonet.ports import Port
 from midonet import utils
 
 
@@ -43,13 +40,13 @@ class TestPort(unittest.TestCase):
         cls.tenant.delete(cls.test_tenant_name)
 
     def test_create_list_get_delete_router_port(self):
-        resp, content = self.router.create(self.test_tenant_name, self.test_router_name)
-        router_uuid = utils.get_uuid(resp['location'])
+        r, c = self.router.create(self.test_tenant_name, self.test_router_name)
+        router_uuid = utils.get_uuid(r)
 
-        resp, content = self.router_port.create(router_uuid, "192.168.10.0", 24,
+        r, c = self.router_port.create(router_uuid, "192.168.10.0", 24,
                                 "192.168.10.2", "1.1.1.1", 32)
 
-        port_uuid = utils.get_uuid(resp['location'])
+        port_uuid = utils.get_uuid(r)
 
         self.router_port.list(router_uuid)
         self.port.get(port_uuid)

@@ -11,7 +11,6 @@ TOPDIR = os.path.normpath(os.path.join(os.path.abspath(sys.argv[0]),
 sys.path.insert(0, TOPDIR)
 
 from midonet.client import MidonetClient
-from midonet.tenants import Tenant
 from midonet import utils
 
 class TestTenant(unittest.TestCase):
@@ -33,8 +32,8 @@ class TestTenant(unittest.TestCase):
         self.t.delete("Ika")
 
     def test_create_without_id_get_delete(self):
-        resp, content = self.t.create()
-        id_ = utils.get_uuid(resp['location'])
+        r, c = self.t.create()
+        id_ = utils.get_uuid(r)
         self.t.get(id_)
         self.t.delete(id_)
 

@@ -16,5 +16,6 @@ def debug_print(msg, resp, body):
     logging.debug("Body: %s" % body)
     logging.debug('-' * 10)
 
-get_uuid = os.path.basename
+def get_uuid(response):
+    return os.path.basename(response['location'])
 
