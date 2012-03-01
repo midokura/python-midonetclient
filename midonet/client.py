@@ -9,6 +9,7 @@ import os.path
 import settings
 import sys
 
+import chains
 import ports
 import routes
 import routers
@@ -24,6 +25,7 @@ class MidonetClient(object):
     bp = ports.Port.BridgePort()
     r = routes.Route()
     v = vifs.Vif()
+    c = chains.Chain()
 
     def __init__(self, base_url=None, token=None):
         self.h = httplib2.Http()
@@ -52,6 +54,9 @@ class MidonetClient(object):
 
     def vifs(self):
         return self.v.accept(self)
+
+    def chains(self):
+        return self.c.accept(self)
 
     def _do_request(self, path, method, body='{}'):
         response, content = self.h.request(
