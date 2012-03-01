@@ -30,12 +30,6 @@ class MidonetClient(object):
         if not token:
             self.token = settings.AUTH_TOKEN
 
-    def __call__(self, resource):
-
-        path = resource.__class__.__name__.lower() + 's'
-        resource.accept(self, path)
-        return resource
-
     def tenants(self):
         return self.t.accept(self, 'tenants')
 
