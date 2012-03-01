@@ -3,6 +3,7 @@
 import os
 import sys
 import unittest
+from webob import exc
 
 TOPDIR = os.path.normpath(os.path.join(os.path.abspath(sys.argv[0]),
                                    os.pardir,
@@ -43,6 +44,11 @@ class TestRouter(unittest.TestCase):
     def test_create_get_delete(self):
         resp, content = self.router.create(self.test_tenant_name, self.test_router_name)
         print resp['location']
+        router_uuid = resp['location'].split('/')[-1]
+        self.router.get(router_uuid)
+        self.router.delete(router_uuid)
+        #NOTE: shouldn't this be HTTPNotFounnd?
+        self.assertRaises(exc.HTTPInternalServerError, self.router.get, router_uuid)
 
 
 if __name__ == '__main__':

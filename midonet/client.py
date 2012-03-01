@@ -1,13 +1,14 @@
 from utils import debug_print
-from webob import exc
 
 import httplib2
 import inspect
 import json
+import logging
 import os.path
 import settings
 import sys
 
+import exceptions
 import tenants
 import routers
 
@@ -33,7 +34,7 @@ class MidonetClient(object):
         return self.t
 
     def routers(self):
-        self.r.accept(self, 'routes')
+        self.r.accept(self, 'routers')
         return self.r
 
     def _do_request(self, path, method, body='{}'):
@@ -46,11 +47,15 @@ class MidonetClient(object):
 #            frame =  inspect.stack()[2][0]
 #            fi = inspect.getframeinfo(frame)
 #            msg = "Call: " + os.path.basename(fi.filename)[:-2] + fi.function
-        msg = "Request: " + method + " " + path
-        debug_print(msg, response, content)
+        req = "Request: (%s on %s) " % (method, path)
+        debug_print(req, response, content)
         
         if int(response['status']) > 300:
-            raise exc.HTTPError(content)
+#            raise exc.HTTPError(content)
+            logging.error("%s got an error status %s", req, response['status'])
+            e = exceptions.get_exception(response['status'])(content)
+            logging.error("Raising an exeption: (%r): %r" %  (e, str(e)))
+            raise e
         try:
             body = json.loads(content) if content else None
             return response, body

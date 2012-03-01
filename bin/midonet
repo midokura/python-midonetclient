@@ -51,7 +51,7 @@ def main():
             print "response: ", r
             print "content: ", c
         except Exception as e:
-            print "Caught exeption: ", e
+            print "Caught exeption: (%r): %r" %  (e, str(e))
 
 if __name__ == '__main__':
     sys.exit(main())
