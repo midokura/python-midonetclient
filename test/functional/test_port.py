@@ -33,7 +33,6 @@ class TestPort(unittest.TestCase):
         cls.port = mc.ports()
         cls.router_port = mc.router_ports()
 
-
         try:
             cls.tenant.create(cls.test_tenant_name)
         except:

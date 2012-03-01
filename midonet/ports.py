@@ -4,6 +4,8 @@ from resource import ResourceBase
 
 class Port(ResourceBase):
 
+    path = 'ports'
+
     class RouterPort(ResourceBase):
 
         # create a materialized port

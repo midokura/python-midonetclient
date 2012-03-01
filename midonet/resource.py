@@ -9,8 +9,7 @@
 
 class ResourceBase(object):
 
-    def accept(self, client, path):
-        self.path = path
+    def accept(self, client):
         self.cl = client
         return self
 

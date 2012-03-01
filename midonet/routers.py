@@ -4,6 +4,8 @@ from resource import ResourceBase
 
 class Router(ResourceBase):
 
+    path = 'routers'
+
     def create(self, tenant_id, name):
         body = {"name": name}
         path = 'tenants/%s/routers'% tenant_id

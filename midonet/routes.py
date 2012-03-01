@@ -4,6 +4,8 @@ from resource import ResourceBase
 
 class Route(ResourceBase):
 
+    path = 'routes'
+
     def create(self, router_uuid, type, srcNetworkAddr, srcNetworkLength,
                         dstNetworkAddr, dstNetworkLength, weight,
                         nextHopPort=None, nextHopGateway=None ):

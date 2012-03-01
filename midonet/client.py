@@ -13,6 +13,7 @@ import ports
 import routes
 import routers
 import tenants
+import vifs
 
 class MidonetClient(object):
 
@@ -22,6 +23,7 @@ class MidonetClient(object):
     rp = ports.Port.RouterPort()
     bp = ports.Port.BridgePort()
     r = routes.Route()
+    v = vifs.Vif()
 
     def __init__(self, base_url=None, token=None):
         self.h = httplib2.Http()
@@ -31,23 +33,22 @@ class MidonetClient(object):
             self.token = settings.AUTH_TOKEN
 
     def tenants(self):
-        return self.t.accept(self, 'tenants')
-
+        return self.t.accept(self)
 
     def routers(self):
-        return self.l3sw.accept(self, 'routers')
+        return self.l3sw.accept(self)
 
     def ports(self):
-        return self.p.accept(self, 'ports')
+        return self.p.accept(self)
 
     def router_ports(self):
-        return self.rp.accept(self, 'ports')
+        return self.rp.accept(self)
 
     def bridge_ports(self):
-        return self.bp.accept(self, 'ports')
+        return self.bp.accept(self)
 
     def routes(self):
-        return self.r.accept(self, 'routes')
+        return self.r.accept(self)
 
     def _do_request(self, path, method, body='{}'):
         response, content = self.h.request(
