@@ -1,136 +1,97 @@
-# vim: tabstop=4 shiftwidth=4 softtabstop=4
-# Copyright 2011 Midokura KK
-#
-#    Unless required by applicable law or agreed to in writing, software
-#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-#    License for the specific language governing permissions and limitations
-#    under the License.
+# Copyright 2012 Midokura Japan KK
 
-from django.conf import settings
-from utils import debug_print
-from client import MidonetClient
+from resource import ResourceBase
 
+class Rule(ResourceBase):
 
-# ----------- Chains -----------
-def list_rule_chains(request, router_uuid):
-    cl = MidonetClient(request)
-    url = settings.MIDONET_URL + 'routers/' + router_uuid + '/chains'
-    resp, body = cl.get(url)
-    debug_print("List Router Rule Chains", resp, body)
-    return body
+    path = 'rules'
 
+    def create(self, chain_id, 
+                    cont_invert,
+                    in_ports,
+                    inv_in_ports,
+                    out_ports,
+                    inv_out_ports,
+                    nw_tos,
+                    inv_nw_tos,
+                    nw_proto,
+                    inv_nw_proto,
+                    nw_src_address,
+                    nw_src_length,
+                    inv_nw_src,
+                    nw_dst_address,
+                    nw_dst_length,
+                    inv_nw_dst,
+                    tp_src_start,
+                    tp_src_end,
+                    inv_tp_src,
+                    tp_dst_start,
+                    tp_dst_end,
+                    inv_tp_dst,
+                    type_,
+                    jump_chain_id,
+                    jump_chain_name,
+                    flow_action,
+                    nat_targets, 
+                    position ):
 
-def get_rule_chain(request, chain_uuid):
-    cl = MidonetClient(request)
-    url = settings.MIDONET_URL + 'chains/' + chain_uuid
-    resp, body = cl.get(url)
-    debug_print("Get rule chain", resp, body)
-    return body
-
-
-def create_rule_chain(request, chain_name, router_uuid):
-    cl = MidonetClient(request)
-    url = settings.MIDONET_URL + 'routers/' + router_uuid + '/chains'
-    resp, body = cl.post(url, {"name": chain_name})
-    debug_print("Create rule chain", resp, body)
-    return body
-
-
-def delete_rule_chain(request, chain_uuid):
-    cl = MidonetClient(request)
-    url = settings.MIDONET_URL + 'chains/' + chain_uuid
-    resp, body = cl.delete(url)
-    debug_print("Delete rule chain", resp, body)
-    return body
-
-
-# ----------- Rules -----------
-def list_chain_rules(request, chain_uuid):
-    cl = MidonetClient(request)
-    url = settings.MIDONET_URL + 'chains/' + chain_uuid + '/rules'
-    resp, body = cl.get(url)
-    debug_print("List chain rules", resp, body)
-    return body
-
-
-def get_rule(request, rule_uuid):
-    cl = MidonetClient(request)
-    url = settings.MIDONET_URL + 'rules/' + rule_uuid
-    resp, body = cl.get(url)
-    debug_print("Get rule", resp, body)
-    return body
-
-
-def create_rule(request, chain_uuid, rule_type, position, jump_chain_id, flow_action,
-                nat_targets, cond_invert, in_ports, inv_in_ports, out_ports,
-                inv_out_ports, nw_tos, nw_proto, inv_nw_proto, nw_src_address,
-                nw_src_length, inv_nw_src, nw_dst_address, nw_dst_length,
-                inv_nw_dst, tp_src_start, tp_src_end, inv_tp_src, tp_dst_start,
-                tp_dst_end, inv_tp_dst):
-    
-    cl = MidonetClient(request)
-    url = settings.MIDONET_URL + 'chains/' + chain_uuid + '/rules'
-   
-    data = { 'type' : rule_type,
-             'position' : position,
-             'condInvert' : cond_invert,
-             'invNwProto' : inv_nw_proto,
-             }
-
-    #Getting conditional requirements
-    if rule_type == 'jump':
-        data['jumpChainId'] = jump_chain_id
-        data["jumpChainName"] = 'jump_chain_name' #TODO
-    elif rule_type == 'dnat' or rule_type == 'snat':
-        data['flowAction'] = flow_action
-        data['natTargets'] = nat_targets
-    elif rule_type == 'rev_dnat' or rule_type == 'rev_snat':
-        data['flowAction'] = flow_action
-
-    if in_ports:
-        data['inPorts'] = in_ports # Must be a list not a string
-        data['invInPorts'] = inv_in_ports
+        path = 'chains/%s/rules' % chain_id
         
-    if out_ports:
-        data['outPorts'] = out_ports # Must be a list not a string
-        data['invOutPorts'] = inv_out_ports
+        data = {
+            "condInvert": cont_invert,
+            "inPorts": in_ports,
+            "invInPorts": inv_in_ports,
+            "outPorts": out_ports,
+            "invOutPorts":inv_out_ports,
+            "nwTos": nw_tos,
+            "invNwTos": inv_nw_tos,
+            "nwProto": nw_proto,
+            "invNwProto": inv_nw_proto,
+            "nwSrcAddress": nw_src_address,
+            "nwSrcLength": nw_src_length,
+            "invNwSrc":inv_nw_src,
+            "nwDstAddress": nw_dst_address,
+            "nwDstLength": nw_dst_length,
+            "invNwDst": inv_nw_dst,
+            "tpSrcStart": tp_src_start,
+            "tpSrcEnd": tp_src_end,
+            "invTpSrc": inv_tp_src,
+            "tpDstStart": tp_dst_start,
+            "tpDstEnd": tp_dst_end,
+            "invTpDst": inv_tp_dst,
+            "type": type_,
+            "jumpChainId": jump_chain_id,
+            "jumpChainName": jump_chain_name,
+            "flowAction": flow_action,
+            "natTargets": nat_targets, 
+            "position": position
+            }
 
-    if nw_tos:
-        data['nwTos'] = nw_tos
-        data["invNwTos"] = False # inv_nw_tos #TODO
-        
-    if nw_proto:
-        data['nwProto'] = nw_proto
-        
-    if nw_src_address:
-        data['nwSrcAddress'] = nw_src_address
-        data['nwSrcLength']= nw_src_length
-        data['invNwSrc'] = inv_nw_src
-        
-    if nw_dst_address:
-        data['nwDstAddress'] = nw_dst_address
-        data['nwDstLength'] = nw_dst_length
-        data['invNwDst'] = inv_nw_dst
-        
-    if tp_src_start:
-        data['tpSrcStart'] = tp_src_start
-        data['tpSrcEnd'] = tp_src_end
-        data['invTpSrc'] = inv_tp_src
-        
-    if tp_dst_start:
-        data['tpDstStart'] = tp_dst_start
-        data['tpDstEnd'] = tp_dst_end
-        data['invTpDst'] = inv_tp_dst
+        return self.cl.post(path, data)
 
-    resp, body = cl.post(url, data)
-    debug_print("Create Rule", resp, body)
-    return body
+    def list(self, chain_uuid):
+        path = 'chains/%s/rules' % chain_uuid
+        return self.cl.get(path)
 
+    # utility methods. 
+    # NOTE: would be better to move them, e.g. to utility module
+    def create_dnat_rule(self, chain_uuid,
+                         nw_dst_address,   #floating
+                         new_dst_address): #fixed
 
-def delete_rule(request, rule_uuid):
-    cl = MidonetClient(request)
-    url = settings.MIDONET_URL + 'rules/' + rule_uuid
-    resp, body = cl.delete(url)
-    debug_print("Delete rule", resp, body)
-    return body
+        return self.create(chain_uuid, False, None, False, None,
+                        False, 0, False, None, False,
+                        None, 0, False, nw_dst_address, 32, False, 0, 0,
+                        False, 0, 0, False, 'dnat', None, None, 'accept',
+                        [[[new_dst_address, new_dst_address], [0,0]]], 1)
+
+    def create_snat_rule(self, chain_uuid,
+                         new_nw_src_address, #floating
+                         nw_src_address):    #fixed
+
+        return self.create(chain_uuid, False, None, False, None,
+                        False, 0, False, None, False,
+                        nw_src_address, 32, False, None, 0, False, 0, 0,
+                        False, 0, 0, False, 'snat', None, None, 'accept',
+                        [[[new_nw_src_address, new_nw_src_address], [0,0]]], 1)
+

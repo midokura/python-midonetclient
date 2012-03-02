@@ -15,7 +15,7 @@ from midonet.client import MidonetClient
 from midonet import utils 
 
 
-class TestChain(unittest.TestCase):
+class TestRule(unittest.TestCase):
 
     tenent = None
     router = None
@@ -28,6 +28,7 @@ class TestChain(unittest.TestCase):
         cls.tenant = mc.tenants()
         cls.router = mc.routers()
         cls.chain = mc.chains()
+        cls.rule = mc.rules()
 
         try:
             cls.tenant.create(cls.test_tenant_name)
@@ -42,12 +43,23 @@ class TestChain(unittest.TestCase):
         r, c = self.router.create(self.test_tenant_name, self.test_router_name)
         router_uuid = utils.get_uuid(r)
 
-        r, c = self.chain.create(router_uuid, 'TEST_CHAIN')
-        chain_uuid = utils.get_uuid(r)
+        r, c = self.chain.list(router_uuid)
 
-        self.chain.list(router_uuid)
-        self.chain.get(chain_uuid)
-        self.chain.delete(chain_uuid)
+        chain_uuid_0 = c[0]['id']
+        chain_uuid_1 = c[1]['id']
+
+        r0, c = self.rule.create_dnat_rule(chain_uuid_0, '123.10.10.3', '192.168.10.3')
+        r1, c = self.rule.create_snat_rule(chain_uuid_1, '123.10.10.3', '192.168.10.3')
+
+        self.rule.list(chain_uuid_0)
+        self.rule.list(chain_uuid_1)
+
+        rule_0 = utils.get_uuid(r0)
+        rule_1 = utils.get_uuid(r1)
+
+        for r in (rule_0, rule_1):
+            self.rule.get(r)
+            self.rule.delete(r)
 
 
 if __name__ == '__main__':

@@ -15,17 +15,19 @@ import routes
 import routers
 import tenants
 import vifs
+import rules
 
 class MidonetClient(object):
 
-    t = tenants.Tenant()
-    l3sw = routers.Router()
-    p = ports.Port()
+    tenant = tenants.Tenant()
+    router = routers.Router()
+    port = ports.Port()
     rp = ports.Port.RouterPort()
     bp = ports.Port.BridgePort()
-    r = routes.Route()
-    v = vifs.Vif()
-    c = chains.Chain()
+    route = routes.Route()
+    vif = vifs.Vif()
+    chain = chains.Chain()
+    rule = rules.Rule()
 
     def __init__(self, base_url=None, token=None):
         self.h = httplib2.Http()
@@ -35,13 +37,13 @@ class MidonetClient(object):
             self.token = settings.AUTH_TOKEN
 
     def tenants(self):
-        return self.t.accept(self)
+        return self.tenant.accept(self)
 
     def routers(self):
-        return self.l3sw.accept(self)
+        return self.router.accept(self)
 
     def ports(self):
-        return self.p.accept(self)
+        return self.port.accept(self)
 
     def router_ports(self):
         return self.rp.accept(self)
@@ -50,13 +52,16 @@ class MidonetClient(object):
         return self.bp.accept(self)
 
     def routes(self):
-        return self.r.accept(self)
+        return self.route.accept(self)
 
     def vifs(self):
-        return self.v.accept(self)
+        return self.vif.accept(self)
 
     def chains(self):
-        return self.c.accept(self)
+        return self.chain.accept(self)
+
+    def rules(self):
+        return self.rule.accept(self)
 
     def _do_request(self, path, method, body='{}'):
         response, content = self.h.request(
