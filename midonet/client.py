@@ -29,43 +29,50 @@ class MidonetClient(object):
     chain = chains.Chain()
     rule = rules.Rule()
 
-    def __init__(self, base_url=None, token=None):
+    def __init__(self, base_uri=None, token=None):
         self.h = httplib2.Http()
-        if not base_url:
-            self.base_url = settings.MIDONET_URL
+        if not base_uri:
+            self.base_uri = settings.MIDONET_URI
         if not token:
             self.token = settings.AUTH_TOKEN
 
+        response, content = self.get(self.base_uri)
+
+        self.version = content['version']
+        self.vifs_uri = content['vifs']
+        self.tenant_uri = content['tenant']
+   
+
     def tenants(self):
-        return self.tenant.accept(self)
+        return self.tenant.accept(self, self.tenant_uri)
 
     def routers(self):
-        return self.router.accept(self)
+        return self.router.accept(self, self.base_uri + 'routers')
 
     def ports(self):
-        return self.port.accept(self)
+        return self.port.accept(self, self.base_uri + 'ports')
 
     def router_ports(self):
-        return self.rp.accept(self)
+        return self.rp.accept(self, self.base_uri + 'ports')
 
     def bridge_ports(self):
-        return self.bp.accept(self)
+        return self.bp.accept(self, self.base_uri + 'ports')
 
     def routes(self):
-        return self.route.accept(self)
+        return self.route.accept(self, self.base_uri + 'routes')
 
     def vifs(self):
-        return self.vif.accept(self)
+        return self.vif.accept(self, self.vifs_uri)
 
     def chains(self):
-        return self.chain.accept(self)
+        return self.chain.accept(self, self.base_uri + 'chains')
 
     def rules(self):
-        return self.rule.accept(self)
+        return self.rule.accept(self, self.base_uri + 'rules')
 
-    def _do_request(self, path, method, body='{}'):
+    def _do_request(self, uri, method, body='{}'):
         response, content = self.h.request(
-            self.base_url + path, method, body, headers={
+            uri, method, body, headers={
                                             "Content-Type": "application/json",
                                             "HTTP_X_AUTH_TOKEN": self.token} 
                                           )
@@ -73,7 +80,7 @@ class MidonetClient(object):
 #            frame =  inspect.stack()[2][0]
 #            fi = inspect.getframeinfo(frame)
 #            msg = "Call: " + os.path.basename(fi.filename)[:-2] + fi.function
-        req = "Request: (%s on %s) " % (method, path)
+        req = "Request: (%s on %s) " % (method, uri)
         logging.error("Body: %r", body)
         debug_print(req, response, content)
         
@@ -89,14 +96,14 @@ class MidonetClient(object):
         except ValueError:
             return response, content
     
-    def get(self, path):
-        return self._do_request(path, 'GET')
+    def get(self, uri):
+        return self._do_request(uri, 'GET')
     
-    def put(self, path, body):
-        return self._do_request(path, 'PUT', json.dumps(body))
+    def put(self, uri, body):
+        return self._do_request(uri, 'PUT', json.dumps(body))
     
-    def post(self, path, body):
-        return self._do_request(path, 'POST', json.dumps(body))
+    def post(self, uri, body):
+        return self._do_request(uri, 'POST', json.dumps(body))
     
-    def delete(self, path):
-        return self._do_request(path, 'DELETE')
+    def delete(self, uri):
+        return self._do_request(uri, 'DELETE')
