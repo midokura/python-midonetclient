@@ -12,6 +12,7 @@ import sys
 import chains
 import ports
 import routes
+import bridges
 import routers
 import tenants
 import vifs
@@ -21,6 +22,7 @@ class MidonetClient(object):
 
     tenant = tenants.Tenant()
     router = routers.Router()
+    bridge = bridges.Bridge()
     port = ports.Port()
     rp = ports.Port.RouterPort()
     bp = ports.Port.BridgePort()
@@ -48,6 +50,9 @@ class MidonetClient(object):
 
     def routers(self):
         return self.router.accept(self, self.base_uri + 'routers')
+
+    def bridges(self):
+        return self.bridge.accept(self, self.base_uri + 'bridges')
 
     def ports(self):
         return self.port.accept(self, self.base_uri + 'ports')
