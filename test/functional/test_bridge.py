@@ -15,7 +15,7 @@ from midonet.client import MidonetClient
 from midonet import utils
 
 
-class TestRouter(unittest.TestCase):
+class TestBridge(unittest.TestCase):
 
     tenent = None
     bridge = None
