@@ -12,7 +12,7 @@ class Bridge(ResourceBase):
 
     def list(self, tenant_id):
         response, content = self.cl.tenants().get(tenant_id)
-        uri =  content['routers']
+        uri =  content['bridges']
         return self.cl.get(uri)
 
     def update(self, bridge_uuid, name):
