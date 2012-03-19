@@ -4,13 +4,11 @@ from resource import ResourceBase
 
 class Route(ResourceBase):
 
-    path = 'routes'
-
     def create(self, router_uuid, type, srcNetworkAddr, srcNetworkLength,
                         dstNetworkAddr, dstNetworkLength, weight,
                         nextHopPort=None, nextHopGateway=None ):
 
-        path =  'routers/%s/routes' % router_uuid
+        uri =  self.cl.base_uri + 'routers/%s/routes' % router_uuid
         data ={ "type": type,
                 "srcNetworkAddr": srcNetworkAddr,
                 "srcNetworkLength": srcNetworkLength, #int
@@ -23,10 +21,10 @@ class Route(ResourceBase):
         if nextHopGateway:
             data["nextHopGateway"] = nextHopGateway
 
-        return self.cl.post(path, data)
+        return self.cl.post(uri, data)
 
 
     def list(self, router_uuid):
-        path = 'routers/%s/routes' % router_uuid
-        return self.cl.get(path)
+        uri = self.cl.base_uri + 'routers/%s/routes' % router_uuid
+        return self.cl.get(uri)
 

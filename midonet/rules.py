@@ -4,8 +4,6 @@ from resource import ResourceBase
 
 class Rule(ResourceBase):
 
-    path = 'rules'
-
     def create(self, chain_id, 
                     cont_invert,
                     in_ports,
@@ -35,7 +33,7 @@ class Rule(ResourceBase):
                     nat_targets, 
                     position ):
 
-        path = 'chains/%s/rules' % chain_id
+        uri = self.cl.base_uri + 'chains/%s/rules' % chain_id
         
         data = {
             "condInvert": cont_invert,
@@ -67,11 +65,11 @@ class Rule(ResourceBase):
             "position": position
             }
 
-        return self.cl.post(path, data)
+        return self.cl.post(uri, data)
 
     def list(self, chain_uuid):
-        path = 'chains/%s/rules' % chain_uuid
-        return self.cl.get(path)
+        uri = self.cl.base_uri + 'chains/%s/rules' % chain_uuid
+        return self.cl.get(uri)
 
     # utility methods. 
     # NOTE: would be better to move them, e.g. to utility module
