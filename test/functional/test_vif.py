@@ -17,7 +17,7 @@ from midonet.client import MidonetClient
 from midonet import utils
 
 
-class TestPort(unittest.TestCase):
+class TestVif(unittest.TestCase):
 
     tenent = None
     router = None
