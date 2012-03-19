@@ -23,7 +23,7 @@ class Router(ResourceBase):
 
     # get() and delete() are implemented in the super class
 
-    def link_create(self, router_uuid,
+    def link_router_create(self, router_uuid,
              network_address, network_length,
              port_address, peer_port_address,  peer_router_uuid):
 
@@ -39,18 +39,50 @@ class Router(ResourceBase):
         return self.cl.post(uri, data)
 
 
-    def link_list(self, router_uuid):
+    def link_router_list(self, router_uuid):
         response, content = self.get(router_uuid)
         uri = content['peerRouters']
         return self.cl.get(uri)
 
 
-    def link_get(self, router_uuid, peer_router_uuid):
+    def link_router_get(self, router_uuid, peer_router_uuid):
         response, content = self.get(router_uuid)
         uri = content['peerRouters'] + '/' + peer_router_uuid
         return self.cl.get(uri)
 
-    def link_delete(self, router_uuid, peer_router_uuid):
+    def link_router_delete(self, router_uuid, peer_router_uuid):
         response, content = self.get(router_uuid)
         uri = content['peerRouters'] + '/' + peer_router_uuid
         return self.cl.delete(uri)
+
+    def link_bridge_create(self, router_uuid,
+             network_address, network_length,
+             port_address, bridge_uuid):
+
+        response, content = self.get(router_uuid)
+        uri = content['bridges']
+        data = {
+            "networkAddress": network_address,
+            "networkLength": network_length,
+            "portAddress": port_address,
+            "bridgeId": bridge_uuid
+            }
+        return self.cl.post(uri, data)
+
+
+    def link_bridge_list(self, router_uuid):
+        response, content = self.get(router_uuid)
+        uri = content['bridges']
+        return self.cl.get(uri)
+
+
+    def link_bridge_get(self, router_uuid, bridge_uuid):
+        response, content = self.get(router_uuid)
+        uri = content['bridges'] + '/' + bridge_uuid
+        return self.cl.get(uri)
+
+    def link_bridge_delete(self, router_uuid, bridge_uuid):
+        response, content = self.get(router_uuid)
+        uri = content['bridges'] + '/' + bridge_uuid
+        return self.cl.delete(uri)
+
