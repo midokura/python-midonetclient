@@ -1,7 +1,7 @@
 # Copyright 2012 Midokura Japan KK
 
 from resource import ResourceBase
-
+            
 class Bridge(ResourceBase):
 
     def create(self, tenant_id, name):
@@ -15,11 +15,27 @@ class Bridge(ResourceBase):
         uri =  content['bridges']
         return self.cl.get(uri)
 
-    def update(self, bridge_uuid, name):
+    def update(self, tenant_id, bridge_uuid, name):
+        response, content = self.cl.tenants().get(tenant_id)
+        response, bridges =  self.cl.get(content['bridges'])
+        bridge_uri = find_resource(bridges, bridge_uuid)
 
         data = {"name": name}
-        uri = self.uri + '/' + bridge_uuid
-        return self.cl.put(uri, data)
+        return self.cl.put(bridge_uri, data)
 
-    # get() and delete() are implemented in the super class
+
+    def get(self, tenant_id, bridge_uuid):
+        response, content = self.cl.tenants().get(tenant_id)
+        response, bridges =  self.cl.get(content['bridges'])
+        bridge_uri = self._find_resource(bridges, bridge_uuid)
+
+        return self.cl.get(bridge_uri)
+
+
+    def delete(self, tenant_id, bridge_uuid):
+        response, content = self.cl.tenants().get(tenant_id)
+        response, bridges =  self.cl.get(content['bridges'])
+        bridge_uri = self._find_resource(bridges, bridge_uuid)
+
+        return self.cl.delete(bridge_uri)
 

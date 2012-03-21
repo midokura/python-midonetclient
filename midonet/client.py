@@ -1,6 +1,6 @@
 from utils import debug_print
 
-import exceptions
+import exc
 import httplib2
 import inspect
 import json
@@ -92,7 +92,7 @@ class MidonetClient(object):
         if int(response['status']) > 300:
 #            raise exc.HTTPError(content)
             logging.error("%s got an error status %s", req, response['status'])
-            e = exceptions.get_exception(response['status'])(content)
+            e = exc.get_exception(response['status'])(content)
             logging.error("Raising an exeption: (%r): %r" %  (e, str(e)))
             raise e
         try:

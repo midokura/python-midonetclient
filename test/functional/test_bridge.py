@@ -43,10 +43,10 @@ class TestBridge(unittest.TestCase):
     def test_create_get_delete(self):
         r, c = self.bridge.create(self.test_tenant_name, self.test_bridge_name)
         bridge_uuid = utils.get_uuid(r)
-        self.bridge.get(bridge_uuid)
-        self.bridge.delete(bridge_uuid)
-        #NOTE: shouldn't mgmt return HTTPNotFounnd?
-        self.assertRaises(exc.HTTPInternalServerError, self.bridge.get, bridge_uuid)
+        self.bridge.get(self.test_tenant_name, bridge_uuid)
+        self.bridge.delete(self.test_tenant_name, bridge_uuid)
+ 
+        self.assertRaises(LookupError, self.bridge.get, self.test_tenant_name, bridge_uuid)
 
     def test_link_create(self):
         #TODO

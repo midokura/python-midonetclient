@@ -1,6 +1,14 @@
 # Copyright 2011 Midokura Japan KK
 
+import exceptions
+
 class ResourceBase(object):
+
+    def _find_resource(self, content, id_):
+        for c in content:
+            if c['id'] == id_:
+                return c['uri']
+        raise exceptions.LookupError('resource not found', id_)
 
     def accept(self, client, uri):
         self.cl = client
@@ -20,3 +28,4 @@ class ResourceBase(object):
     def delete(self, id_):
         uri = self.uri + '/' + id_
         return self.cl.delete(uri)
+
