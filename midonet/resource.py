@@ -10,7 +10,7 @@ class ResourceBase(object):
                 return c['uri']
         raise exceptions.LookupError('resource not found', id_)
 
-    def accept(self, client, uri):
+    def accept(self, client, uri=None):
         self.cl = client
         self.uri = uri
         return self

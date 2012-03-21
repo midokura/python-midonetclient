@@ -44,10 +44,9 @@ class TestRouter(unittest.TestCase):
     def test_create_get_delete(self):
         r, c = self.router.create(self.test_tenant_name, self.test_router_name)
         router_uuid = utils.get_uuid(r)
-        self.router.get(router_uuid)
-        self.router.delete(router_uuid)
-        #NOTE: shouldn't mgmt return HTTPNotFounnd?
-        self.assertRaises(exc.HTTPInternalServerError, self.router.get, router_uuid)
+        self.router.get(self.test_tenant_name, router_uuid)
+        self.router.delete(self.test_tenant_name, router_uuid)
+        self.assertRaises(LookupError, self.router.get, self.test_tenant_name, router_uuid)
 
     def test_link_router_create_list_get_delete(self):
         r1, junk = self.router.create(self.test_tenant_name, "router1")
@@ -55,11 +54,11 @@ class TestRouter(unittest.TestCase):
         r1_uuid = utils.get_uuid(r1)
         r2_uuid = utils.get_uuid(r2)
         
-        self.router.link_router_create(r1_uuid, "10.0.0.0", 30,
+        self.router.link_router_create(self.test_tenant_name, r1_uuid, "10.0.0.0", 30,
                                 "10.0.0.1", "10.0.0.2", r2_uuid)
-        self.router.link_router_list(r1_uuid)
-        self.router.link_router_get(r1_uuid, r2_uuid)
-        self.router.link_router_delete(r1_uuid, r2_uuid)
+        self.router.link_router_list(self.test_tenant_name, r1_uuid)
+        self.router.link_router_get(self.test_tenant_name, r1_uuid, r2_uuid)
+        self.router.link_router_delete(self.test_tenant_name, r1_uuid, r2_uuid)
 
 
     def test_link_bridge_create_list_get_delete(self):
@@ -68,12 +67,11 @@ class TestRouter(unittest.TestCase):
         r_uuid = utils.get_uuid(r)
         b_uuid = utils.get_uuid(b)
         
-        self.router.link_bridge_create(r_uuid, "10.0.0.0", 24,
+        self.router.link_bridge_create(self.test_tenant_name, r_uuid, "10.0.0.0", 24,
                                 "10.0.0.1", b_uuid)
-        self.router.link_bridge_list(r_uuid)
-        self.router.link_bridge_get(r_uuid, b_uuid)
-        self.router.link_bridge_delete(r_uuid, b_uuid)
-
+        self.router.link_bridge_list(self.test_tenant_name, r_uuid)
+        self.router.link_bridge_get(self.test_tenant_name, r_uuid, b_uuid)
+        self.router.link_bridge_delete(self.test_tenant_name, r_uuid, b_uuid)
 
 
 if __name__ == '__main__':

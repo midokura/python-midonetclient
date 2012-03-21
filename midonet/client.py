@@ -38,8 +38,8 @@ class MidonetClient(object):
         if not token:
             self.token = settings.AUTH_TOKEN
 
+        # Get resource URIs
         response, content = self.get(self.base_uri)
-
         self.version = content['version']
         self.vifs_uri = content['vifs']
         self.tenant_uri = content['tenant']
@@ -49,10 +49,10 @@ class MidonetClient(object):
         return self.tenant.accept(self, self.tenant_uri)
 
     def routers(self):
-        return self.router.accept(self, self.base_uri + 'routers')
+        return self.router.accept(self)
 
     def bridges(self):
-        return self.bridge.accept(self, self.base_uri + 'bridges')
+        return self.bridge.accept(self)
 
     def ports(self):
         return self.port.accept(self, self.base_uri + 'ports')

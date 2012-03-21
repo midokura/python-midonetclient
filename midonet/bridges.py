@@ -23,14 +23,12 @@ class Bridge(ResourceBase):
         data = {"name": name}
         return self.cl.put(bridge_uri, data)
 
-
     def get(self, tenant_id, bridge_uuid):
         response, content = self.cl.tenants().get(tenant_id)
         response, bridges =  self.cl.get(content['bridges'])
         bridge_uri = self._find_resource(bridges, bridge_uuid)
 
         return self.cl.get(bridge_uri)
-
 
     def delete(self, tenant_id, bridge_uuid):
         response, content = self.cl.tenants().get(tenant_id)
