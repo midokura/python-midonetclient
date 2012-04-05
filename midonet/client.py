@@ -6,7 +6,6 @@ import inspect
 import json
 import logging
 import os.path
-import settings
 import sys
 
 import chains
@@ -31,15 +30,21 @@ class MidonetClient(object):
     chain = chains.Chain()
     rule = rules.Rule()
 
-    def __init__(self, base_uri=None, token=None):
+    def __init__(self, midonet_uri=None, 
+                 keystone_uri=None, token=None, username=None, 
+                 password=None, tenant_name=None):
         self.h = httplib2.Http()
-        if not base_uri:
-            self.base_uri = settings.MIDONET_URI
-        if not token:
-            self.token = settings.AUTH_TOKEN
+        self.token = None
+        self.midonet_uri = midonet_uri
+        if (not token) and keystone_uri:
+            # Generate token from keystone
+            body = {"auth": {"tenantName": "admin", 
+                    "passwordCredentials":{"username": username, "password": password}}}
+            response, content = self.post('http://localhost:5000/v2.0/tokens', body)
+            self.token = content['access']['token']['id']
 
         # Get resource URIs
-        response, content = self.get(self.base_uri)
+        response, content = self.get(self.midonet_uri)
         self.version = content['version']
         self.vifs_uri = content['vifs']
         self.tenant_uri = content['tenant']
@@ -55,32 +60,32 @@ class MidonetClient(object):
         return self.bridge.accept(self)
 
     def ports(self):
-        return self.port.accept(self, self.base_uri + 'ports')
+        return self.port.accept(self, self.midonet_uri + 'ports')
 
     def router_ports(self):
-        return self.rp.accept(self, self.base_uri + 'ports')
+        return self.rp.accept(self, self.midonet_uri + 'ports')
 
     def bridge_ports(self):
-        return self.bp.accept(self, self.base_uri + 'ports')
+        return self.bp.accept(self, self.midonet_uri + 'ports')
 
     def routes(self):
-        return self.route.accept(self, self.base_uri + 'routes')
+        return self.route.accept(self, self.midonet_uri + 'routes')
 
     def vifs(self):
         return self.vif.accept(self, self.vifs_uri)
 
     def chains(self):
-        return self.chain.accept(self, self.base_uri + 'chains')
+        return self.chain.accept(self, self.midonet_uri + 'chains')
 
     def rules(self):
-        return self.rule.accept(self, self.base_uri + 'rules')
+        return self.rule.accept(self, self.midonet_uri + 'rules')
 
     def _do_request(self, uri, method, body='{}'):
-        response, content = self.h.request(
-            uri, method, body, headers={
-                                            "Content-Type": "application/json",
-                                            "HTTP_X_AUTH_TOKEN": self.token} 
-                                          )
+        headers = {}
+        headers["Content-Type"] = "application/json"
+        if self.token:
+            headers["X-Auth-Token"] = self.token
+        response, content = self.h.request(uri, method, body, headers=headers)
         
 #            frame =  inspect.stack()[2][0]
 #            fi = inspect.getframeinfo(frame)

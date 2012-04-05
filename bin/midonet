@@ -7,6 +7,7 @@
 import os
 import sys
 import unittest
+import argparse
 
 TOPDIR = os.path.normpath(os.path.join(os.path.abspath(sys.argv[0]),
                                    os.pardir,
@@ -28,7 +29,9 @@ def main():
             return arg
 
     # simple repl.
-    client = MidonetClient()
+    client = MidonetClient(midonet_uri='http://localhost:8080/midolmanj-mgmt',
+                           keystone_uri='http://localhost:5000/v2.0/token', 
+                           username='admin', password='gogomid0', tenant_name='admin')
     while True:
         try:
             input = raw_input('midonet_client> ')
