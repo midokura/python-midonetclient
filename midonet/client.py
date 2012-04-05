@@ -31,16 +31,16 @@ class MidonetClient(object):
     rule = rules.Rule()
 
     def __init__(self, midonet_uri=None, 
-                 keystone_uri=None, token=None, username=None, 
+                 keystone_tokens_endpoint=None, token=None, username=None, 
                  password=None, tenant_name=None):
         self.h = httplib2.Http()
         self.token = None
         self.midonet_uri = midonet_uri
-        if (not token) and keystone_uri:
+        if (not token) and keystone_tokens_endpoint:
             # Generate token from keystone
             body = {"auth": {"tenantName": "admin", 
                     "passwordCredentials":{"username": username, "password": password}}}
-            response, content = self.post('http://localhost:5000/v2.0/tokens', body)
+            response, content = self.post(keystone_tokens_endpoint, body)
             self.token = content['access']['token']['id']
 
         # Get resource URIs
