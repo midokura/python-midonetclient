@@ -17,6 +17,8 @@ import tenants
 import vifs
 import rules
 
+LOG = logging.getLogger('midonet.client')
+
 class MidonetClient(object):
 
     tenant = tenants.Tenant()
@@ -91,14 +93,14 @@ class MidonetClient(object):
 #            fi = inspect.getframeinfo(frame)
 #            msg = "Call: " + os.path.basename(fi.filename)[:-2] + fi.function
         req = "Request: (%s on %s) " % (method, uri)
-        logging.error("Body: %r", body)
+        LOG.error("Body: %r", body)
         debug_print(req, response, content)
         
         if int(response['status']) > 300:
 #            raise exc.HTTPError(content)
-            logging.error("%s got an error status %s", req, response['status'])
+            LOG.error("%s got an error status %s", req, response['status'])
             e = exc.get_exception(response['status'])(content)
-            logging.error("Raising an exeption: (%r): %r" %  (e, str(e)))
+            LOG.error("Raising an exeption: (%r): %r" %  (e, str(e)))
             raise e
         try:
             body = json.loads(content) if content else None
