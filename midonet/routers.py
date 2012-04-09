@@ -4,10 +4,12 @@ from resource import ResourceBase
 
 class Router(ResourceBase):
 
-    def create(self, tenant_id, name):
+    def create(self, tenant_id, name, router_id=None):
         response, content = self.cl.tenants().get(tenant_id)
         uri =  content['routers']
         data = {"name": name}
+        if router_id:
+            data['id'] = router_id
         return self.cl.post(uri, data)
 
     def list(self, tenant_id):
