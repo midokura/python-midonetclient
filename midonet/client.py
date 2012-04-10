@@ -71,7 +71,7 @@ class MidonetClient(object):
         return self.bp.accept(self, self.midonet_uri + 'ports')
 
     def routes(self):
-        return self.route.accept(self, self.midonet_uri + 'routes')
+        return self.route.accept(self)
 
     def vifs(self):
         return self.vif.accept(self, self.vifs_uri)
