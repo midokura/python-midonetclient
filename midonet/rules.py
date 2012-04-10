@@ -4,7 +4,25 @@ from resource import ResourceBase
 
 class Rule(ResourceBase):
 
-    def create(self, chain_id, 
+    def _rules_uri(self, tenant_id, router_uuid, chain_uuid):
+        response, content = self.cl.tenants().get(tenant_id)
+        response, routers =  self.cl.get(content['routers'])
+        router_uri =  self._find_resource(routers, router_uuid)
+        response, router =  self.cl.get(router_uri)
+        response, chains =  self.cl.get(router['chains'] )
+        chain_uri = self._find_resource(chains, chain_uuid)
+        response, chain =  self.cl.get(chain_uri)
+        return chain['rules']
+
+    def _rule_uri(self, tenant_id, router_uuid, chain_uuid, rule_uuid):
+        rules_uri = self._rules_uri(tenant_id, router_uuid, chain_uuid)
+        response, rules = self.cl.get(rules_uri)
+        return self._find_resource(rules, rule_uuid)
+        
+
+    def create(self, tenant_id,
+                    router_uuid,
+                    chain_uuid, 
                     cont_invert,
                     in_ports,
                     inv_in_ports,
@@ -33,7 +51,8 @@ class Rule(ResourceBase):
                     nat_targets, 
                     position ):
 
-        uri = self.cl.midonet_uri + 'chains/%s/rules' % chain_id
+
+        uri = self._rules_uri(tenant_id, router_uuid, chain_uuid)
         
         data = {
             "condInvert": cont_invert,
@@ -67,27 +86,37 @@ class Rule(ResourceBase):
 
         return self.cl.post(uri, data)
 
-    def list(self, chain_uuid):
-        uri = self.cl.midonet_uri + 'chains/%s/rules' % chain_uuid
-        return self.cl.get(uri)
+    def list(self, tenant_id, router_uuid, chain_uuid):
+        rules_uri = self._rules_uri(tenant_id, router_uuid, chain_uuid)
+        return self.cl.get(rules_uri)
+
+    def get(self, tenant_id, router_uuid, chain_uuid, rule_uuid):
+        rule_uri = self._rule_uri(tenant_id, router_uuid, chain_uuid, rule_uuid)
+        return self.cl.get(rule_uri)
+
+    def delete(self, tenant_id, router_uuid, chain_uuid, rule_uuid):
+        rules_uri = self._rules_uri(tenant_id, router_uuid, chain_uuid)
+        return self.cl.get(rules_uri)
+
+
 
     # utility methods. 
     # NOTE: would be better to move them, e.g. to utility module
-    def create_dnat_rule(self, chain_uuid,
+    def create_dnat_rule(self, tenant_id, router_uuid, chain_uuid,
                          nw_dst_address,   #floating
                          new_dst_address): #fixed
 
-        return self.create(chain_uuid, False, None, False, None,
+        return self.create(tenant_id, router_uuid, chain_uuid, False, None, False, None,
                         False, 0, False, None, False,
                         None, 0, False, nw_dst_address, 32, False, 0, 0,
                         False, 0, 0, False, 'dnat', None, None, 'accept',
                         [[[new_dst_address, new_dst_address], [0,0]]], 1)
 
-    def create_snat_rule(self, chain_uuid,
+    def create_snat_rule(self, tenant_id, router_uuid, chain_uuid,
                          new_nw_src_address, #floating
                          nw_src_address):    #fixed
 
-        return self.create(chain_uuid, False, None, False, None,
+        return self.create(tenant_id, router_uuid, chain_uuid, False, None, False, None,
                         False, 0, False, None, False,
                         nw_src_address, 32, False, None, 0, False, 0, 0,
                         False, 0, 0, False, 'snat', None, None, 'accept',

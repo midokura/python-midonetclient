@@ -43,23 +43,28 @@ class TestRule(unittest.TestCase):
         r, c = self.router.create(self.test_tenant_name, self.test_router_name)
         router_uuid = utils.get_uuid(r)
 
-        r, c = self.chain.list(router_uuid)
+        r, c = self.chain.list(self.test_tenant_name, router_uuid)
 
         chain_uuid_0 = c[0]['id']
         chain_uuid_1 = c[1]['id']
 
-        r0, c = self.rule.create_dnat_rule(chain_uuid_0, '123.10.10.3', '192.168.10.3')
-        r1, c = self.rule.create_snat_rule(chain_uuid_1, '123.10.10.3', '192.168.10.3')
+        r0, c = self.rule.create_dnat_rule(self.test_tenant_name, router_uuid,
+                                           chain_uuid_0, '123.10.10.3', '192.168.10.3')
+        r1, c = self.rule.create_snat_rule(self.test_tenant_name, router_uuid,
+                                           chain_uuid_1, '123.10.10.3', '192.168.10.3')
 
-        self.rule.list(chain_uuid_0)
-        self.rule.list(chain_uuid_1)
+        self.rule.list(self.test_tenant_name, router_uuid, chain_uuid_0)
+        self.rule.list(self.test_tenant_name, router_uuid, chain_uuid_1)
 
         rule_0 = utils.get_uuid(r0)
         rule_1 = utils.get_uuid(r1)
 
-        for r in (rule_0, rule_1):
-            self.rule.get(r)
-            self.rule.delete(r)
+        self.rule.get(self.test_tenant_name, router_uuid, chain_uuid_0, rule_0)
+        self.rule.delete(self.test_tenant_name, router_uuid, chain_uuid_0, rule_0)
+
+        self.rule.get(self.test_tenant_name, router_uuid, chain_uuid_1, rule_1)
+        self.rule.delete(self.test_tenant_name, router_uuid, chain_uuid_1, rule_1)
+
 
 
 if __name__ == '__main__':

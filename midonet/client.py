@@ -65,7 +65,7 @@ class MidonetClient(object):
         return self.rp.accept(self)
 
     def bridge_ports(self):
-        return self.bp.accept(self, self.midonet_uri + 'ports')
+        return self.bp.accept(self)
 
     def routes(self):
         return self.route.accept(self)
@@ -77,7 +77,7 @@ class MidonetClient(object):
         return self.chain.accept(self)
 
     def rules(self):
-        return self.rule.accept(self, self.midonet_uri + 'rules')
+        return self.rule.accept(self)
 
     def _do_request(self, uri, method, body='{}'):
         headers = {}
