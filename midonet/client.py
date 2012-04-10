@@ -32,13 +32,13 @@ class MidonetClient(object):
     chain = chains.Chain()
     rule = rules.Rule()
 
-    def __init__(self, midonet_uri=None, 
+    def __init__(self, midonet_uri='http://localhost:8080/midolmanj-mgmt', 
                  keystone_tokens_endpoint=None, token=None, username=None, 
-                 password=None, tenant_name=None):
+                 password=None, tenant_name=None, no_ks=False):
         self.h = httplib2.Http()
         self.token = None
         self.midonet_uri = midonet_uri
-        if (not token) and keystone_tokens_endpoint:
+        if (not no_ks) and (not token) and keystone_tokens_endpoint:
             # Generate token from keystone
             body = {"auth": {"tenantName": tenant_name, 
                     "passwordCredentials":{"username": username, "password": password}}}
