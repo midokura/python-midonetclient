@@ -42,12 +42,12 @@ class TestChain(unittest.TestCase):
         r, c = self.router.create(self.test_tenant_name, self.test_router_name)
         router_uuid = utils.get_uuid(r)
 
-        r, c = self.chain.create(router_uuid, 'TEST_CHAIN')
+        r, c = self.chain.create(self.test_tenant_name, router_uuid, 'TEST_CHAIN')
         chain_uuid = utils.get_uuid(r)
 
-        self.chain.list(router_uuid)
-        self.chain.get(chain_uuid)
-        self.chain.delete(chain_uuid)
+        self.chain.list(self.test_tenant_name, router_uuid)
+        self.chain.get(self.test_tenant_name, router_uuid, chain_uuid)
+        self.chain.delete(self.test_tenant_name, router_uuid, chain_uuid)
 
 
 if __name__ == '__main__':

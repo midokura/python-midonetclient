@@ -18,7 +18,6 @@ class Port(ResourceBase):
             response, ports =  self.cl.get(ports_uri)
             return self._find_resource(ports, port_uuid)
 
-
         # create a materialized port
         def create(self, tenant_id, router_uuid,
                    networkAddress, networkLength, portAddress,

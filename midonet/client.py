@@ -74,7 +74,7 @@ class MidonetClient(object):
         return self.vif.accept(self, self.vifs_uri)
 
     def chains(self):
-        return self.chain.accept(self, self.midonet_uri + 'chains')
+        return self.chain.accept(self)
 
     def rules(self):
         return self.rule.accept(self, self.midonet_uri + 'rules')
