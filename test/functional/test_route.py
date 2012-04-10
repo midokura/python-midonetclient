@@ -25,7 +25,7 @@ class TestRoute(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        mc = MidonetClient()
+        mc = MidonetClient(no_ks=True)
         cls.tenant = mc.tenants()
         cls.router = mc.routers()
         cls.route = mc.routes()
@@ -48,14 +48,14 @@ class TestRoute(unittest.TestCase):
                                 "192.168.10.2", "1.1.1.1", 32)
 
         port_uuid = utils.get_uuid(r)
-        r, c = self.route.create(router_uuid, "Normal", "0.0.0.0", 0,
+        r, c = self.route.create(self.test_tenant_name, router_uuid, "Normal", "0.0.0.0", 0,
                                           "9.9.9.9", 24, 100, port_uuid)
 
         route_uuid = utils.get_uuid(r)
 
-        self.route.list(router_uuid)
-        self.route.get(route_uuid)
-        self.route.delete(route_uuid)
+        self.route.list(self.test_tenant_name, router_uuid)
+        self.route.get(self.test_tenant_name, router_uuid, route_uuid)
+        self.route.delete(self.test_tenant_name, router_uuid, route_uuid)
 
 
 if __name__ == '__main__':

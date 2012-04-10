@@ -4,11 +4,15 @@ from resource import ResourceBase
 
 class Route(ResourceBase):
 
-    def create(self, router_uuid, type, srcNetworkAddr, srcNetworkLength,
+    def create(self, tenant_id, router_uuid, type, srcNetworkAddr, srcNetworkLength,
                         dstNetworkAddr, dstNetworkLength, weight,
                         nextHopPort=None, nextHopGateway=None ):
 
-        uri =  self.cl.midonet_uri + 'routers/%s/routes' % router_uuid
+        response, content = self.cl.tenants().get(tenant_id)
+        response, routers =  self.cl.get(content['routers'])
+        router_uri =  self._find_resource(routers, router_uuid)
+        response, router =  self.cl.get(router_uri)
+        uri = router['routes'] 
         data ={ "type": type,
                 "srcNetworkAddr": srcNetworkAddr,
                 "srcNetworkLength": srcNetworkLength, #int
@@ -24,7 +28,34 @@ class Route(ResourceBase):
         return self.cl.post(uri, data)
 
 
-    def list(self, router_uuid):
-        uri = self.cl.midonet_uri + 'routers/%s/routes' % router_uuid
+    def list(self, tenant_id, router_uuid):
+        response, content = self.cl.tenants().get(tenant_id)
+        response, routers =  self.cl.get(content['routers'])
+        router_uri =  self._find_resource(routers, router_uuid)
+        response, router =  self.cl.get(router_uri)
+        uri = router['routes'] 
         return self.cl.get(uri)
+
+    def get(self, tenant_id, router_uuid, route_uuid):
+        response, content = self.cl.tenants().get(tenant_id)
+        response, routers =  self.cl.get(content['routers'])
+        router_uri =  self._find_resource(routers, router_uuid)
+        response, router =  self.cl.get(router_uri)
+
+        response, routes = self.cl.get(router['routes'])
+        route_uri = self._find_resource(routes, route_uuid)
+        return self.cl.get(route_uri)
+
+
+
+    def delete(self, tenant_id, router_uuid, route_uuid):
+        response, content = self.cl.tenants().get(tenant_id)
+        response, routers =  self.cl.get(content['routers'])
+        router_uri =  self._find_resource(routers, router_uuid)
+        response, router =  self.cl.get(router_uri)
+
+        response, routes = self.cl.get(router['routes'])
+        route_uri = self._find_resource(routes, route_uuid)
+
+        return self.cl.delete(route_uri)
 
