@@ -8,7 +8,7 @@ class Route(ResourceBase):
                         dstNetworkAddr, dstNetworkLength, weight,
                         nextHopPort=None, nextHopGateway=None ):
 
-        uri =  self.cl.base_uri + 'routers/%s/routes' % router_uuid
+        uri =  self.cl.midonet_uri + 'routers/%s/routes' % router_uuid
         data ={ "type": type,
                 "srcNetworkAddr": srcNetworkAddr,
                 "srcNetworkLength": srcNetworkLength, #int
@@ -25,6 +25,6 @@ class Route(ResourceBase):
 
 
     def list(self, router_uuid):
-        uri = self.cl.base_uri + 'routers/%s/routes' % router_uuid
+        uri = self.cl.midonet_uri + 'routers/%s/routes' % router_uuid
         return self.cl.get(uri)
 

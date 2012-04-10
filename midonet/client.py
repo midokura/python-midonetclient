@@ -40,7 +40,7 @@ class MidonetClient(object):
         self.midonet_uri = midonet_uri
         if (not token) and keystone_tokens_endpoint:
             # Generate token from keystone
-            body = {"auth": {"tenantName": "admin", 
+            body = {"auth": {"tenantName": tenant_name, 
                     "passwordCredentials":{"username": username, "password": password}}}
             response, content = self.post(keystone_tokens_endpoint, body)
             self.token = content['access']['token']['id']

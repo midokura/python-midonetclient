@@ -11,7 +11,7 @@ class Port(ResourceBase):
                    networkAddress, networkLength, portAddress,
                    localNetworkAddress, localNetworkLength):
 
-            uri = self.cl.base_uri +  'routers/%s/ports' % router_uuid
+            uri = self.cl.midonet_uri +  'routers/%s/ports' % router_uuid
             data = { "networkAddress": networkAddress,
                      "networkLength": networkLength, #int
                      "portAddress": portAddress,
@@ -20,7 +20,7 @@ class Port(ResourceBase):
             return self.cl.post(uri, data)
 
         def list(self, router_uuid):
-            uri = self.cl.base_uri + 'routers/%s/ports' % router_uuid
+            uri = self.cl.midonet_uri + 'routers/%s/ports' % router_uuid
             return self.cl.get(uri)
 
         # get and delete are implemented in the super class.
@@ -29,11 +29,11 @@ class Port(ResourceBase):
     class BridgePort(ResourceBase):
 
         def create(self, bridge_uuid):
-            uri = self.cl.base_uri + 'bridges/%s/ports' % bridge_uuid
+            uri = self.cl.midonet_uri + 'bridges/%s/ports' % bridge_uuid
             return self.cl.post(uri, {})
 
         def list(self, bridge_uuid):
-            uri = self.cl.base_uri + 'bridges/%s/ports' % bridge_uuid
+            uri = self.cl.midonet_uri + 'bridges/%s/ports' % bridge_uuid
             return self.cl.get(uri)
 
 

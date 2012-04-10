@@ -33,7 +33,7 @@ class Rule(ResourceBase):
                     nat_targets, 
                     position ):
 
-        uri = self.cl.base_uri + 'chains/%s/rules' % chain_id
+        uri = self.cl.midonet_uri + 'chains/%s/rules' % chain_id
         
         data = {
             "condInvert": cont_invert,
@@ -68,7 +68,7 @@ class Rule(ResourceBase):
         return self.cl.post(uri, data)
 
     def list(self, chain_uuid):
-        uri = self.cl.base_uri + 'chains/%s/rules' % chain_uuid
+        uri = self.cl.midonet_uri + 'chains/%s/rules' % chain_uuid
         return self.cl.get(uri)
 
     # utility methods. 
