@@ -44,7 +44,7 @@ class TestRoute(unittest.TestCase):
         r, c = self.router.create(self.test_tenant_name, self.test_router_name)
         router_uuid = utils.get_uuid(r)
 
-        r, c = self.router_port.create(router_uuid, "192.168.10.0", 24,
+        r, c = self.router_port.create(self.test_tenant_name, router_uuid, "192.168.10.0", 24,
                                 "192.168.10.2", "1.1.1.1", 32)
 
         port_uuid = utils.get_uuid(r)

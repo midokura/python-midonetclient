@@ -24,10 +24,10 @@ class TestPort(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        mc = MidonetClient()
+        mc = MidonetClient(no_ks=True)
         cls.tenant = mc.tenants()
         cls.router = mc.routers()
-        cls.port = mc.ports()
+#        cls.port = mc.ports()
         cls.router_port = mc.router_ports()
 
         try:
@@ -43,14 +43,14 @@ class TestPort(unittest.TestCase):
         r, c = self.router.create(self.test_tenant_name, self.test_router_name)
         router_uuid = utils.get_uuid(r)
 
-        r, c = self.router_port.create(router_uuid, "192.168.10.0", 24,
+        r, c = self.router_port.create(self.test_tenant_name, router_uuid, "192.168.10.0", 24,
                                 "192.168.10.2", "1.1.1.1", 32)
 
         port_uuid = utils.get_uuid(r)
 
-        self.router_port.list(router_uuid)
-        self.port.get(port_uuid)
-        self.port.delete(port_uuid)
+        self.router_port.list(self.test_tenant_name, router_uuid)
+        self.router_port.get(self.test_tenant_name, router_uuid, port_uuid)
+        self.router_port.delete(self.test_tenant_name, router_uuid, port_uuid)
 
 if __name__ == '__main__':
     unittest.main()

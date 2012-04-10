@@ -6,24 +6,47 @@ class Port(ResourceBase):
 
     class RouterPort(ResourceBase):
 
+        def _ports_uri(self, tenant_id, router_uuid):
+            response, content = self.cl.tenants().get(tenant_id)
+            response, routers =  self.cl.get(content['routers'])
+            router_uri =  self._find_resource(routers, router_uuid)
+            response, router =  self.cl.get(router_uri)
+            return  router['ports'] 
+
+        def _port_uri(self, tenant_id, router_uuid, port_uuid):
+            ports_uri = self._ports_uri(tenant_id, router_uuid)
+            response, ports =  self.cl.get(ports_uri)
+            return self._find_resource(ports, port_uuid)
+
+
         # create a materialized port
-        def create(self, router_uuid,
+        def create(self, tenant_id, router_uuid,
                    networkAddress, networkLength, portAddress,
                    localNetworkAddress, localNetworkLength):
 
-            uri = self.cl.midonet_uri +  'routers/%s/ports' % router_uuid
+            uri = self._ports_uri(tenant_id, router_uuid)
             data = { "networkAddress": networkAddress,
                      "networkLength": networkLength, #int
                      "portAddress": portAddress,
                      "localNetworkAddress": localNetworkAddress,
-                     "localNetworkLength": localNetworkLength } #int
+                     "localNetworkLength": localNetworkLength}  #int
             return self.cl.post(uri, data)
 
-        def list(self, router_uuid):
-            uri = self.cl.midonet_uri + 'routers/%s/ports' % router_uuid
+        def list(self, tenant_id, router_uuid):
+
+            uri = self._ports_uri(tenant_id, router_uuid)
             return self.cl.get(uri)
 
-        # get and delete are implemented in the super class.
+        def get(self, tenant_id, router_uuid, port_uuid):
+
+            port_uri = self._port_uri(tenant_id, router_uuid, port_uuid)
+            return self.cl.get(port_uri)
+
+        def delete(self, tenant_id, router_uuid, port_uuid):
+
+            port_uri = self._port_uri(tenant_id, router_uuid, port_uuid)
+            return self.cl.delete(port_uri)
+
 
 
     class BridgePort(ResourceBase):

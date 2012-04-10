@@ -61,11 +61,8 @@ class MidonetClient(object):
     def bridges(self):
         return self.bridge.accept(self)
 
-    def ports(self):
-        return self.port.accept(self, self.midonet_uri + 'ports')
-
     def router_ports(self):
-        return self.rp.accept(self, self.midonet_uri + 'ports')
+        return self.rp.accept(self)
 
     def bridge_ports(self):
         return self.bp.accept(self, self.midonet_uri + 'ports')
