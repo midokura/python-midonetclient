@@ -32,30 +32,45 @@ class Port(ResourceBase):
             return self.cl.post(uri, data)
 
         def list(self, tenant_id, router_uuid):
-
             uri = self._ports_uri(tenant_id, router_uuid)
             return self.cl.get(uri)
 
         def get(self, tenant_id, router_uuid, port_uuid):
-
             port_uri = self._port_uri(tenant_id, router_uuid, port_uuid)
             return self.cl.get(port_uri)
 
         def delete(self, tenant_id, router_uuid, port_uuid):
-
             port_uri = self._port_uri(tenant_id, router_uuid, port_uuid)
             return self.cl.delete(port_uri)
 
 
-
     class BridgePort(ResourceBase):
 
-        def create(self, bridge_uuid):
-            uri = self.cl.midonet_uri + 'bridges/%s/ports' % bridge_uuid
+        def _ports_uri(self, tenant_id, bridge_uuid):
+            response, content = self.cl.tenants().get(tenant_id)
+            response, bridges =  self.cl.get(content['bridges'])
+            bridge_uri =  self._find_resource(bridges, bridge_uuid)
+            response, bridge =  self.cl.get(bridge_uri)
+            return  bridge['ports'] 
+
+        def _port_uri(self, tenant_id, bridge_uuid, port_uuid):
+            ports_uri = self._ports_uri(tenant_id, bridge_uuid)
+            response, ports =  self.cl.get(ports_uri)
+            return self._find_resource(ports, port_uuid)
+
+
+        def create(self, tenant_id, bridge_uuid):
+            uri = self._ports_uri(tenant_id, bridge_uuid)
             return self.cl.post(uri, {})
 
-        def list(self, bridge_uuid):
-            uri = self.cl.midonet_uri + 'bridges/%s/ports' % bridge_uuid
+        def list(self, tenant_id, router_uuid):
+            uri = self._ports_uri(tenant_id, router_uuid)
             return self.cl.get(uri)
 
+        def get(self, tenant_id, router_uuid, port_uuid):
+            port_uri = self._port_uri(tenant_id, router_uuid, port_uuid)
+            return self.cl.get(port_uri)
 
+        def delete(self, tenant_id, router_uuid, port_uuid):
+            port_uri = self._port_uri(tenant_id, router_uuid, port_uuid)
+            return self.cl.delete(port_uri)

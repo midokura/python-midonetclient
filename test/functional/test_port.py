@@ -21,14 +21,16 @@ class TestPort(unittest.TestCase):
     router = None
     test_tenant_name = "TEST_TENANT"
     test_router_name = "TEST_ROUTER"
+    test_bridge_name = "TEST_BRIDGE"
 
     @classmethod
     def setUpClass(cls):
         mc = MidonetClient(no_ks=True)
         cls.tenant = mc.tenants()
         cls.router = mc.routers()
-#        cls.port = mc.ports()
+        cls.bridge = mc.bridges()
         cls.router_port = mc.router_ports()
+        cls.bridge_port = mc.bridge_ports()
 
         try:
             cls.tenant.create(cls.test_tenant_name)
@@ -51,6 +53,20 @@ class TestPort(unittest.TestCase):
         self.router_port.list(self.test_tenant_name, router_uuid)
         self.router_port.get(self.test_tenant_name, router_uuid, port_uuid)
         self.router_port.delete(self.test_tenant_name, router_uuid, port_uuid)
+
+
+    def test_create_list_get_delete_bridge_port(self):
+        r, c = self.bridge.create(self.test_tenant_name, self.test_bridge_name)
+        bridge_uuid = utils.get_uuid(r)
+
+        r, c = self.bridge_port.create(self.test_tenant_name, bridge_uuid)
+
+        port_uuid = utils.get_uuid(r)
+
+        self.bridge_port.list(self.test_tenant_name, bridge_uuid)
+        self.bridge_port.get(self.test_tenant_name, bridge_uuid, port_uuid)
+        self.bridge_port.delete(self.test_tenant_name, bridge_uuid, port_uuid)
+
 
 if __name__ == '__main__':
     unittest.main()
