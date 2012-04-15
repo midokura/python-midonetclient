@@ -95,8 +95,8 @@ class Rule(ResourceBase):
         return self.cl.get(rule_uri)
 
     def delete(self, tenant_id, router_uuid, chain_uuid, rule_uuid):
-        rules_uri = self._rules_uri(tenant_id, router_uuid, chain_uuid)
-        return self.cl.get(rules_uri)
+        rule_uri = self._rule_uri(tenant_id, router_uuid, chain_uuid, rule_uuid)
+        return self.cl.delete(rule_uri)
 
 
 
