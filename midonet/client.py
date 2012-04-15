@@ -16,6 +16,7 @@ import routers
 import tenants
 import vifs
 import rules
+import dhcps
 
 LOG = logging.getLogger('midonet.client')
 
@@ -31,6 +32,8 @@ class MidonetClient(object):
     vif = vifs.Vif()
     chain = chains.Chain()
     rule = rules.Rule()
+    dhcp = dhcps.Dhcp()
+
 
     def __init__(self, midonet_uri='http://localhost:8080/midolmanj-mgmt', 
                  keystone_tokens_endpoint=None, token=None, username=None, 
@@ -38,7 +41,9 @@ class MidonetClient(object):
         self.h = httplib2.Http()
         self.token = None
         self.midonet_uri = midonet_uri
-        if (not no_ks) and (not token) and keystone_tokens_endpoint:
+        if token:
+            self.token = token
+        if (not no_ks) and keystone_tokens_endpoint:
             # Generate token from keystone
             body = {"auth": {"tenantName": tenant_name, 
                     "passwordCredentials":{"username": username, "password": password}}}
@@ -78,6 +83,9 @@ class MidonetClient(object):
 
     def rules(self):
         return self.rule.accept(self)
+
+    def dhcps(self):
+        return self.dhcp.accept(self)
 
     def _do_request(self, uri, method, body='{}'):
         headers = {}
