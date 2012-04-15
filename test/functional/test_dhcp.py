@@ -42,10 +42,7 @@ class TestBridge(unittest.TestCase):
     def tearDownClass(cls):
         cls.tenant.delete(cls.test_tenant_name)
 
-    def test_list(self):
-        self.bridge.list(self.test_tenant_name)
-
-    def test_create_get_delete(self):
+    def test_create_list_get_delete(self):
         r, c = self.dhcp.create(self.test_tenant_name, self.bridge_uuid,
                                 '172.16.0.0', 16, '172.16.0.1')
         r, c = self.dhcp.list(self.test_tenant_name, self.bridge_uuid)
