@@ -17,6 +17,7 @@ import tenants
 import vifs
 import rules
 import dhcps
+import dhcp_hosts
 
 LOG = logging.getLogger('midonet.client')
 
@@ -33,6 +34,7 @@ class MidonetClient(object):
     chain = chains.Chain()
     rule = rules.Rule()
     dhcp = dhcps.Dhcp()
+    dhcp_host = dhcp_hosts.DhcpHost()
 
 
     def __init__(self, midonet_uri='http://localhost:8080/midolmanj-mgmt', 
@@ -86,6 +88,9 @@ class MidonetClient(object):
 
     def dhcps(self):
         return self.dhcp.accept(self)
+
+    def dhcp_hosts(self):
+        return self.dhcp_host.accept(self)
 
     def _do_request(self, uri, method, body='{}'):
         headers = {}
