@@ -48,10 +48,5 @@ class TestBridge(unittest.TestCase):
  
         self.assertRaises(LookupError, self.bridge.get, self.test_tenant_name, bridge_uuid)
 
-    def test_link_create(self):
-        #TODO
-        pass
-
-
 if __name__ == '__main__':
     unittest.main()
