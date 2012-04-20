@@ -7,6 +7,8 @@ import json
 import logging
 import os.path
 import sys
+from datetime import datetime
+from datetime import timedelta
 
 import chains
 import ports
@@ -38,26 +40,35 @@ class MidonetClient(object):
 
 
     def __init__(self, midonet_uri='http://localhost:8080/midolmanj-mgmt', 
-                 keystone_tokens_endpoint=None, token=None, username=None, 
-                 password=None, tenant_name=None, no_ks=False):
+                 token=None, ks_uri='http://localhost:5000/v2.0',
+                 username=None, password=None, tenant_name=None, no_ks=False):
         self.h = httplib2.Http()
-        self.token = None
+        self.token = token
         self.midonet_uri = midonet_uri
+        self.username = username
+        self.password = password
+        self.tenant_name = tenant_name
+        self.ks_uri = ks_uri
+        self.token_expires = None
         if token:
             self.token = token
-        if (not no_ks) and keystone_tokens_endpoint:
-            # Generate token from keystone
-            body = {"auth": {"tenantName": tenant_name, 
-                    "passwordCredentials":{"username": username, "password": password}}}
-            response, content = self.post(keystone_tokens_endpoint, body)
-            self.token = content['access']['token']['id']
+        if not no_ks:
+            # Generate a scoped token from keystone
+            self.token, self.token_expires = self._gen_ks_token(
+                self.username, self.password, self.tenant_name)
 
         # Get resource URIs
         response, content = self.get(self.midonet_uri)
         self.version = content['version']
         self.vifs_uri = content['vifs']
         self.tenant_uri = content['tenant']
-   
+
+    def _gen_ks_token(self, username, password, tenant_name):
+        from keystoneclient.v2_0 import client as keystone_client
+        ks_conn = keystone_client.Client(endpoint=self.ks_uri)
+        token = ks_conn.tokens.authenticate(
+            username=username, password=password, tenant_name=tenant_name)
+        return token.id, datetime.strptime(token.expires, '%Y-%m-%dT%H:%M:%SZ')
 
     def tenants(self):
         return self.tenant.accept(self, self.tenant_uri)
@@ -96,6 +107,11 @@ class MidonetClient(object):
         headers = {}
         headers["Content-Type"] = "application/json"
         if self.token:
+            # Renew token one hour before the expiration 
+            if self.token_expires - datetime.now() < timedelta(seconds=60*60):
+                self.token, self.token_expires = self._gen_ks_token(
+                    self.username, self.password, self.tenant_name)
+
             headers["X-Auth-Token"] = self.token
         response, content = self.h.request(uri, method, body, headers=headers)
         
