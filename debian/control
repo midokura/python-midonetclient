@@ -1,0 +1,20 @@
+Source: midonet-client
+Section: non-free/python
+Priority: extra
+Maintainer: Ryu Ishimoto <ryu@midokura.com>
+Uploaders: Adam Johnson <adam@midokura.com>,
+ Giuseppe de Candia <pino@midokura.com>,
+ Jacob Mandelson <jacob@midokura.jp>,
+ Dan Dumitriu <dan@midokura.com>,
+ Yoshi Tamura <yoshi@midokura.com> 
+Build-Depends: debhelper (>= 7.0.50~), autotools-dev, python, python-support,
+ python-unittest2, python-all-dev
+Standards-Version: 3.9.1.0
+Homepage: https://github.com/midokura/midonet-client
+Vcs-Git: https://github.com/midokura/midonet-client.git
+Vcs-Browser: https://github.com/midokura/midonet-client
+
+Package: python-midonet-client
+Architecture: all
+Depends: ${misc:Depends}, ${python:Depends}
+Description: Python client for MidoNet REST API.
