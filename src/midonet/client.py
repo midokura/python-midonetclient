@@ -49,6 +49,7 @@ class MidonetClient(object):
         self.password = password
         self.tenant_name = tenant_name
         self.ks_uri = ks_uri
+        self.no_ks = no_ks
         self.token_expires = None
         if token:
             self.token = token
@@ -108,7 +109,9 @@ class MidonetClient(object):
         headers["Content-Type"] = "application/json"
         if self.token:
             # Renew token one hour before the expiration 
-            if self.token_expires - datetime.now() < timedelta(seconds=60*60):
+            if (not self.no_ks) and \
+                    self.token_expires - datetime.now() < \
+                    timedelta(seconds=60*60):
                 self.token, self.token_expires = self._gen_ks_token(
                     self.username, self.password, self.tenant_name)
 
@@ -119,7 +122,6 @@ class MidonetClient(object):
 #            fi = inspect.getframeinfo(frame)
 #            msg = "Call: " + os.path.basename(fi.filename)[:-2] + fi.function
         req = "Request: (%s on %s) " % (method, uri)
-        LOG.error("Body: %r", body)
         debug_print(req, response, content)
         
         if int(response['status']) > 300:
