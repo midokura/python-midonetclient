@@ -121,8 +121,8 @@ class MidonetClient(object):
 #            frame =  inspect.stack()[2][0]
 #            fi = inspect.getframeinfo(frame)
 #            msg = "Call: " + os.path.basename(fi.filename)[:-2] + fi.function
-        req = "Request: (%s on %s) " % (method, uri)
-        debug_print(req, response, content)
+        req = "Req: (%s on %s) " % (method, uri)
+        debug_print(req, body, response, content)
         
         if int(response['status']) > 300:
 #            raise exc.HTTPError(content)

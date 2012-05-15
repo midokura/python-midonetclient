@@ -10,11 +10,12 @@ import os.path
 logging.basicConfig()
 LOG = logging.getLogger('nova...midonet.client')
 
-def debug_print(msg, resp, body):
+def debug_print(msg, req_body, resp, resp_body):
     LOG.debug('-' * 10)
     LOG.debug("%s :",   msg)
+    LOG.debug("Req Body: %s" % req_body)
     LOG.debug("Resp: %s" % resp)
-    LOG.debug("Body: %s" % body)
+    LOG.debug("Resp Body: %s" % resp_body)
 
 def get_uuid(response):
     return os.path.basename(response['location'])
