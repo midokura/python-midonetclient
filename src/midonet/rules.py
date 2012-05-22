@@ -4,25 +4,18 @@ from resource import ResourceBase
 
 class Rule(ResourceBase):
 
-    def _rules_uri(self, tenant_id, router_uuid, chain_uuid):
-        response, content = self.cl.tenants().get(tenant_id)
-        response, routers =  self.cl.get(content['routers'])
-        router_uri =  self._find_resource(routers, router_uuid)
-        response, router =  self.cl.get(router_uri)
-        response, chains =  self.cl.get(router['chains'] )
-        chain_uri = self._find_resource(chains, chain_uuid)
-        response, chain =  self.cl.get(chain_uri)
+    def _rules_uri(self, tenant_id, chain_uuid):
+        response, chain = self.cl.chains().get(tenant_id, chain_uuid)
         return chain['rules']
 
-    def _rule_uri(self, tenant_id, router_uuid, chain_uuid, rule_uuid):
-        rules_uri = self._rules_uri(tenant_id, router_uuid, chain_uuid)
+    def _rule_uri(self, tenant_id, chain_uuid, rule_uuid):
+        rules_uri = self._rules_uri(tenant_id, chain_uuid)
         response, rules = self.cl.get(rules_uri)
         return self._find_resource(rules, rule_uuid)
-        
+
 
     def create(self, tenant_id,
-                    router_uuid,
-                    chain_uuid, 
+                    chain_uuid,
                     cont_invert,
                     in_ports,
                     inv_in_ports,
@@ -48,12 +41,12 @@ class Rule(ResourceBase):
                     jump_chain_id,
                     jump_chain_name,
                     flow_action,
-                    nat_targets, 
+                    nat_targets,
                     position ):
 
 
-        uri = self._rules_uri(tenant_id, router_uuid, chain_uuid)
-        
+        uri = self._rules_uri(tenant_id, chain_uuid)
+
         data = {
             "condInvert": cont_invert,
             "inPorts": in_ports,
@@ -80,43 +73,43 @@ class Rule(ResourceBase):
             "jumpChainId": jump_chain_id,
             "jumpChainName": jump_chain_name,
             "flowAction": flow_action,
-            "natTargets": nat_targets, 
+            "natTargets": nat_targets,
             "position": position
             }
 
         return self.cl.post(uri, data)
 
-    def list(self, tenant_id, router_uuid, chain_uuid):
-        rules_uri = self._rules_uri(tenant_id, router_uuid, chain_uuid)
+    def list(self, tenant_id, chain_uuid):
+        rules_uri = self._rules_uri(tenant_id, chain_uuid)
         return self.cl.get(rules_uri)
 
-    def get(self, tenant_id, router_uuid, chain_uuid, rule_uuid):
-        rule_uri = self._rule_uri(tenant_id, router_uuid, chain_uuid, rule_uuid)
+    def get(self, tenant_id, chain_uuid, rule_uuid):
+        rule_uri = self._rule_uri(tenant_id, chain_uuid, rule_uuid)
         return self.cl.get(rule_uri)
 
-    def delete(self, tenant_id, router_uuid, chain_uuid, rule_uuid):
-        rule_uri = self._rule_uri(tenant_id, router_uuid, chain_uuid, rule_uuid)
+    def delete(self, tenant_id, chain_uuid, rule_uuid):
+        rule_uri = self._rule_uri(tenant_id, chain_uuid, rule_uuid)
         return self.cl.delete(rule_uri)
 
 
 
-    # utility methods. 
+    # utility methods.
     # NOTE: would be better to move them, e.g. to utility module
-    def create_dnat_rule(self, tenant_id, router_uuid, chain_uuid,
+    def create_dnat_rule(self, tenant_id, chain_uuid,
                          nw_dst_address,   #floating
                          new_dst_address): #fixed
 
-        return self.create(tenant_id, router_uuid, chain_uuid, False, None, False, None,
+        return self.create(tenant_id, chain_uuid, False, None, False, None,
                         False, 0, False, None, False,
                         None, 0, False, nw_dst_address, 32, False, 0, 0,
                         False, 0, 0, False, 'dnat', None, None, 'accept',
                         [[[new_dst_address, new_dst_address], [0,0]]], 1)
 
-    def create_snat_rule(self, tenant_id, router_uuid, chain_uuid,
+    def create_snat_rule(self, tenant_id, chain_uuid,
                          new_nw_src_address, #floating
                          nw_src_address):    #fixed
 
-        return self.create(tenant_id, router_uuid, chain_uuid, False, None, False, None,
+        return self.create(tenant_id, chain_uuid, False, None, False, None,
                         False, 0, False, None, False,
                         nw_src_address, 32, False, None, 0, False, 0, 0,
                         False, 0, 0, False, 'snat', None, None, 'accept',
