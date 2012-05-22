@@ -30,8 +30,9 @@ def main():
 
     # simple repl.
     client = MidonetClient(midonet_uri='http://localhost:8080/midolmanj-mgmt',
-                           keystone_tokens_endpoint='http://localhost:5000/v2.0/tokens',
-                           username='admin', password='gogomid0', tenant_name='admin', no_ks=True)
+                           ks_uri='http://localhost:5000/v2.0',
+                           username='luser', password='pw', tenant_id='',
+                           no_ks=True)
     while True:
         try:
             input = raw_input('midonet_client> ')
