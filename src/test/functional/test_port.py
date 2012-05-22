@@ -25,7 +25,7 @@ class TestPort(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        mc = MidonetClient(no_ks=True)
+        mc = MidonetClient()
         cls.tenant = mc.tenants()
         cls.router = mc.routers()
         cls.bridge = mc.bridges()

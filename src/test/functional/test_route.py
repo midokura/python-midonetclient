@@ -12,7 +12,7 @@ TOPDIR = os.path.normpath(os.path.join(os.path.abspath(sys.argv[0]),
 sys.path.insert(0, TOPDIR)
 
 from midonet.client import MidonetClient
-from midonet import utils 
+from midonet import utils
 
 
 class TestRoute(unittest.TestCase):
@@ -25,7 +25,7 @@ class TestRoute(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        mc = MidonetClient(no_ks=True)
+        mc = MidonetClient()
         cls.tenant = mc.tenants()
         cls.router = mc.routers()
         cls.route = mc.routes()

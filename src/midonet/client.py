@@ -40,8 +40,9 @@ class MidonetClient(object):
 
 
     def __init__(self, midonet_uri='http://localhost:8080/midolmanj-mgmt',
-                 token=None, ks_uri='http://localhost:5000/v2.0',
-                 username=None, password=None, tenant_id=None, no_ks=False):
+                 token=None, ks_uri=None, username=None, password=None,
+                 tenant_id=None):
+
         self.h = httplib2.Http()
         self.token = token
         self.midonet_uri = midonet_uri
@@ -49,11 +50,10 @@ class MidonetClient(object):
         self.password = password
         self.tenant_id = tenant_id
         self.ks_uri = ks_uri
-        self.no_ks = no_ks
         self.token_expires = None
         if token:
             self.token = token
-        if not no_ks:
+        if self.ks_uri:
             # Generate a scoped token from keystone
             self.token, self.token_expires = self._gen_ks_token(
                 self.username, self.password, self.tenant_id)
@@ -109,7 +109,7 @@ class MidonetClient(object):
         headers["Content-Type"] = "application/json"
         if self.token:
             # Renew token one hour before the expiration
-            if (not self.no_ks) and \
+            if self.ks_uri and \
                     self.token_expires - datetime.now() < \
                     timedelta(seconds=60*60):
                 self.token, self.token_expires = self._gen_ks_token(
