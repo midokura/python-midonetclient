@@ -12,7 +12,7 @@ TOPDIR = os.path.normpath(os.path.join(os.path.abspath(sys.argv[0]),
 sys.path.insert(0, TOPDIR)
 
 from midonet.client import MidonetClient
-from midonet import utils 
+from midonet import utils
 
 
 class TestChain(unittest.TestCase):
@@ -26,7 +26,6 @@ class TestChain(unittest.TestCase):
     def setUpClass(cls):
         mc = MidonetClient()
         cls.tenant = mc.tenants()
-        cls.router = mc.routers()
         cls.chain = mc.chains()
 
         try:
@@ -39,15 +38,12 @@ class TestChain(unittest.TestCase):
         cls.tenant.delete(cls.test_tenant_name)
 
     def test_create_get_delete(self):
-        r, c = self.router.create(self.test_tenant_name, self.test_router_name)
-        router_uuid = utils.get_uuid(r)
-
-        r, c = self.chain.create(self.test_tenant_name, router_uuid, 'TEST_CHAIN')
+        r, c = self.chain.create(self.test_tenant_name, 'TEST_CHAIN')
         chain_uuid = utils.get_uuid(r)
 
-        self.chain.list(self.test_tenant_name, router_uuid)
-        self.chain.get(self.test_tenant_name, router_uuid, chain_uuid)
-        self.chain.delete(self.test_tenant_name, router_uuid, chain_uuid)
+        self.chain.list(self.test_tenant_name)
+        self.chain.get(self.test_tenant_name, chain_uuid)
+        self.chain.delete(self.test_tenant_name, chain_uuid)
 
 
 if __name__ == '__main__':
