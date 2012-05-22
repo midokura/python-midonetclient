@@ -39,15 +39,15 @@ class MidonetClient(object):
     dhcp_host = dhcp_hosts.DhcpHost()
 
 
-    def __init__(self, midonet_uri='http://localhost:8080/midolmanj-mgmt', 
+    def __init__(self, midonet_uri='http://localhost:8080/midolmanj-mgmt',
                  token=None, ks_uri='http://localhost:5000/v2.0',
-                 username=None, password=None, tenant_name=None, no_ks=False):
+                 username=None, password=None, tenant_id=None, no_ks=False):
         self.h = httplib2.Http()
         self.token = token
         self.midonet_uri = midonet_uri
         self.username = username
         self.password = password
-        self.tenant_name = tenant_name
+        self.tenant_id = tenant_id
         self.ks_uri = ks_uri
         self.no_ks = no_ks
         self.token_expires = None
@@ -56,7 +56,7 @@ class MidonetClient(object):
         if not no_ks:
             # Generate a scoped token from keystone
             self.token, self.token_expires = self._gen_ks_token(
-                self.username, self.password, self.tenant_name)
+                self.username, self.password, self.tenant_id)
 
         # Get resource URIs
         response, content = self.get(self.midonet_uri)
@@ -64,11 +64,11 @@ class MidonetClient(object):
         self.vifs_uri = content['vifs']
         self.tenant_uri = content['tenant']
 
-    def _gen_ks_token(self, username, password, tenant_name):
+    def _gen_ks_token(self, username, password, tenant_id):
         from keystoneclient.v2_0 import client as keystone_client
         ks_conn = keystone_client.Client(endpoint=self.ks_uri)
         token = ks_conn.tokens.authenticate(
-            username=username, password=password, tenant_name=tenant_name)
+            username=username, password=password, tenant_id=tenant_id)
         return token.id, datetime.strptime(token.expires, '%Y-%m-%dT%H:%M:%SZ')
 
     def tenants(self):
@@ -108,22 +108,22 @@ class MidonetClient(object):
         headers = {}
         headers["Content-Type"] = "application/json"
         if self.token:
-            # Renew token one hour before the expiration 
+            # Renew token one hour before the expiration
             if (not self.no_ks) and \
                     self.token_expires - datetime.now() < \
                     timedelta(seconds=60*60):
                 self.token, self.token_expires = self._gen_ks_token(
-                    self.username, self.password, self.tenant_name)
+                    self.username, self.password, self.tenant_id)
 
             headers["X-Auth-Token"] = self.token
         response, content = self.h.request(uri, method, body, headers=headers)
-        
+
 #            frame =  inspect.stack()[2][0]
 #            fi = inspect.getframeinfo(frame)
 #            msg = "Call: " + os.path.basename(fi.filename)[:-2] + fi.function
         req = "Req: (%s on %s) " % (method, uri)
         debug_print(req, body, response, content)
-        
+
         if int(response['status']) > 300:
 #            raise exc.HTTPError(content)
             LOG.error("%s got an error status %s", req, response['status'])
@@ -135,15 +135,15 @@ class MidonetClient(object):
             return response, body
         except ValueError:
             return response, content
-    
+
     def get(self, uri):
         return self._do_request(uri, 'GET')
-    
+
     def put(self, uri, body):
         return self._do_request(uri, 'PUT', json.dumps(body))
-    
+
     def post(self, uri, body):
         return self._do_request(uri, 'POST', json.dumps(body))
-    
+
     def delete(self, uri):
         return self._do_request(uri, 'DELETE')
