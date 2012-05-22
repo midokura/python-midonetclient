@@ -4,6 +4,11 @@ from resource import ResourceBase
 
 class Router(ResourceBase):
 
+    def _router_uri(self, tenant_id, router_uuid):
+        response, content = self.cl.tenants().get(tenant_id)
+        response, routers =  self.cl.get(content['routers'])
+        return self._find_resource(routers, router_uuid)
+
     def create(self, tenant_id, name, router_id=None):
         response, content = self.cl.tenants().get(tenant_id)
         uri =  content['routers']
@@ -17,25 +22,19 @@ class Router(ResourceBase):
         uri =  content['routers']
         return self.cl.get(uri)
 
-    def update(self, tenant_id, router_uuid, name):
-        response, content = self.cl.tenants().get(tenant_id)
-        response, routers =  self.cl.get(content['routers'])
-        router_uri =  find_resource(routers, router_uuid)
-        data = {"name": name}
+    def update(self, tenant_id, router_uuid, name, inboundFilter,
+               outboundFilter):
+        router_uri = self._router_uri(tenant_id, router_uuid)
+        data = {'name': name, 'inboundFilter': inboundFilter,
+                'outboundFilter': outboundFilter}
         return self.cl.put(router_uri, data)
 
     def get(self, tenant_id, router_uuid):
-        response, content = self.cl.tenants().get(tenant_id)
-        response, routers =  self.cl.get(content['routers'])
-        router_uri = self._find_resource(routers, router_uuid)
-
+        router_uri = self._router_uri(tenant_id, router_uuid)
         return self.cl.get(router_uri)
 
     def delete(self, tenant_id, router_uuid):
-        response, content = self.cl.tenants().get(tenant_id)
-        response, routers =  self.cl.get(content['routers'])
-        router_uri = self._find_resource(routers, router_uuid)
-
+        router_uri = self._router_uri(tenant_id, router_uuid)
         return self.cl.delete(router_uri)
 
 
