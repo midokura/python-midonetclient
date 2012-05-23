@@ -73,7 +73,7 @@ class Router(ResourceBase):
              port_address, bridge_uuid):
 
         response, content = self.get(tenant_id, router_uuid)
-        uri = content['bridges']
+        uri = content['peerBridges']
         data = {
             "networkAddress": network_address,
             "networkLength": network_length,
@@ -85,17 +85,17 @@ class Router(ResourceBase):
 
     def link_bridge_list(self, tenant_id, router_uuid):
         response, content = self.get(tenant_id, router_uuid)
-        uri = content['bridges']
+        uri = content['peerBridges']
         return self.cl.get(uri)
 
 
     def link_bridge_get(self, tenant_id, router_uuid, bridge_uuid):
         response, content = self.get(tenant_id, router_uuid)
-        uri = content['bridges'] + '/' + bridge_uuid
+        uri = content['peerBridges'] + '/' + bridge_uuid
         return self.cl.get(uri)
 
     def link_bridge_delete(self, tenant_id, router_uuid, bridge_uuid):
         response, content = self.get(tenant_id, router_uuid)
-        uri = content['bridges'] + '/' + bridge_uuid
+        uri = content['peerBridges'] + '/' + bridge_uuid
         return self.cl.delete(uri)
 
