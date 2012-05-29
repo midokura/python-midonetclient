@@ -48,8 +48,8 @@ class TestRouter(unittest.TestCase):
         self.router.get(self.test_tenant_name, router_uuid)
 
         self.router.update(self.test_tenant_name, router_uuid,'new-name',
-                           inboundFilter=str(uuid.uuid4()),
-                           outboundFilter=str(uuid.uuid4()))
+                           inbound_filter=str(uuid.uuid4()),
+                           outbound_filter=str(uuid.uuid4()))
 
         self.router.delete(self.test_tenant_name, router_uuid)
         self.assertRaises(LookupError, self.router.get, self.test_tenant_name, router_uuid)

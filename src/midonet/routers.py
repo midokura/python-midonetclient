@@ -22,11 +22,11 @@ class Router(ResourceBase):
         uri =  content['routers']
         return self.cl.get(uri)
 
-    def update(self, tenant_id, router_uuid, name, inboundFilter,
-               outboundFilter):
+    def update(self, tenant_id, router_uuid, name, inbound_filter,
+               outbound_filter):
         router_uri = self._router_uri(tenant_id, router_uuid)
-        data = {'name': name, 'inboundFilter': inboundFilter,
-                'outboundFilter': outboundFilter}
+        data = {'name': name, 'inboundFilter': inbound_filter,
+                'outboundFilter': outbound_filter}
         return self.cl.put(router_uri, data)
 
     def get(self, tenant_id, router_uuid):
