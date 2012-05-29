@@ -21,7 +21,6 @@ class TestTenant(unittest.TestCase):
     def setUpClass(cls):
         mc = MidonetClient()
         cls.t = mc.tenants()
-        cls.t.delete("Ika")
 
     def test_list(self):
         self.t.list()
