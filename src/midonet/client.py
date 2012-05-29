@@ -20,6 +20,7 @@ import vifs
 import rules
 import dhcps
 import dhcp_hosts
+import port_groups
 
 LOG = logging.getLogger('midonet.client')
 
@@ -37,7 +38,7 @@ class MidonetClient(object):
     rule = rules.Rule()
     dhcp = dhcps.Dhcp()
     dhcp_host = dhcp_hosts.DhcpHost()
-
+    port_group = port_groups.PortGroup()
 
     def __init__(self, midonet_uri='http://localhost:8080/midolmanj-mgmt',
                  token=None, ks_uri=None, username=None, password=None,
@@ -104,9 +105,15 @@ class MidonetClient(object):
     def dhcp_hosts(self):
         return self.dhcp_host.accept(self)
 
-    def _do_request(self, uri, method, body='{}'):
-        headers = {}
-        headers["Content-Type"] = "application/json"
+    def port_groups(self):
+        return self.port_group.accept(self)
+
+    def _do_request(self, uri, method, body='{}', headers={}):
+        if not method == 'DELETE':
+            if not( headers.has_key('Content-Type') and \
+                        headers['Content-Type']):
+                headers['Content-Type'] = 'application/json'
+
         if self.token:
             # Renew token one hour before the expiration
             if self.ks_uri and \
@@ -136,14 +143,14 @@ class MidonetClient(object):
         except ValueError:
             return response, content
 
-    def get(self, uri):
-        return self._do_request(uri, 'GET')
+    def get(self, uri, headers={}):
+        return self._do_request(uri, 'GET', headers=headers)
 
-    def put(self, uri, body):
-        return self._do_request(uri, 'PUT', json.dumps(body))
+    def put(self, uri, body, headers={}):
+        return self._do_request(uri, 'PUT', json.dumps(body), headers=headers)
 
-    def post(self, uri, body):
-        return self._do_request(uri, 'POST', json.dumps(body))
+    def post(self, uri, body, headers={}):
+        return self._do_request(uri, 'POST', json.dumps(body), headers=headers)
 
-    def delete(self, uri):
-        return self._do_request(uri, 'DELETE')
+    def delete(self, uri, headers={}):
+        return self._do_request(uri, 'DELETE', headers=headers)
