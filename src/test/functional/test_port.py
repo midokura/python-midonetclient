@@ -3,6 +3,7 @@
 import os
 import sys
 import unittest
+import uuid
 from webob import exc
 
 TOPDIR = os.path.normpath(os.path.join(os.path.abspath(sys.argv[0]),
@@ -59,10 +60,11 @@ class TestPort(unittest.TestCase):
         r, c = self.bridge.create(self.test_tenant_name, self.test_bridge_name)
         bridge_uuid = utils.get_uuid(r)
 
-        r, c = self.bridge_port.create(self.test_tenant_name, bridge_uuid)
-
+        r, c = self.bridge_port.create(self.test_tenant_name, bridge_uuid,
+                                       str(uuid.uuid4()), str(uuid.uuid4()),
+                                       [str(uuid.uuid4()), str(uuid.uuid4()),
+                                        str(uuid.uuid4()), str(uuid.uuid4())])
         port_uuid = utils.get_uuid(r)
-
         self.bridge_port.list(self.test_tenant_name, bridge_uuid)
         self.bridge_port.get(self.test_tenant_name, bridge_uuid, port_uuid)
         self.bridge_port.delete(self.test_tenant_name, bridge_uuid, port_uuid)

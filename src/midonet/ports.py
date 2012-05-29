@@ -11,7 +11,7 @@ class Port(ResourceBase):
             response, routers =  self.cl.get(content['routers'])
             router_uri =  self._find_resource(routers, router_uuid)
             response, router =  self.cl.get(router_uri)
-            return  router['ports'] 
+            return  router['ports']
 
         def _port_uri(self, tenant_id, router_uuid, port_uuid):
             ports_uri = self._ports_uri(tenant_id, router_uuid)
@@ -51,7 +51,7 @@ class Port(ResourceBase):
             response, bridges =  self.cl.get(content['bridges'])
             bridge_uri =  self._find_resource(bridges, bridge_uuid)
             response, bridge =  self.cl.get(bridge_uri)
-            return  bridge['ports'] 
+            return  bridge['ports']
 
         def _port_uri(self, tenant_id, bridge_uuid, port_uuid):
             ports_uri = self._ports_uri(tenant_id, bridge_uuid)
@@ -59,9 +59,14 @@ class Port(ResourceBase):
             return self._find_resource(ports, port_uuid)
 
 
-        def create(self, tenant_id, bridge_uuid):
+        def create(self, tenant_id, bridge_uuid, inbound_filter,
+                   outbound_filter, port_group_ids):
             uri = self._ports_uri(tenant_id, bridge_uuid)
-            return self.cl.post(uri, {})
+            data = { 'inboundFilter': inbound_filter,
+                     'outboundFilter': outbound_filter,
+                     'portGroupIDs': port_group_ids }
+
+            return self.cl.post(uri, data)
 
         def list(self, tenant_id, router_uuid):
             uri = self._ports_uri(tenant_id, router_uuid)
