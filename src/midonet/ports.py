@@ -21,7 +21,7 @@ class Port(ResourceBase):
         # create a port
         def create(self, tenant_id, router_uuid, type_,
                    networkAddress, networkLength, portAddress,
-                   localNetworkAddress, localNetworkLength,
+                   localNetworkAddress=None, localNetworkLength=None,
                    inbound_filter=None, outbound_filter=None):
 
             uri = self._ports_uri(tenant_id, router_uuid)
@@ -75,8 +75,8 @@ class Port(ResourceBase):
             return self._find_resource(ports, port_uuid)
 
 
-        def create(self, tenant_id, bridge_uuid, type_, inbound_filter,
-                   outbound_filter, port_group_ids):
+        def create(self, tenant_id, bridge_uuid, type_, inbound_filter=None,
+                   outbound_filter=None, port_group_ids=None):
             uri = self._ports_uri(tenant_id, bridge_uuid)
             data = { 'type': type_,
                      'inboundFilter': inbound_filter,
