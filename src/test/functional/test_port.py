@@ -133,12 +133,6 @@ class TestPort(unittest.TestCase):
                                        "192.168.10.2", "1.1.1.1", 32)
         r, rp_2 = self.mc.get(r['location'])
 
-        # link/unlink from bp_1 to bp_2
-        r, c = self.bridge_port.link(self.test_tenant_name, self.bridge_uuid,
-                                     bp_1['id'], bp_2['id'])
-        r, c = self.bridge_port.unlink(self.test_tenant_name, self.bridge_uuid,
-                                     bp_1['id'])
-
         # link/unlink from rp_1 to rp_2
         r, c = self.router_port.link(self.test_tenant_name, self.router_uuid,
                                      rp_1['id'], rp_2['id'])
