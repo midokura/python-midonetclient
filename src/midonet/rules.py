@@ -99,19 +99,29 @@ class Rule(ResourceBase):
                          nw_dst_address,   #floating
                          new_dst_address): #fixed
 
+        nat_targets= [{ 'addressFrom': new_dst_address,
+                       'addressTo': new_dst_address,
+                       'portFrom': 0,
+                       'portTo': 0}]
+
         return self.create(tenant_id, chain_uuid, False, None, False, None,
                         False, 0, False, None, False,
                         None, 0, False, nw_dst_address, 32, False, 0, 0,
                         False, 0, 0, False, 'dnat', None, None, 'accept',
-                        [[[new_dst_address, new_dst_address], [0,0]]], 1)
+                        nat_targets, 1)
 
     def create_snat_rule(self, tenant_id, chain_uuid,
                          new_nw_src_address, #floating
                          nw_src_address):    #fixed
 
+        nat_targets= [{ 'addressFrom': new_nw_src_address,
+                       'addressTo': new_nw_src_address,
+                       'portFrom': 0,
+                       'portTo': 0}]
+
         return self.create(tenant_id, chain_uuid, False, None, False, None,
                         False, 0, False, None, False,
                         nw_src_address, 32, False, None, 0, False, 0, 0,
                         False, 0, 0, False, 'snat', None, None, 'accept',
-                        [[[new_nw_src_address, new_nw_src_address], [0,0]]], 1)
+                        nat_targets, 1)
 
