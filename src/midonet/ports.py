@@ -18,17 +18,21 @@ class Port(ResourceBase):
             response, ports =  self.cl.get(ports_uri)
             return self._find_resource(ports, port_uuid)
 
-        # create a materialized port
-        def create(self, tenant_id, router_uuid,
+        # create a port
+        def create(self, tenant_id, router_uuid, type_,
                    networkAddress, networkLength, portAddress,
-                   localNetworkAddress, localNetworkLength):
+                   localNetworkAddress, localNetworkLength,
+                   inbound_filter=None, outbound_filter=None):
 
             uri = self._ports_uri(tenant_id, router_uuid)
-            data = { "networkAddress": networkAddress,
+            data = { "type": type_,
+                     "networkAddress": networkAddress,
                      "networkLength": networkLength, #int
                      "portAddress": portAddress,
                      "localNetworkAddress": localNetworkAddress,
-                     "localNetworkLength": localNetworkLength}  #int
+                     "localNetworkLength": localNetworkLength,  #int
+                     "inboundFilter": inbound_filter,
+                     "outboundFilter": outbound_filter}
             return self.cl.post(uri, data)
 
         def list(self, tenant_id, router_uuid):
@@ -42,6 +46,18 @@ class Port(ResourceBase):
         def delete(self, tenant_id, router_uuid, port_uuid):
             port_uri = self._port_uri(tenant_id, router_uuid, port_uuid)
             return self.cl.delete(port_uri)
+
+        def link(self, tenant_id, router_uuid, port_uuid, peer_id):
+            response, port = self.get(tenant_id, router_uuid, port_uuid)
+            link_uri = port['link']
+            data = {'peerId': peer_id}
+            return self.cl.post(link_uri, data)
+
+        def unlink(self, tenant_id, router_uuid, port_uuid):
+            response, port = self.get(tenant_id, router_uuid, port_uuid)
+            link_uri = port['link']
+            data = {'peerId': None}
+            return self.cl.post(link_uri, data)
 
 
     class BridgePort(ResourceBase):
@@ -59,23 +75,36 @@ class Port(ResourceBase):
             return self._find_resource(ports, port_uuid)
 
 
-        def create(self, tenant_id, bridge_uuid, inbound_filter,
+        def create(self, tenant_id, bridge_uuid, type_, inbound_filter,
                    outbound_filter, port_group_ids):
             uri = self._ports_uri(tenant_id, bridge_uuid)
-            data = { 'inboundFilter': inbound_filter,
+            data = { 'type': type_,
+                     'inboundFilter': inbound_filter,
                      'outboundFilter': outbound_filter,
-                     'portGroupIDs': port_group_ids }
-
+                     'portGroupIDs': port_group_ids
+                     }
             return self.cl.post(uri, data)
 
-        def list(self, tenant_id, router_uuid):
-            uri = self._ports_uri(tenant_id, router_uuid)
+        def list(self, tenant_id, bridge_uuid):
+            uri = self._ports_uri(tenant_id, bridge_uuid)
             return self.cl.get(uri)
 
-        def get(self, tenant_id, router_uuid, port_uuid):
-            port_uri = self._port_uri(tenant_id, router_uuid, port_uuid)
+        def get(self, tenant_id, bridge_uuid, port_uuid):
+            port_uri = self._port_uri(tenant_id, bridge_uuid, port_uuid)
             return self.cl.get(port_uri)
 
-        def delete(self, tenant_id, router_uuid, port_uuid):
-            port_uri = self._port_uri(tenant_id, router_uuid, port_uuid)
+        def delete(self, tenant_id, bridge_uuid, port_uuid):
+            port_uri = self._port_uri(tenant_id, bridge_uuid, port_uuid)
             return self.cl.delete(port_uri)
+
+        def link(self, tenant_id, bridge_uuid, port_uuid, peer_id):
+            response, port = self.get(tenant_id, bridge_uuid, port_uuid)
+            link_uri = port['link']
+            data = {'peerId': peer_id}
+            return self.cl.post(link_uri, data)
+
+        def unlink(self, tenant_id, bridge_uuid, port_uuid):
+            response, port = self.get(tenant_id, bridge_uuid, port_uuid)
+            link_uri = port['link']
+            data = {'peerId': None}
+            return self.cl.post(link_uri, data)
