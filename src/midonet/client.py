@@ -16,7 +16,6 @@ import routes
 import bridges
 import routers
 import tenants
-import vifs
 import rules
 import dhcps
 import dhcp_hosts
@@ -33,7 +32,6 @@ class MidonetClient(object):
     rp = ports.Port.RouterPort()
     bp = ports.Port.BridgePort()
     route = routes.Route()
-    vif = vifs.Vif()
     chain = chains.Chain()
     rule = rules.Rule()
     dhcp = dhcps.Dhcp()
@@ -62,7 +60,6 @@ class MidonetClient(object):
         # Get resource URIs
         response, content = self.get(self.midonet_uri)
         self.version = content['version']
-        self.vifs_uri = content['vifs']
         self.tenant_uri = content['tenant']
 
     def _gen_ks_token(self, username, password, tenant_id):
@@ -89,9 +86,6 @@ class MidonetClient(object):
 
     def routes(self):
         return self.route.accept(self)
-
-    def vifs(self):
-        return self.vif.accept(self, self.vifs_uri)
 
     def chains(self):
         return self.chain.accept(self)

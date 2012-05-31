@@ -21,7 +21,6 @@ from test_route import TestRoute
 from test_router import TestRouter
 from test_rule import TestRule
 from test_tenant import TestTenant
-from test_vif import TestVif
 
 #TODO: automatic test class loading
 test_cases = (
@@ -32,7 +31,6 @@ test_cases = (
               TestRouter,
               TestRule,
               TestTenant,
-              TestVif
               )
 
 
