@@ -49,7 +49,7 @@ class TestPort(unittest.TestCase):
     def tearDownClass(cls):
         cls.tenant.delete(cls.test_tenant_name)
 
-    def test_create_list_get_delete_materialized_router_port(self):
+    def __test_create_list_get_update_delete_materialized_router_port(self):
 
         r, c = self.router_port.create(self.test_tenant_name, self.router_uuid,
                                        "MaterializedRouter",
@@ -58,7 +58,16 @@ class TestPort(unittest.TestCase):
 
         port_uuid = utils.get_uuid(r)
         self.router_port.list(self.test_tenant_name, self.router_uuid)
-        self.router_port.get(self.test_tenant_name, self.router_uuid, port_uuid)
+        res, rp = self.router_port.get(self.test_tenant_name,
+                                       self.router_uuid, port_uuid)
+
+
+        rp['vifId'] = str(uuid.uuid4())
+        res, content = self.router_port.update(self.test_tenant_name,
+                                        self.router_uuid, port_uuid, rp)
+        rp['vifId'] = None
+        res, rp = self.router_port.update(self.test_tenant_name,
+                                        self.router_uuid, port_uuid, rp)
         self.router_port.delete(self.test_tenant_name, self.router_uuid,
                                 port_uuid)
 
@@ -71,7 +80,8 @@ class TestPort(unittest.TestCase):
 
         port_uuid = utils.get_uuid(r)
         self.router_port.list(self.test_tenant_name, self.router_uuid)
-        self.router_port.get(self.test_tenant_name, self.router_uuid, port_uuid)
+        res, rp = self.router_port.get(self.test_tenant_name,
+                                       self.router_uuid, port_uuid)
         self.router_port.delete(self.test_tenant_name, self.router_uuid,
                                 port_uuid)
 
@@ -84,11 +94,24 @@ class TestPort(unittest.TestCase):
 
         port_uuid = utils.get_uuid(r)
         self.bridge_port.list(self.test_tenant_name, self.bridge_uuid)
-        self.bridge_port.get(self.test_tenant_name, self.bridge_uuid, port_uuid)
+        res, bp = self.bridge_port.get(self.test_tenant_name,
+                                       self.bridge_uuid, port_uuid)
+
+        bp['vifId'] = str(uuid.uuid4())
+        res, content = self.bridge_port.update(self.test_tenant_name,
+                                       self.bridge_uuid, port_uuid, bp)
+
+
+        res, bp = self.bridge_port.get(self.test_tenant_name,
+                                       self.bridge_uuid, port_uuid)
+
+        bp['vifId'] = None
+        res, content = self.bridge_port.update(self.test_tenant_name,
+                                       self.bridge_uuid, port_uuid, bp)
+        res, bp = self.bridge_port.get(self.test_tenant_name,
+                                       self.bridge_uuid, port_uuid)
         self.bridge_port.delete(self.test_tenant_name, self.bridge_uuid,
                                 port_uuid)
-
-
 
     def test_create_list_get_delete_logical_bridge_port(self):
 

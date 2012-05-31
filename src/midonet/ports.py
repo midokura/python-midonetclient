@@ -22,7 +22,7 @@ class Port(ResourceBase):
         def create(self, tenant_id, router_uuid, type_,
                    networkAddress, networkLength, portAddress,
                    localNetworkAddress=None, localNetworkLength=None,
-                   inbound_filter=None, outbound_filter=None):
+                   inbound_filter=None, outbound_filter=None, vif_id=None):
 
             uri = self._ports_uri(tenant_id, router_uuid)
             data = { "type": type_,
@@ -32,7 +32,8 @@ class Port(ResourceBase):
                      "localNetworkAddress": localNetworkAddress,
                      "localNetworkLength": localNetworkLength,  #int
                      "inboundFilter": inbound_filter,
-                     "outboundFilter": outbound_filter}
+                     "outboundFilter": outbound_filter,
+                     "vifId": vif_id}
             return self.cl.post(uri, data)
 
         def list(self, tenant_id, router_uuid):
@@ -42,6 +43,10 @@ class Port(ResourceBase):
         def get(self, tenant_id, router_uuid, port_uuid):
             port_uri = self._port_uri(tenant_id, router_uuid, port_uuid)
             return self.cl.get(port_uri)
+
+        def update(self, tenant_id, router_uuid, port_uuid, data):
+            port_uri = self._port_uri(tenant_id, router_uuid, port_uuid)
+            return self.cl.put(port_uri, data)
 
         def delete(self, tenant_id, router_uuid, port_uuid):
             port_uri = self._port_uri(tenant_id, router_uuid, port_uuid)
@@ -92,6 +97,10 @@ class Port(ResourceBase):
         def get(self, tenant_id, bridge_uuid, port_uuid):
             port_uri = self._port_uri(tenant_id, bridge_uuid, port_uuid)
             return self.cl.get(port_uri)
+
+        def update(self, tenant_id, bridge_uuid, port_uuid, data):
+            port_uri = self._port_uri(tenant_id, bridge_uuid, port_uuid)
+            return self.cl.put(port_uri, data)
 
         def delete(self, tenant_id, bridge_uuid, port_uuid):
             port_uri = self._port_uri(tenant_id, bridge_uuid, port_uuid)
