@@ -6,8 +6,8 @@ class Bridge(ResourceBase):
 
     def _bridge_uri(self, tenant_id, bridge_uuid):
         response, content = self.cl.tenants().get(tenant_id)
-        response, routers =  self.cl.get(content['bridges'])
-        return self._find_resource(routers, bridge_uuid)
+        response, bridges =  self.cl.get(content['bridges'])
+        return self._find_resource(bridges, bridge_uuid)
 
     def create(self, tenant_id, name):
         response, content = self.cl.tenants().get(tenant_id)
