@@ -44,10 +44,11 @@ class TestBridge(unittest.TestCase):
         r, c = self.bridge.create(self.test_tenant_name, self.test_bridge_name)
         bridge_uuid = utils.get_uuid(r)
         self.bridge.get(self.test_tenant_name, bridge_uuid)
+        self.bridge.update(self.test_tenant_name, bridge_uuid, 'new-br-name')
         self.bridge.peer_ports(self.test_tenant_name, bridge_uuid)
         self.bridge.delete(self.test_tenant_name, bridge_uuid)
-
-        self.assertRaises(LookupError, self.bridge.get, self.test_tenant_name, bridge_uuid)
+        self.assertRaises(LookupError, self.bridge.get,
+                          self.test_tenant_name, bridge_uuid)
 
 if __name__ == '__main__':
     unittest.main()
