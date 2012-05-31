@@ -16,7 +16,7 @@ class Rule(ResourceBase):
 
     def create(self, tenant_id,
                     chain_uuid,
-                    cont_invert,
+                    cond_invert,
                     in_ports,
                     inv_in_ports,
                     out_ports,
@@ -48,7 +48,7 @@ class Rule(ResourceBase):
         uri = self._rules_uri(tenant_id, chain_uuid)
 
         data = {
-            "condInvert": cont_invert,
+            "condInvert": cond_invert,
             "inPorts": in_ports,
             "invInPorts": inv_in_ports,
             "outPorts": out_ports,
