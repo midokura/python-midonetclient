@@ -42,7 +42,7 @@ class TestRouter(unittest.TestCase):
     def test_list(self):
         self.router.list(self.test_tenant_name)
 
-    def test_create_get_update_delete(self):
+    def test_create_get_update_delete_peer_ports(self):
         r, c = self.router.create(self.test_tenant_name, self.test_router_name)
         router_uuid = utils.get_uuid(r)
         self.router.get(self.test_tenant_name, router_uuid)
@@ -50,7 +50,7 @@ class TestRouter(unittest.TestCase):
         self.router.update(self.test_tenant_name, router_uuid,'new-name',
                            inbound_filter=str(uuid.uuid4()),
                            outbound_filter=str(uuid.uuid4()))
-
+        self.router.peer_ports(self.test_tenant_name, router_uuid)
         self.router.delete(self.test_tenant_name, router_uuid)
         self.assertRaises(LookupError, self.router.get, self.test_tenant_name,
                           router_uuid)

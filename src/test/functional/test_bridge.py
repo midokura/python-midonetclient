@@ -40,12 +40,13 @@ class TestBridge(unittest.TestCase):
     def test_list(self):
         self.bridge.list(self.test_tenant_name)
 
-    def test_create_get_delete(self):
+    def test_create_get_delete_peer_ports(self):
         r, c = self.bridge.create(self.test_tenant_name, self.test_bridge_name)
         bridge_uuid = utils.get_uuid(r)
         self.bridge.get(self.test_tenant_name, bridge_uuid)
+        self.bridge.peer_ports(self.test_tenant_name, bridge_uuid)
         self.bridge.delete(self.test_tenant_name, bridge_uuid)
- 
+
         self.assertRaises(LookupError, self.bridge.get, self.test_tenant_name, bridge_uuid)
 
 if __name__ == '__main__':

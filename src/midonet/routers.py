@@ -36,3 +36,8 @@ class Router(ResourceBase):
     def delete(self, tenant_id, router_uuid):
         router_uri = self._router_uri(tenant_id, router_uuid)
         return self.cl.delete(router_uri)
+
+    def peer_ports(self, tenant_id, router_uuid):
+        response, router = self.get(tenant_id, router_uuid)
+        uri =  router['peerPorts']
+        return self.cl.get(uri)

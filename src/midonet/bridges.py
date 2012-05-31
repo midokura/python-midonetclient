@@ -1,7 +1,7 @@
 # Copyright 2012 Midokura Japan KK
 
 from resource import ResourceBase
-            
+
 class Bridge(ResourceBase):
 
     def create(self, tenant_id, name):
@@ -37,3 +37,7 @@ class Bridge(ResourceBase):
 
         return self.cl.delete(bridge_uri)
 
+    def peer_ports(self, tenant_id, router_uuid):
+        response, bridge = self.get(tenant_id, router_uuid)
+        uri =  bridge['peerPorts']
+        return self.cl.get(uri)

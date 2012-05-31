@@ -136,12 +136,15 @@ class TestPort(unittest.TestCase):
         # link/unlink from rp_1 to rp_2
         r, c = self.router_port.link(self.test_tenant_name, self.router_uuid,
                                      rp_1['id'], rp_2['id'])
+        r, router = self.router.get(self.test_tenant_name, self.router_uuid)
+        r, pp = self.router.peer_ports(self.test_tenant_name, self.router_uuid)
         r, c = self.router_port.unlink(self.test_tenant_name, self.router_uuid,
                                      rp_1['id'])
 
         # link/unlink from bp_1 to rp_1
         r, c = self.bridge_port.link(self.test_tenant_name, self.bridge_uuid,
                                      bp_1['id'], rp_2['id'])
+        r, pp = self.bridge.peer_ports(self.test_tenant_name, self.bridge_uuid)
         r, c = self.bridge_port.unlink(self.test_tenant_name, self.bridge_uuid,
                                      bp_1['id'])
 
