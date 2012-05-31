@@ -49,6 +49,9 @@ class TestRule(unittest.TestCase):
         r, c = self.chain.create(self.test_tenant_name, 'snat')
         chain_snat_uuid = utils.get_uuid(r)
 
+        r, c = self.rule.create(self.test_tenant_name, chain_dnat_uuid,
+                                 type_='drop')
+
         r0, c = self.rule.create_dnat_rule(
             self.test_tenant_name, chain_dnat_uuid, '123.10.10.3',
             '192.168.10.3')
