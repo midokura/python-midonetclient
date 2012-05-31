@@ -21,6 +21,9 @@ from test_route import TestRoute
 from test_router import TestRouter
 from test_rule import TestRule
 from test_tenant import TestTenant
+from test_dhcp import TestDhcp
+from test_dhcp_host import TestDhcpHost
+from test_port_group import TestPortGroup
 
 #TODO: automatic test class loading
 test_cases = (
@@ -31,6 +34,9 @@ test_cases = (
               TestRouter,
               TestRule,
               TestTenant,
+              TestDhcp,
+              TestDhcpHost,
+              TestPortGroup
               )
 
 

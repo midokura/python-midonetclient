@@ -15,7 +15,7 @@ from midonet.client import MidonetClient
 from midonet import utils
 
 
-class TestBridge(unittest.TestCase):
+class TestDhcpHost(unittest.TestCase):
 
     tenent = None
     bridge = None
