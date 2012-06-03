@@ -23,9 +23,8 @@ class Bridge(ResourceBase):
         uri =  content['bridges']
         return self.cl.get(uri)
 
-    def update(self, tenant_id, bridge_uuid, name):
+    def update(self, tenant_id, bridge_uuid, data):
         bridge_uri = self._bridge_uri(tenant_id, bridge_uuid)
-        data = {"name": name}
         return self.cl.put(bridge_uri, data)
 
     def get(self, tenant_id, bridge_uuid):

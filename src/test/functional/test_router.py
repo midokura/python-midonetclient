@@ -47,10 +47,12 @@ class TestRouter(unittest.TestCase):
                            inbound_filter_id=str(uuid.uuid4()),
                            outbound_filter_id=str(uuid.uuid4()))
         router_uuid = utils.get_uuid(r)
-        self.router.get(self.test_tenant_name, router_uuid)
-        self.router.update(self.test_tenant_name, router_uuid,'new-name',
-                           inbound_filter_id=str(uuid.uuid4()),
-                           outbound_filter_id=str(uuid.uuid4()))
+        r, router = self.router.get(self.test_tenant_name, router_uuid)
+
+        router['name'] = 'new-name'
+        router['inboundFilterId'] = str(uuid.uuid4())
+        router['outboundFilterId'] = str(uuid.uuid4())
+        self.router.update(self.test_tenant_name, router_uuid, router)
         self.router.peer_ports(self.test_tenant_name, router_uuid)
         self.router.delete(self.test_tenant_name, router_uuid)
         self.assertRaises(LookupError, self.router.get, self.test_tenant_name,

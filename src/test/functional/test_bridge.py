@@ -46,8 +46,9 @@ class TestBridge(unittest.TestCase):
                            inbound_filter_id=str(uuid.uuid4()),
                            outbound_filter_id=str(uuid.uuid4()))
         bridge_uuid = utils.get_uuid(r)
-        self.bridge.get(self.test_tenant_name, bridge_uuid)
-        self.bridge.update(self.test_tenant_name, bridge_uuid, 'new-br-name')
+        r, bridge = self.bridge.get(self.test_tenant_name, bridge_uuid)
+        bridge['name'] = 'new-name'
+        self.bridge.update(self.test_tenant_name, bridge_uuid, bridge)
         self.bridge.peer_ports(self.test_tenant_name, bridge_uuid)
         self.bridge.delete(self.test_tenant_name, bridge_uuid)
         self.assertRaises(LookupError, self.bridge.get,
