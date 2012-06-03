@@ -42,6 +42,8 @@ class Rule(ResourceBase):
                jump_chain_name=None,
                flow_action=None,
                nat_targets=None,
+               match_forward_flow=None,
+               match_return_flow=None,
                position=1):
 
         uri = self._rules_uri(tenant_id, chain_uuid)
@@ -73,6 +75,8 @@ class Rule(ResourceBase):
             "jumpChainName": jump_chain_name,
             "flowAction": flow_action,
             "natTargets": nat_targets,
+            "matchForwardFlow": match_forward_flow,
+            "matchReturnFlow": match_return_flow,
             "position": position
             }
 
