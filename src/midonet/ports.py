@@ -22,7 +22,8 @@ class Port(ResourceBase):
         def create(self, tenant_id, router_uuid, type_,
                    networkAddress, networkLength, portAddress,
                    localNetworkAddress=None, localNetworkLength=None,
-                   inbound_filter=None, outbound_filter=None, vif_id=None):
+                   inbound_filter_id=None, outbound_filter_id=None,
+                   vif_id=None):
 
             uri = self._ports_uri(tenant_id, router_uuid)
             data = { "type": type_,
@@ -31,8 +32,8 @@ class Port(ResourceBase):
                      "portAddress": portAddress,
                      "localNetworkAddress": localNetworkAddress,
                      "localNetworkLength": localNetworkLength,  #int
-                     "inboundFilter": inbound_filter,
-                     "outboundFilter": outbound_filter,
+                     "inboundFilterId": inbound_filter_id,
+                     "outboundFilterId": outbound_filter_id,
                      "vifId": vif_id}
             return self.cl.post(uri, data)
 
@@ -80,12 +81,12 @@ class Port(ResourceBase):
             return self._find_resource(ports, port_uuid)
 
 
-        def create(self, tenant_id, bridge_uuid, type_, inbound_filter=None,
-                   outbound_filter=None, port_group_ids=None):
+        def create(self, tenant_id, bridge_uuid, type_, inbound_filter_id=None,
+                   outbound_filter_id=None, port_group_ids=None):
             uri = self._ports_uri(tenant_id, bridge_uuid)
             data = { 'type': type_,
-                     'inboundFilter': inbound_filter,
-                     'outboundFilter': outbound_filter,
+                     'inboundFilterId': inbound_filter_id,
+                     'outboundFilterId': outbound_filter_id,
                      'portGroupIDs': port_group_ids
                      }
             return self.cl.post(uri, data)

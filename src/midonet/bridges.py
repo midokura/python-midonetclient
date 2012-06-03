@@ -9,10 +9,13 @@ class Bridge(ResourceBase):
         response, bridges =  self.cl.get(content['bridges'])
         return self._find_resource(bridges, bridge_uuid)
 
-    def create(self, tenant_id, name):
+    def create(self, tenant_id, name, inbound_filter_id=None,
+               outbound_filter_id=None):
         response, content = self.cl.tenants().get(tenant_id)
         uri =  content['bridges']
-        data = {"name": name}
+        data = {"name": name,
+                "inboundFilterId": inbound_filter_id,
+                "outboundFilterId": outbound_filter_id}
         return self.cl.post(uri, data)
 
     def list(self, tenant_id):

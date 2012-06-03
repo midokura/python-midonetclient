@@ -9,10 +9,13 @@ class Router(ResourceBase):
         response, routers =  self.cl.get(content['routers'])
         return self._find_resource(routers, router_uuid)
 
-    def create(self, tenant_id, name, router_id=None):
+    def create(self, tenant_id, name, inbound_filter_id=None,
+               outbound_filter_id=None, router_id=None):
         response, content = self.cl.tenants().get(tenant_id)
         uri =  content['routers']
-        data = {"name": name}
+        data = {"name": name,
+                "inboundFilterId": inbound_filter_id,
+                "outboundFilterId": outbound_filter_id}
         if router_id:
             data['id'] = router_id
         return self.cl.post(uri, data)
@@ -22,11 +25,11 @@ class Router(ResourceBase):
         uri =  content['routers']
         return self.cl.get(uri)
 
-    def update(self, tenant_id, router_uuid, name, inbound_filter,
-               outbound_filter):
+    def update(self, tenant_id, router_uuid, name, inbound_filter_id,
+               outbound_filter_id):
         router_uri = self._router_uri(tenant_id, router_uuid)
-        data = {'name': name, 'inboundFilter': inbound_filter,
-                'outboundFilter': outbound_filter}
+        data = {'name': name, 'inboundFilterId': inbound_filter_id,
+                'outboundFilterId': outbound_filter_id}
         return self.cl.put(router_uri, data)
 
     def get(self, tenant_id, router_uuid):

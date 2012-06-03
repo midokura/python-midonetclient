@@ -1,5 +1,6 @@
 # Copyright 2012 Midokura Japan KK
 
+import uuid
 import os
 import sys
 import unittest
@@ -41,7 +42,9 @@ class TestBridge(unittest.TestCase):
         self.bridge.list(self.test_tenant_name)
 
     def test_create_get_delete_peer_ports(self):
-        r, c = self.bridge.create(self.test_tenant_name, self.test_bridge_name)
+        r, c = self.bridge.create(self.test_tenant_name, self.test_bridge_name,
+                           inbound_filter_id=str(uuid.uuid4()),
+                           outbound_filter_id=str(uuid.uuid4()))
         bridge_uuid = utils.get_uuid(r)
         self.bridge.get(self.test_tenant_name, bridge_uuid)
         self.bridge.update(self.test_tenant_name, bridge_uuid, 'new-br-name')
