@@ -52,7 +52,8 @@ class Rule(ResourceBase):
                jump_chain_name=None,
                flow_action=None,
                nat_targets=None,
-               position=1):
+               position=1,
+               properties=None):
 
         uri = self._rules_uri(tenant_id, chain_uuid)
 
@@ -93,7 +94,8 @@ class Rule(ResourceBase):
             "jumpChainName": jump_chain_name,
             "flowAction": flow_action,
             "natTargets": nat_targets,
-            "position": position
+            "position": position,
+            "properties": properties
             }
 
         return self.cl.post(uri, data)
