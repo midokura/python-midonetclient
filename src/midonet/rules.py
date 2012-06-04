@@ -17,10 +17,20 @@ class Rule(ResourceBase):
     def create(self, tenant_id,
                chain_uuid,
                cond_invert=None,
+               match_forward_flow=None,
+               match_return_flow=None,
                in_ports=None,
                inv_in_ports=None,
                out_ports=None,
                inv_out_ports=None,
+               port_group=None,
+               inv_port_group=None,
+               dl_type=None,
+               inv_dl_type=None,
+               dl_src=None,
+               inv_dl_src=None,
+               dl_dst=None,
+               inv_dl_dst=None,
                nw_tos=None,
                inv_nw_tos=None,
                nw_proto=None,
@@ -42,18 +52,26 @@ class Rule(ResourceBase):
                jump_chain_name=None,
                flow_action=None,
                nat_targets=None,
-               match_forward_flow=None,
-               match_return_flow=None,
                position=1):
 
         uri = self._rules_uri(tenant_id, chain_uuid)
 
         data = {
             "condInvert": cond_invert,
+            "matchForwardFlow": match_forward_flow,
+            "matchReturnFlow": match_return_flow,
             "inPorts": in_ports,
             "invInPorts": inv_in_ports,
             "outPorts": out_ports,
             "invOutPorts":inv_out_ports,
+            "portGroup":port_group,
+            "invPortGroup": inv_port_group,
+            "dlType": dl_type,
+            "invDlType": inv_dl_type,
+            "dlSrc": dl_src,
+            "invDlSrc": inv_dl_src,
+            "dlDst": dl_dst,
+            "invDlDst": inv_dl_dst,
             "nwTos": nw_tos,
             "invNwTos": inv_nw_tos,
             "nwProto": nw_proto,
@@ -75,8 +93,6 @@ class Rule(ResourceBase):
             "jumpChainName": jump_chain_name,
             "flowAction": flow_action,
             "natTargets": nat_targets,
-            "matchForwardFlow": match_forward_flow,
-            "matchReturnFlow": match_return_flow,
             "position": position
             }
 
@@ -107,11 +123,12 @@ class Rule(ResourceBase):
                        'portFrom': 0,
                        'portTo': 0}]
 
-        return self.create(tenant_id, chain_uuid, False, None, False, None,
-                        False, 0, False, None, False,
-                        None, 0, False, nw_dst_address, 32, False, 0, 0,
-                        False, 0, 0, False, 'dnat', None, None, 'accept',
-                        nat_targets, 1)
+        return self.create(tenant_id, chain_uuid,
+                           nw_dst_address=nw_dst_address,
+                           nw_dst_length=32,
+                           type_='dnat',
+                           flow_action='accept',
+                           nat_targets=nat_targets)
 
     def create_snat_rule(self, tenant_id, chain_uuid,
                          new_nw_src_address, #floating
@@ -122,9 +139,10 @@ class Rule(ResourceBase):
                        'portFrom': 0,
                        'portTo': 0}]
 
-        return self.create(tenant_id, chain_uuid, False, None, False, None,
-                        False, 0, False, None, False,
-                        nw_src_address, 32, False, None, 0, False, 0, 0,
-                        False, 0, 0, False, 'snat', None, None, 'accept',
-                        nat_targets, 1)
+        return self.create(tenant_id, chain_uuid,
+                           nw_src_address=nw_src_address,
+                           nw_src_length=32,
+                           type_='snat',
+                           flow_action='accept',
+                           nat_targets=nat_targets)
 
