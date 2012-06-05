@@ -49,7 +49,7 @@ class TestPort(unittest.TestCase):
     def tearDownClass(cls):
         cls.tenant.delete(cls.test_tenant_name)
 
-    def __test_create_list_get_update_delete_materialized_router_port(self):
+    def test_create_list_get_update_delete_materialized_router_port(self):
 
         r, c = self.router_port.create(self.test_tenant_name, self.router_uuid,
                                        "MaterializedRouter",
@@ -62,6 +62,64 @@ class TestPort(unittest.TestCase):
                                        self.router_uuid, port_uuid)
 
 
+        res, content = self.router_port.bgp_create(self.test_tenant_name,
+                                                   self.router_uuid, port_uuid,
+                                                   65104, 23637, "1.1.1.1")
+        res, bgp = self.mc.get(res['location'])
+
+        res, bgps = self.router_port.bgp_list(self.test_tenant_name,
+                                                   self.router_uuid, port_uuid)
+
+        # add route
+        res, content = self.router_port.bgp_ad_route(self.test_tenant_name,
+                                                     self.router_uuid,
+                                                     port_uuid,
+                                                     bgp['id'],
+                                                     '14.128.23.0', 27)
+
+        res, ad_route = self.mc.get(res['location'])
+
+
+        res, ad_routes = self.router_port.bgp_ad_route_list(
+                self.test_tenant_name,
+                self.router_uuid,
+                port_uuid,
+                bgp['id'])
+
+        print ad_routes
+
+        res, ad_route = self.router_port.bgp_ad_route_get(
+                self.test_tenant_name,
+                self.router_uuid,
+                port_uuid,
+                bgp['id'],
+                ad_route['id'])
+        print ad_route
+
+        res, ad_routes = self.router_port.bgp_ad_route_delete(
+                self.test_tenant_name,
+                self.router_uuid,
+                port_uuid,
+                bgp['id'],
+                ad_route['id'])
+
+        res, ad_routes = self.router_port.bgp_ad_route_list(
+                self.test_tenant_name,
+                self.router_uuid,
+                port_uuid,
+                bgp['id'])
+
+        res, bgp = self.router_port.bgp_get(self.test_tenant_name,
+                                             self.router_uuid, port_uuid,
+                                             bgp['id'])
+
+
+        res, content = self.router_port.bgp_delete(self.test_tenant_name,
+                                             self.router_uuid, port_uuid,
+                                             bgp['id'])
+
+        res, bgps = self.router_port.bgp_list(self.test_tenant_name,
+                                                   self.router_uuid, port_uuid)
         rp['vifId'] = str(uuid.uuid4())
         res, content = self.router_port.update(self.test_tenant_name,
                                         self.router_uuid, port_uuid, rp)

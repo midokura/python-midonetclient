@@ -65,6 +65,68 @@ class Port(ResourceBase):
             data = {'peerId': None}
             return self.cl.post(link_uri, data)
 
+        def bgp_create(self, tenant_id, router_uuid, port_uuid, local_as,
+                       peer_as, peer_addr):
+            response, port = self.get(tenant_id, router_uuid, port_uuid)
+            bgp_uri = port['bgps']
+            data = {'localAS':local_as,
+                    'peerAS': peer_as,
+                    'peerAddr': peer_addr}
+            return self.cl.post(bgp_uri, data)
+
+        def bgp_list(self, tenant_id, router_uuid, port_uuid):
+            response, port = self.get(tenant_id, router_uuid, port_uuid)
+            return self.cl.get(port['bgps'])
+
+        def bgp_get(self, tenant_id, router_uuid, port_uuid, bgp_uuid):
+            response, port = self.get(tenant_id, router_uuid, port_uuid)
+            response, bgps =  self.cl.get(port['bgps'])
+            bgp_uri = self._find_resource(bgps, bgp_uuid)
+            return self.cl.get(bgp_uri)
+
+        def bgp_delete(self, tenant_id, router_uuid, port_uuid, bgp_uuid):
+            response, port = self.get(tenant_id, router_uuid, port_uuid)
+            response, bgps =  self.cl.get(port['bgps'])
+            bgp_uri = self._find_resource(bgps, bgp_uuid)
+            return self.cl.get(bgp_uri)
+
+        def bgp_ad_route(self, tenant_id, router_uuid, port_uuid, bgp_uuid,
+                       nw_prefix, prefix_length):
+            response, bgp = self.bgp_get(tenant_id, router_uuid, port_uuid,
+                                         bgp_uuid)
+            ad_route_uri = bgp['adRoutes']
+            data = {'nwPrefix': nw_prefix,
+                    'prefixLength': prefix_length}
+
+            return self.cl.post(ad_route_uri, data)
+
+        def bgp_ad_route_list(self, tenant_id, router_uuid, port_uuid,
+                              bgp_uuid):
+
+            response, bgp = self.bgp_get(tenant_id, router_uuid, port_uuid,
+                                         bgp_uuid)
+            ad_route_uri = bgp['adRoutes']
+            return self.cl.get(ad_route_uri)
+
+
+        def bgp_ad_route_get(self, tenant_id, router_uuid, port_uuid,
+                              bgp_uuid, ad_route_uuid):
+
+            response, ad_routes = self.bgp_ad_route_list(tenant_id,
+                                                         router_uuid, port_uuid,
+                                                         bgp_uuid)
+            ad_route_uri = self._find_resource(ad_routes, ad_route_uuid)
+            return self.cl.get(ad_route_uri)
+
+        def bgp_ad_route_delete(self, tenant_id, router_uuid, port_uuid,
+                              bgp_uuid, ad_route_uuid):
+
+            response, ad_routes = self.bgp_ad_route_list(tenant_id,
+                                                         router_uuid, port_uuid,
+                                                         bgp_uuid)
+            ad_route_uri = self._find_resource(ad_routes, ad_route_uuid)
+            return self.cl.delete(ad_route_uri)
+
 
     class BridgePort(ResourceBase):
 
