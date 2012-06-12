@@ -9,6 +9,7 @@ import os.path
 import sys
 from datetime import datetime
 from datetime import timedelta
+from eventlet.semaphore import Semaphore
 
 import chains
 import ports
@@ -43,6 +44,7 @@ class MidonetClient(object):
                  tenant_id=None):
 
         self.h = httplib2.Http()
+        self.sem = Semaphore()
         self.token = token
         self.midonet_uri = midonet_uri
         self.username = username
@@ -117,13 +119,12 @@ class MidonetClient(object):
                     self.username, self.password, self.tenant_id)
 
             headers["X-Auth-Token"] = self.token
-        response, content = self.h.request(uri, method, body, headers=headers)
 
-#            frame =  inspect.stack()[2][0]
-#            fi = inspect.getframeinfo(frame)
-#            msg = "Call: " + os.path.basename(fi.filename)[:-2] + fi.function
-        req = "Req: (%s on %s) " % (method, uri)
-        debug_print(req, body, response, content)
+        with self.sem:
+            response, content = self.h.request(uri, method, body,
+                                               headers=headers)
+            req = "Req: (%s on %s) " % (method, uri)
+            debug_print(req, body, response, content)
 
         if int(response['status']) > 300:
 #            raise exc.HTTPError(content)
