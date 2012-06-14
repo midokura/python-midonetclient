@@ -62,7 +62,7 @@ class MidonetClient(object):
         # Get resource URIs
         response, content = self.get(self.midonet_uri)
         self.version = content['version']
-        self.tenant_uri = content['tenant']
+        self.tenant_uri = content['tenants']
 
     def _gen_ks_token(self, username, password, tenant_id):
         from keystoneclient.v2_0 import client as keystone_client
