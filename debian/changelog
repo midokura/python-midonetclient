@@ -1,3 +1,9 @@
+midonet-client (12.06.0) quantal; urgency=low
+
+  * Official Babuza release
+
+ -- Tomoe Sugihara <tomoe@tomoe-MacBookPro>  Fri, 15 Jun 2012 18:19:47 +0900
+
 midonet-client (12.04) babuza; urgency=low
 
   * Initial release.
