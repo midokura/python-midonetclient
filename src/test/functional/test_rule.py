@@ -3,6 +3,7 @@
 import os
 import sys
 import unittest
+import uuid
 from webob import exc
 
 TOPDIR = os.path.normpath(os.path.join(os.path.abspath(sys.argv[0]),
@@ -56,9 +57,17 @@ class TestRule(unittest.TestCase):
             self.test_tenant_name, chain_dnat_uuid, '123.10.10.3',
             '192.168.10.3')
 
+        r0, c = self.rule.create_dnat_rule(
+            self.test_tenant_name, chain_dnat_uuid, '123.10.10.3',
+            '192.168.10.3',[str(uuid.uuid4()), str(uuid.uuid4())])
+
         r1, c = self.rule.create_snat_rule(
             self.test_tenant_name, chain_snat_uuid, '123.10.10.3',
-            '192.168.10.3')
+            '192.168.10.3', [str(uuid.uuid4())])
+
+        r1, c = self.rule.create_snat_rule(
+            self.test_tenant_name, chain_snat_uuid, '123.10.10.3',
+            '192.168.10.3', [str(uuid.uuid4())])
 
         r, c = self.rule.list(self.test_tenant_name, chain_dnat_uuid)
         r, c = self.rule.list(self.test_tenant_name, chain_snat_uuid)

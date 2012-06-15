@@ -118,7 +118,8 @@ class Rule(ResourceBase):
     # NOTE: would be better to move them, e.g. to utility module
     def create_dnat_rule(self, tenant_id, chain_uuid,
                          nw_dst_address,   #floating
-                         new_dst_address): #fixed
+                         new_dst_address,  #fixed
+                         in_ports=None):
 
         nat_targets= [{ 'addressFrom': new_dst_address,
                        'addressTo': new_dst_address,
@@ -130,11 +131,13 @@ class Rule(ResourceBase):
                            nw_dst_length=32,
                            type_='dnat',
                            flow_action='accept',
-                           nat_targets=nat_targets)
+                           nat_targets=nat_targets,
+                           in_ports=in_ports)
 
     def create_snat_rule(self, tenant_id, chain_uuid,
                          new_nw_src_address, #floating
-                         nw_src_address):    #fixed
+                         nw_src_address,    #fixed
+                         out_ports=None):
 
         nat_targets= [{ 'addressFrom': new_nw_src_address,
                        'addressTo': new_nw_src_address,
@@ -146,5 +149,6 @@ class Rule(ResourceBase):
                            nw_src_length=32,
                            type_='snat',
                            flow_action='accept',
-                           nat_targets=nat_targets)
+                           nat_targets=nat_targets,
+                           out_ports=out_ports)
 
