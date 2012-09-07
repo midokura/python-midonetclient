@@ -21,6 +21,7 @@ import rules
 import dhcps
 import dhcp_hosts
 import port_groups
+import hosts
 
 LOG = logging.getLogger('midonet.client')
 
@@ -38,6 +39,7 @@ class MidonetClient(object):
     dhcp = dhcps.Dhcp()
     dhcp_host = dhcp_hosts.DhcpHost()
     port_group = port_groups.PortGroup()
+    host = hosts.Host()
 
     def __init__(self, midonet_uri='http://localhost:8080/midolmanj-mgmt',
                  token=None, ks_uri=None, username=None, password=None,
@@ -105,6 +107,10 @@ class MidonetClient(object):
 
     def port_groups(self):
         return self.port_group.accept(self, self.port_groups_uri)
+
+    def hosts(self):
+        return self.host.accept(self, self.hosts_uri)
+
 
     def _do_request(self, uri, method, body='{}', headers={}):
         if not method == 'DELETE':
