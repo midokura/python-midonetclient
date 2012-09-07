@@ -9,7 +9,7 @@ class Host(ResourceBase):
 
     def get(self, host_id):
         res, hosts = self.list()
-        return self._find_resource(hosts, host_id)
+        return self.cl.get(self._find_resource(hosts, host_id))
 
     def get_interface_port_map(self, host_id):
         res, host = self.get(host_id)
@@ -18,7 +18,7 @@ class Host(ResourceBase):
     def add_interface_port_map(self, host_id, port_id, if_name):
         res, host = self.get(host_id)
         data = {"portId": port_id , "interfaceName": if_name }
-        return selfcl.post(host['interfacePortMap'], data)
+        return self.cl.post(host['interfacePortMap'], data)
 
 
     def del_interface_port_map(self, host_id, port_id):
