@@ -18,7 +18,6 @@ from midonet import utils
 
 class TestBridge(unittest.TestCase):
 
-    tenent = None
     bridge = None
     test_tenant_name = "TEST_TENANT"
     test_bridge_name = "TEST_BRIDGE"
@@ -26,17 +25,11 @@ class TestBridge(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         mc = MidonetClient()
-        cls.tenant = mc.tenants()
         cls.bridge = mc.bridges()
-
-        try:
-            cls.tenant.create(cls.test_tenant_name)
-        except:
-            pass
 
     @classmethod
     def tearDownClass(cls):
-        cls.tenant.delete(cls.test_tenant_name)
+        pass
 
     def test_list(self):
         self.bridge.list(self.test_tenant_name)

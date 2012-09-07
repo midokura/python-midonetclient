@@ -15,18 +15,15 @@ from midonet import utils
 
 class TestPortGroup(unittest.TestCase):
 
-    t = None
     TENANT_ID = 'TEST-TENANT'
     PORT_GROUP_NAME = 'TEST-PORT-GROUP-NAME'
 
     @classmethod
     def setUpClass(cls):
         cls.mc = MidonetClient()
-        cls.t = cls.mc.tenants()
         cls.pg = cls.mc.port_groups()
 
     def test_create_list_get_delete(self):
-        self.t.create(self.TENANT_ID)
         res, content = self.pg.create(self.TENANT_ID, self.PORT_GROUP_NAME)
         pg_uri = res['location']
         response, pgs = self.pg.list(self.TENANT_ID)
@@ -35,7 +32,7 @@ class TestPortGroup(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.t.delete(cls.TENANT_ID)
+        pass
 
 
 if __name__ == '__main__':

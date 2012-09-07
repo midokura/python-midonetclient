@@ -8,11 +8,10 @@ class Route(ResourceBase):
                         dstNetworkAddr, dstNetworkLength, weight,
                         nextHopPort=None, nextHopGateway=None ):
 
-        response, content = self.cl.tenants().get(tenant_id)
-        response, routers =  self.cl.get(content['routers'])
+        response, routers =  self.cl.routers().list(tenant_id)
         router_uri =  self._find_resource(routers, router_uuid)
         response, router =  self.cl.get(router_uri)
-        uri = router['routes'] 
+        uri = router['routes']
         data ={ "type": type,
                 "srcNetworkAddr": srcNetworkAddr,
                 "srcNetworkLength": srcNetworkLength, #int
@@ -29,16 +28,14 @@ class Route(ResourceBase):
 
 
     def list(self, tenant_id, router_uuid):
-        response, content = self.cl.tenants().get(tenant_id)
-        response, routers =  self.cl.get(content['routers'])
+        response, routers =  self.cl.get(self.cl.routers_uri + "?tenant_id=" + tenant_id)
         router_uri =  self._find_resource(routers, router_uuid)
         response, router =  self.cl.get(router_uri)
-        uri = router['routes'] 
+        uri = router['routes']
         return self.cl.get(uri)
 
     def get(self, tenant_id, router_uuid, route_uuid):
-        response, content = self.cl.tenants().get(tenant_id)
-        response, routers =  self.cl.get(content['routers'])
+        response, routers =  self.cl.routers().list(tenant_id)
         router_uri =  self._find_resource(routers, router_uuid)
         response, router =  self.cl.get(router_uri)
 
@@ -49,8 +46,7 @@ class Route(ResourceBase):
 
 
     def delete(self, tenant_id, router_uuid, route_uuid):
-        response, content = self.cl.tenants().get(tenant_id)
-        response, routers =  self.cl.get(content['routers'])
+        response, routers =  self.cl.routers().list(tenant_id)
         router_uri =  self._find_resource(routers, router_uuid)
         response, router =  self.cl.get(router_uri)
 

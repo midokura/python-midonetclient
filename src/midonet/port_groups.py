@@ -14,15 +14,13 @@ class PortGroup(ResourceBase):
         return self._find_resource(pgs, port_group_id)
 
     def create(self, tenant_id, name):
-        response, tenant = self.cl.tenants().get(tenant_id)
         data = {'tenantId': tenant_id, 'name': name}
         headers = {'Content-Type': self.vender_media_type}
-        return self.cl.post(tenant['portGroups'], data, headers)
+        return self.cl.post(self.uri, data, headers)
 
     def list(self, tenant_id):
-        response, tenant = self.cl.tenants().get(tenant_id)
         headers = {'Accept': self.vender_media_type_collection}
-        return self.cl.get(tenant['portGroups'], headers)
+        return self.cl.get(self.uri + "?tenant_id=" + tenant_id, headers)
 
     def get(self, tenant_id, port_group_id):
         headers = {'Accept': self.vender_media_type}

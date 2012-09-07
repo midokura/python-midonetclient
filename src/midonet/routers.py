@@ -5,15 +5,14 @@ from resource import ResourceBase
 class Router(ResourceBase):
 
     def _router_uri(self, tenant_id, router_uuid):
-        response, content = self.cl.tenants().get(tenant_id)
-        response, routers =  self.cl.get(content['routers'])
+        response, routers =  self.list(tenant_id)
         return self._find_resource(routers, router_uuid)
 
     def create(self, tenant_id, name, inbound_filter_id=None,
                outbound_filter_id=None, router_id=None):
-        response, content = self.cl.tenants().get(tenant_id)
-        uri =  content['routers']
+        uri =  self.uri
         data = {"name": name,
+                "tenantId": tenant_id,
                 "inboundFilterId": inbound_filter_id,
                 "outboundFilterId": outbound_filter_id}
         if router_id:
@@ -21,9 +20,7 @@ class Router(ResourceBase):
         return self.cl.post(uri, data)
 
     def list(self, tenant_id):
-        response, content = self.cl.tenants().get(tenant_id)
-        uri =  content['routers']
-        return self.cl.get(uri)
+        return self.cl.get(self.uri + "?tenant_id=" + tenant_id)
 
     def update(self, tenant_id, router_uuid, data):
         router_uri = self._router_uri(tenant_id, router_uuid)

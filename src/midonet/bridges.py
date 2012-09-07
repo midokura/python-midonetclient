@@ -5,23 +5,21 @@ from resource import ResourceBase
 class Bridge(ResourceBase):
 
     def _bridge_uri(self, tenant_id, bridge_uuid):
-        response, content = self.cl.tenants().get(tenant_id)
-        response, bridges =  self.cl.get(content['bridges'])
+        response, bridges =  self.list(tenant_id)
         return self._find_resource(bridges, bridge_uuid)
 
     def create(self, tenant_id, name, inbound_filter_id=None,
                outbound_filter_id=None):
-        response, content = self.cl.tenants().get(tenant_id)
-        uri =  content['bridges']
+
+        uri =  self.uri
         data = {"name": name,
+                "tenantId": tenant_id,
                 "inboundFilterId": inbound_filter_id,
                 "outboundFilterId": outbound_filter_id}
         return self.cl.post(uri, data)
 
     def list(self, tenant_id):
-        response, content = self.cl.tenants().get(tenant_id)
-        uri =  content['bridges']
-        return self.cl.get(uri)
+        return self.cl.get(self.uri + "?tenant_id=" + tenant_id)
 
     def update(self, tenant_id, bridge_uuid, data):
         bridge_uri = self._bridge_uri(tenant_id, bridge_uuid)

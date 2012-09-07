@@ -26,18 +26,12 @@ class TestRouter(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         mc = MidonetClient()
-        cls.tenant = mc.tenants()
         cls.router = mc.routers()
         cls.bridge = mc.bridges()
 
-        try:
-            cls.tenant.create(cls.test_tenant_name)
-        except:
-            pass
-
     @classmethod
     def tearDownClass(cls):
-        cls.tenant.delete(cls.test_tenant_name)
+        pass
 
     def test_list(self):
         self.router.list(self.test_tenant_name)

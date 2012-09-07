@@ -26,19 +26,13 @@ class TestRule(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         mc = MidonetClient()
-        cls.tenant = mc.tenants()
         cls.router = mc.routers()
         cls.chain = mc.chains()
         cls.rule = mc.rules()
 
-        try:
-            cls.tenant.create(cls.test_tenant_name)
-        except:
-            pass
-
     @classmethod
     def tearDownClass(cls):
-        cls.tenant.delete(cls.test_tenant_name)
+        pass
 
     def test_create_get_delete(self):
         r, c = self.router.create(self.test_tenant_name, self.test_router_name)
@@ -78,11 +72,13 @@ class TestRule(unittest.TestCase):
         r, c = self.rule.get(
             self.test_tenant_name, chain_dnat_uuid, dnat_rule_uuid)
         self.rule.delete(self.test_tenant_name, chain_dnat_uuid, dnat_rule_uuid)
+        self.chain.delete(self.test_tenant_name, chain_dnat_uuid)
 
         r, c =self.rule.get(
             self.test_tenant_name, chain_snat_uuid, snat_rule_uuid)
         self.rule.delete(self.test_tenant_name, chain_snat_uuid, snat_rule_uuid)
+        self.chain.delete(self.test_tenant_name, chain_snat_uuid)
 
-
+        self.router.delete(self.test_tenant_name, router_uuid)
 if __name__ == '__main__':
     unittest.main()

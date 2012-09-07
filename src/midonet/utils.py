@@ -9,6 +9,7 @@ import os.path
 
 logging.basicConfig()
 LOG = logging.getLogger('nova...midonet.client')
+LOG.setLevel(logging.DEBUG)
 
 def debug_print(msg, req_body, resp, resp_body):
     LOG.debug('-' * 10)

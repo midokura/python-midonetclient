@@ -27,16 +27,11 @@ class TestPort(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.mc = MidonetClient()
-        cls.tenant = cls.mc.tenants()
         cls.router = cls.mc.routers()
         cls.bridge = cls.mc.bridges()
         cls.router_port = cls.mc.router_ports()
         cls.bridge_port = cls.mc.bridge_ports()
 
-        try:
-            cls.tenant.create(cls.test_tenant_name)
-        except:
-            pass
 
         r, c = cls.router.create(cls.test_tenant_name, cls.test_router_name)
         cls.router_uuid = utils.get_uuid(r)
@@ -47,7 +42,8 @@ class TestPort(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.tenant.delete(cls.test_tenant_name)
+        cls.bridge.delete(cls.test_tenant_name, cls.bridge_uuid)
+        cls.router.delete(cls.test_tenant_name, cls.router_uuid)
 
     def test_create_list_get_update_delete_materialized_router_port(self):
 
@@ -144,20 +140,20 @@ class TestPort(unittest.TestCase):
                                 port_uuid)
 
 
-    def test_create_list_get_delete_materiazed_bridge_port(self):
+    def test_create_list_get_delete_materialized_bridge_port(self):
         r, c = self.bridge_port.create(self.test_tenant_name, self.bridge_uuid,
                                        'MaterializedBridge',
-                                       str(uuid.uuid4()), str(uuid.uuid4()),
-                                       [str(uuid.uuid4()), str(uuid.uuid4())])
+                                       str(uuid.uuid4()), str(uuid.uuid4()), None)
+                                       #[str(uuid.uuid4()), str(uuid.uuid4())])
 
         port_uuid = utils.get_uuid(r)
         self.bridge_port.list(self.test_tenant_name, self.bridge_uuid)
         res, bp = self.bridge_port.get(self.test_tenant_name,
-                                       self.bridge_uuid, port_uuid)
+                                        self.bridge_uuid, port_uuid)
 
         bp['vifId'] = str(uuid.uuid4())
         res, content = self.bridge_port.update(self.test_tenant_name,
-                                       self.bridge_uuid, port_uuid, bp)
+                                        self.bridge_uuid, port_uuid, bp)
 
 
         res, bp = self.bridge_port.get(self.test_tenant_name,
@@ -165,7 +161,7 @@ class TestPort(unittest.TestCase):
 
         bp['vifId'] = None
         res, content = self.bridge_port.update(self.test_tenant_name,
-                                       self.bridge_uuid, port_uuid, bp)
+                                               self.bridge_uuid, port_uuid, bp)
         res, bp = self.bridge_port.get(self.test_tenant_name,
                                        self.bridge_uuid, port_uuid)
         self.bridge_port.delete(self.test_tenant_name, self.bridge_uuid,
@@ -176,7 +172,8 @@ class TestPort(unittest.TestCase):
         r, c = self.bridge_port.create(self.test_tenant_name, self.bridge_uuid,
                                        'LogicalBridge',
                                        str(uuid.uuid4()), str(uuid.uuid4()),
-                                       [str(uuid.uuid4()), str(uuid.uuid4())])
+                                       None)
+                                       #[str(uuid.uuid4()), str(uuid.uuid4())])
 
         port_uuid = utils.get_uuid(r)
         self.bridge_port.list(self.test_tenant_name, self.bridge_uuid)
@@ -184,20 +181,21 @@ class TestPort(unittest.TestCase):
         self.bridge_port.delete(self.test_tenant_name, self.bridge_uuid,
                                 port_uuid)
 
-    def test_link_unlink(self):
+    def _test_link_unlink(self):
+
 
         # logical bridge port 1
         r, c = self.bridge_port.create(self.test_tenant_name, self.bridge_uuid,
                                        'LogicalBridge',
-                                       str(uuid.uuid4()), str(uuid.uuid4()),
-                                       [str(uuid.uuid4()), str(uuid.uuid4())])
+                                       str(uuid.uuid4()), str(uuid.uuid4()), None)
+                                       #[str(uuid.uuid4()), str(uuid.uuid4())])
         r, bp_1 = self.mc.get(r['location'])
 
         # logical bridge port 2
         r, c = self.bridge_port.create(self.test_tenant_name, self.bridge_uuid,
                                        'LogicalBridge',
-                                       str(uuid.uuid4()), str(uuid.uuid4()),
-                                       [str(uuid.uuid4()), str(uuid.uuid4())])
+                                       str(uuid.uuid4()), str(uuid.uuid4()), None)
+                                       #[str(uuid.uuid4()), str(uuid.uuid4())])
         r, bp_2 = self.mc.get(r['location'])
 
         # logical router port 1

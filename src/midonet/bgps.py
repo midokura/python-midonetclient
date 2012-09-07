@@ -2,10 +2,11 @@
 
 from resource import ResourceBase
 
-class Chain(ResourceBase):
+class Bgp(ResourceBase):
 
     def _chains_uri(self, tenant_id):
-        return  self.uri
+        response, tenant = self.cl.tenants().get(tenant_id)
+        return  tenant['chains']
 
     def _chain_uri(self, tenant_id, chain_uuid):
         response, chains = self.list(tenant_id)
@@ -13,11 +14,12 @@ class Chain(ResourceBase):
 
     def create(self, tenant_id, name):
         uri = self._chains_uri(tenant_id )
-        data = { "tenantId": tenant_id, "name": name }
+        data = { "name": name }
         return self.cl.post(uri, data)
 
     def list(self, tenant_id):
-        return self.cl.get(self.uri + "?tenant_id=" + tenant_id)
+        uri = self._chains_uri(tenant_id)
+        return self.cl.get(uri)
 
     def get(self, tenant_id, chain_uuid):
         chain_uri = self._chain_uri(tenant_id, chain_uuid)

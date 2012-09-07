@@ -60,9 +60,14 @@ class MidonetClient(object):
                 self.username, self.password, self.tenant_id)
 
         # Get resource URIs
-        response, content = self.get(self.midonet_uri)
-        self.version = content['version']
-        self.tenant_uri = content['tenants']
+        response, app = self.get(self.midonet_uri)
+        #print json.dumps(app, indent=2)
+        self.version = app['version']
+        self.bridges_uri = app['bridges']
+        self.routers_uri = app['routers']
+        self.port_groups_uri = app['portGroups']
+        self.hosts_uri = app['hosts']
+        self.chains_uri = app['chains']
 
     def _gen_ks_token(self, username, password, tenant_id):
         from keystoneclient.v2_0 import client as keystone_client
@@ -71,14 +76,11 @@ class MidonetClient(object):
             username=username, password=password, tenant_id=tenant_id)
         return token.id, datetime.strptime(token.expires, '%Y-%m-%dT%H:%M:%SZ')
 
-    def tenants(self):
-        return self.tenant.accept(self, self.tenant_uri)
-
     def routers(self):
-        return self.router.accept(self)
+        return self.router.accept(self, self.routers_uri)
 
     def bridges(self):
-        return self.bridge.accept(self)
+        return self.bridge.accept(self, self.bridges_uri)
 
     def router_ports(self):
         return self.rp.accept(self)
@@ -90,7 +92,7 @@ class MidonetClient(object):
         return self.route.accept(self)
 
     def chains(self):
-        return self.chain.accept(self)
+        return self.chain.accept(self, self.chains_uri)
 
     def rules(self):
         return self.rule.accept(self)
@@ -102,7 +104,7 @@ class MidonetClient(object):
         return self.dhcp_host.accept(self)
 
     def port_groups(self):
-        return self.port_group.accept(self)
+        return self.port_group.accept(self, self.port_groups_uri)
 
     def _do_request(self, uri, method, body='{}', headers={}):
         if not method == 'DELETE':

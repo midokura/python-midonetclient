@@ -20,7 +20,6 @@ from test_port import TestPort
 from test_route import TestRoute
 from test_router import TestRouter
 from test_rule import TestRule
-from test_tenant import TestTenant
 from test_dhcp import TestDhcp
 from test_dhcp_host import TestDhcpHost
 from test_port_group import TestPortGroup
@@ -33,7 +32,6 @@ test_cases = (
               TestRoute,
               TestRouter,
               TestRule,
-              TestTenant,
               TestDhcp,
               TestDhcpHost,
               TestPortGroup

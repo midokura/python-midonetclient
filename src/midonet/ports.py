@@ -7,8 +7,7 @@ class Port(ResourceBase):
     class RouterPort(ResourceBase):
 
         def _ports_uri(self, tenant_id, router_uuid):
-            response, content = self.cl.tenants().get(tenant_id)
-            response, routers =  self.cl.get(content['routers'])
+            response, routers =  self.cl.get(self.cl.routers_uri + "?tenant_id=" + tenant_id)
             router_uri =  self._find_resource(routers, router_uuid)
             response, router =  self.cl.get(router_uri)
             return  router['ports']
@@ -131,8 +130,7 @@ class Port(ResourceBase):
     class BridgePort(ResourceBase):
 
         def _ports_uri(self, tenant_id, bridge_uuid):
-            response, content = self.cl.tenants().get(tenant_id)
-            response, bridges =  self.cl.get(content['bridges'])
+            response, bridges =  self.cl.get(self.cl.bridges_uri + "?tenant_id=" + tenant_id)
             bridge_uri =  self._find_resource(bridges, bridge_uuid)
             response, bridge =  self.cl.get(bridge_uri)
             return  bridge['ports']

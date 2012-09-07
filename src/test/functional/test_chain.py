@@ -25,17 +25,11 @@ class TestChain(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         mc = MidonetClient()
-        cls.tenant = mc.tenants()
         cls.chain = mc.chains()
-
-        try:
-            cls.tenant.create(cls.test_tenant_name)
-        except:
-            pass
 
     @classmethod
     def tearDownClass(cls):
-        cls.tenant.delete(cls.test_tenant_name)
+        pass
 
     def test_create_get_delete(self):
         r, c = self.chain.create(self.test_tenant_name, 'TEST_CHAIN')

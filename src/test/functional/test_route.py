@@ -26,19 +26,14 @@ class TestRoute(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         mc = MidonetClient()
-        cls.tenant = mc.tenants()
         cls.router = mc.routers()
         cls.route = mc.routes()
         cls.router_port = mc.router_ports()
 
-        try:
-            cls.tenant.create(cls.test_tenant_name)
-        except:
-            pass
 
     @classmethod
     def tearDownClass(cls):
-        cls.tenant.delete(cls.test_tenant_name)
+        pass
 
     def test_create_list_get_delete_router_port(self):
         r, c = self.router.create(self.test_tenant_name, self.test_router_name)
@@ -58,6 +53,7 @@ class TestRoute(unittest.TestCase):
         self.route.list(self.test_tenant_name, router_uuid)
         self.route.get(self.test_tenant_name, router_uuid, route_uuid)
         self.route.delete(self.test_tenant_name, router_uuid, route_uuid)
+        self.router.delete(self.test_tenant_name, router_uuid)
 
 
 if __name__ == '__main__':

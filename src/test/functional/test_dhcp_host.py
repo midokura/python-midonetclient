@@ -26,13 +26,11 @@ class TestDhcpHost(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         mc = MidonetClient()
-        cls.tenant = mc.tenants()
         cls.bridge = mc.bridges()
         cls.dhcp = mc.dhcps()
         cls.dhcp_host = mc.dhcp_hosts()
 
         try:
-            cls.tenant.create(cls.test_tenant_name)
             r, c = cls.bridge.create(cls.test_tenant_name, cls.test_bridge_name)
             cls.bridge_uuid = utils.get_uuid(r)
             r, c = cls.dhcp.create(cls.test_tenant_name, cls.bridge_uuid,
@@ -42,7 +40,7 @@ class TestDhcpHost(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.tenant.delete(cls.test_tenant_name)
+        r, c = cls.bridge.delete(cls.test_tenant_name, cls.bridge_uuid)
 
 
     def test_create_get_delete(self):
