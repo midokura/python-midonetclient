@@ -14,12 +14,12 @@ TOPDIR = os.path.normpath(os.path.join(os.path.abspath(sys.argv[0]),
                                    os.pardir))
 sys.path.insert(0, TOPDIR)
 
-from midonet.client import MidonetClient
+from midonet.mgmt import MidonetMgmt
 from midonet.tenants import Tenant
 from midonet.routers import Router
 
 
-def main():
+def main_needs_to_be_updated():
     def _process_arg(arg):
         if arg == "None":
             return None
@@ -29,7 +29,7 @@ def main():
             return arg
 
     # simple repl.
-    client = MidonetClient(midonet_uri='http://localhost:8080/midolmanj-mgmt')
+    client = MidonetMgmt(midonet_uri='http://localhost:8080/midolmanj-mgmt')
 
     while True:
         try:
@@ -56,5 +56,6 @@ def main():
         except Exception as e:
             print "Caught exeption: (%r): %r" %  (e, str(e))
 
-if __name__ == '__main__':
-    sys.exit(main())
+# needs to be updated for new model
+#if __name__ == '__main__':
+#sys.exit(main())
