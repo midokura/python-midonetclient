@@ -31,11 +31,14 @@ class ResourceBase(object):
         res, self.dto =  self.web_resource.get(uri, headers=headers)
         return self
 
-    def get_children(self, uri, query, headers, clazz):
+    def get_children(self, uri, query, headers, clazz, extra_args=None):
         resources = []
         res, dtos =  self.web_resource.get(uri, query=query, headers=headers)
         for dto in dtos:
-            resources.append(clazz(self.web_resource, uri, dto))
+            if extra_args is None:
+                resources.append(clazz(self.web_resource, uri, dto))
+            else:
+                resources.append(clazz(self.web_resource, uri, dto, *extra_args))
         return resources
 
     def update(self, headers={}):

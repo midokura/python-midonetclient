@@ -73,10 +73,12 @@ if __name__ == '__main__':
     # Tunnel zones
     tz1 = mgmt.add_gre_tunnel_zone().name('tunnel_vision').create()
     tz1.name("going' through my head").update()
+    tz1.get_hosts()
     tz1.delete()
 
     tz2 = mgmt.add_capwap_tunnel_zone().name('tunnel_vision2').create()
     tz2.name("going' through my head2").update()
+    tz2.get_hosts()
     tz2.delete()
 
     # Routers

@@ -1,6 +1,7 @@
 # Copyright 2012 Midokura Japan KK
 
 from resource_base import ResourceBase
+from tunnel_zone_host import TunnelZoneHost
 
 class TunnelZone(ResourceBase):
 
@@ -21,3 +22,15 @@ class TunnelZone(ResourceBase):
 
     def get_id(self):
         return self.dto['id']
+
+    def get_hosts(self):
+        headers = {'Content-Type': self.tunnel_zone_host_list_media_type,
+                   'Accept': self.tunnel_zone_host_list_media_type}
+        query={}
+        return self.get_children(self.dto['hosts'], query, headers, TunnelZoneHost,
+                                 [self.tunnel_zone_host_media_type])
+
+    def add_tunnel_zone_host(self):
+        return TunnelZoneHost(self.web_resource, self.dto['hosts'], {},
+                              self.tunnel_zone_host_media_type)
+
