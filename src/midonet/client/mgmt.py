@@ -26,6 +26,9 @@ class MidonetMgmt(object):
     def get_chains(self, query):
         return self.app.get_chains(query)
 
+    def get_tunnel_zones(self, query={}):
+        return self.app.get_tunnel_zones(query)
+
     def add_router(self):
         return self.app.add_router()
 
@@ -37,6 +40,9 @@ class MidonetMgmt(object):
 
     def add_chain(self):
         return self.app.add_chain()
+
+    def add_tunnel_zone(self):
+        return self.app.add_tunnel_zone()
 
 
 # just for testing
@@ -59,11 +65,15 @@ if __name__ == '__main__':
     LOG.setLevel(logging.DEBUG)
 
     web_resource = WebResource(auth=None, logger=LOG)
-
-
     mgmt = MidonetMgmt(web_resource=web_resource, logger=LOG)
-    mgmt.get_routers({'tenant_id':'non-existent'})
+    
 
+    # Tunnel zones
+    tz1 = mgmt.add_tunnel_zone().type('gre').name('tunnel_vision').create()
+    tz1.name("going' through my head").update()
+    tz1.delete()
+
+    mgmt.get_routers({'tenant_id':'non-existent'})
     print mgmt.get_routers({'tenant_id':'tenant-1'})
     import sys
 

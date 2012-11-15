@@ -5,6 +5,7 @@ from router import Router
 from bridge import Bridge
 from port_group import PortGroup
 from chain import Chain
+from tunnel_zone import TunnelZone
 
 
 class Application(ResourceBase):
@@ -30,6 +31,10 @@ class Application(ResourceBase):
         headers = {'Content-Type': 'application/vnd.com.midokura.midolman.mgmt.collection.Chain+json'}
         return self.get_children(self.dto['chains'], query, headers, PortGroup)
 
+    def get_tunnel_zones(self, query):
+        headers = {'Content-Type': 'application/vnd.com.midokura.midolman.mgmt.collection.TunnelZone+json'}
+        return self.get_children(self.dto['tunnelZones'], query, headers, TunnelZone)
+
     def add_router(self):
         return Router(self.web_resource, self.dto['routers'], {})
 
@@ -41,3 +46,7 @@ class Application(ResourceBase):
 
     def add_chain(self):
         return Chain(self.web_resource, self.dto['chains'], {})
+
+    def add_tunnel_zone(self):
+        return TunnelZone(self.web_resource, self.dto['tunnelZones'], {})
+
