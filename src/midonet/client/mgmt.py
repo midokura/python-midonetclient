@@ -11,7 +11,8 @@ class MidonetMgmt(object):
 
         self.midonet_uri = midonet_uri
         self.web_resource = web_resource
-        self.app = Application(self.web_resource, None, {'uri': self.midonet_uri})
+        self.app = Application(self.web_resource, None,
+                {'uri': self.midonet_uri})
         self.app.get()
 
     def get_routers(self, query):
@@ -28,6 +29,9 @@ class MidonetMgmt(object):
 
     def get_tunnel_zones(self, query={}):
         return self.app.get_tunnel_zones(query)
+
+    def get_hosts(self, query={}):
+        return self.app.get_hosts(query)
 
     def add_router(self):
         return self.app.add_router()
@@ -57,9 +61,9 @@ if __name__ == '__main__':
 
     # add keystone auth
     # from midonet.auth.keystone import KeystoneAuth
-    # auth = KeystoneAuth(uri='http://keystone:5000/v2.0',
+    # auth = KeystoneAuth(uri='http://localhost:5000/v2.0',
     #                     username='admin', password='password',
-    #                     tenant_name='provider')
+    #                     tenant_id='56b0ed0897c94b23bce00e42edcbb2dc')
 
     import logging
     FORMAT = '%(asctime)-15s %(name)s %(message)s'
@@ -67,8 +71,17 @@ if __name__ == '__main__':
     LOG = logging.getLogger('nova...midonet.client')
     LOG.setLevel(logging.DEBUG)
 
-    web_resource = WebResource(auth=None, logger=LOG)
+    web_resource = WebResource(auth=auth, logger=LOG)
     mgmt = MidonetMgmt(web_resource=web_resource, logger=LOG)
+
+#    for z in mgmt.get_tunnel_zones():
+#        for h in z.get_hosts():
+#            print h
+
+#    hosts =  mgmt.get_hosts()
+#    print hosts[0]
+#    random_uuid = str(uuid.uuid4())
+#    hosts[0].add_host_interface_port().interface_name('ika').port_id(random_uuid).create()
 
     # Tunnel zones
     tz1 = mgmt.add_gre_tunnel_zone().name('tunnel_vision').create()

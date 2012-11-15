@@ -4,8 +4,8 @@ from resource_base import ResourceBase
 
 class TunnelZoneHost(ResourceBase):
 
-    def __init__(self, http, uri, dto):
-        super(TunnelZoneHost, self).__init__(http, uri, dto, mt)
+    def __init__(self, http, uri, dto, mt):
+        super(TunnelZoneHost, self).__init__(http, uri, dto)
         self.media_type = mt
 
     def host_id(self, host_id):

@@ -6,6 +6,7 @@ from bridge import Bridge
 from port_group import PortGroup
 from chain import Chain
 from tunnel_zone import TunnelZone
+from host import Host
 
 
 class Application(ResourceBase):
@@ -34,6 +35,11 @@ class Application(ResourceBase):
     def get_tunnel_zones(self, query):
         headers = {'Content-Type': 'application/vnd.com.midokura.midolman.mgmt.collection.TunnelZone+json'}
         return self.get_children(self.dto['tunnelZones'], query, headers, TunnelZone)
+
+    def get_hosts(self, query):
+        headers = {'Content-Type': 'application/vnd.com.midokura.midolman.mgmt.collection.Host+json',
+                   'Accept': 'application/vnd.com.midokura.midolman.mgmt.collection.Host+json'}
+        return self.get_children(self.dto['hosts'], query, headers, Host)
 
     def add_router(self):
         return Router(self.web_resource, self.dto['routers'], {})

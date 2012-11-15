@@ -40,7 +40,7 @@ class WebResource(object):
         LOG.debug('Req headers: %s', headers)
         LOG.debug('Req Body: %s' % body)
         LOG.debug('Resp: %s' % response)
-        LOG.debug('Resp Body: %s' % body)
+        LOG.debug('Resp Body: %s' % content)
         LOG.debug(boarder)
 
         if int(response['status']) > 300:
