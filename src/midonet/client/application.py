@@ -47,6 +47,12 @@ class Application(ResourceBase):
     def add_chain(self):
         return Chain(self.web_resource, self.dto['chains'], {})
 
-    def add_tunnel_zone(self):
-        return TunnelZone(self.web_resource, self.dto['tunnelZones'], {})
+    def add_gre_tunnel_zone(self):
+        return TunnelZone(self.web_resource, self.dto['tunnelZones'], {'type':'gre'},
+                          'application/vnd.com.midokura.midolman.mgmt.GreTunnelZoneHost+json',
+                          'application/vnd.com.midokura.midolman.mgmt.collection.GreTunnelZoneHost+json')
 
+    def add_capwap_tunnel_zone(self):
+        return TunnelZone(self.web_resource, self.dto['tunnelZones'], {'type':'capwap'},
+                          'application/vnd.com.midokura.midolman.mgmt.CapwapTunnelZoneHost+json',
+                          'application/vnd.com.midokura.midolman.mgmt.collection.CapwapTunnelZoneHost+json')

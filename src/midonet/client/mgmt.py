@@ -41,8 +41,11 @@ class MidonetMgmt(object):
     def add_chain(self):
         return self.app.add_chain()
 
-    def add_tunnel_zone(self):
-        return self.app.add_tunnel_zone()
+    def add_gre_tunnel_zone(self):
+        return self.app.add_gre_tunnel_zone()
+
+    def add_capwap_tunnel_zone(self):
+        return self.app.add_capwap_tunnel_zone()
 
 
 # just for testing
@@ -66,20 +69,21 @@ if __name__ == '__main__':
 
     web_resource = WebResource(auth=None, logger=LOG)
     mgmt = MidonetMgmt(web_resource=web_resource, logger=LOG)
-    
 
     # Tunnel zones
-    tz1 = mgmt.add_tunnel_zone().type('gre').name('tunnel_vision').create()
+    tz1 = mgmt.add_gre_tunnel_zone().name('tunnel_vision').create()
     tz1.name("going' through my head").update()
     tz1.delete()
 
-    mgmt.get_routers({'tenant_id':'non-existent'})
-    print mgmt.get_routers({'tenant_id':'tenant-1'})
-    import sys
-
-    random_uuid = str(uuid.uuid4())
+    tz2 = mgmt.add_capwap_tunnel_zone().name('tunnel_vision2').create()
+    tz2.name("going' through my head2").update()
+    tz2.delete()
 
     # Routers
+    mgmt.get_routers({'tenant_id':'non-existent'})
+    print mgmt.get_routers({'tenant_id':'tenant-1'})
+
+    random_uuid = str(uuid.uuid4())
     router1  = mgmt.add_router().name('router-1').tenant_id(
         'tenant-1').inbound_filter_id(random_uuid).create()
 
