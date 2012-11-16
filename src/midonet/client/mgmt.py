@@ -18,8 +18,14 @@ class MidonetMgmt(object):
     def get_routers(self, query):
         return self.app.get_routers(query)
 
+    def get_router(self, tenant_id, id_):
+        return self.app.get_router(tenant_id, id_)
+
     def get_bridges(self, query):
         return self.app.get_bridges(query)
+
+    def get_bridge(self, tenant_id, id_):
+        return self.app.get_bridge(tenant_id, id_)
 
     def get_port_groups(self, query):
         return self.app.get_port_groups(query)
@@ -71,7 +77,7 @@ if __name__ == '__main__':
     LOG = logging.getLogger('nova...midonet.client')
     LOG.setLevel(logging.DEBUG)
 
-    web_resource = WebResource(auth=auth, logger=LOG)
+    web_resource = WebResource(auth=None, logger=LOG)
     mgmt = MidonetMgmt(web_resource=web_resource, logger=LOG)
 
 #    for z in mgmt.get_tunnel_zones():
@@ -102,10 +108,15 @@ if __name__ == '__main__':
     router1  = mgmt.add_router().name('router-1').tenant_id(
         'tenant-1').inbound_filter_id(random_uuid).create()
 
+    mgmt.get_routers({'tenant_id':'non-existent'})
+    mgmt.get_router('tenant-1', router1.get_id())
+
     router2  = mgmt.add_router().name('router-2').tenant_id(
         'tenant-1').outbound_filter_id(random_uuid).create()
 
     router1.name('router1-changed').update()
+
+    mgmt.get_router('tenant-1', router1.get_id())
 
     for r in  mgmt.get_routers({'tenant_id': 'tenant-1'}):
         print '--------', r.get_name()
@@ -114,6 +125,7 @@ if __name__ == '__main__':
         print 'outboundFilterId: ', r.get_outbound_filter_id()
 
 
+    mgmt.get_router('tenant-1', router1.get_id())
 
     # Routers/Ports
 
@@ -181,6 +193,9 @@ if __name__ == '__main__':
         print 'id: ', b.get_id()
         print 'inboundFilterId: ', b.get_inbound_filter_id()
         print 'outboundFilterId: ', b.get_outbound_filter_id()
+
+
+    print mgmt.get_bridge('tenant-1', bridge1.get_id())
 
     # Bridges/Ports
     bp1 = bridge1.add_materialized_port().inbound_filter_id(

@@ -20,9 +20,17 @@ class Application(ResourceBase):
         headers = {'Content-Type': 'application/vnd.com.midokura.midolman.mgmt.collection.Router+json'}
         return self.get_children(self.dto['routers'], query, headers, Router)
 
+    def get_router(self, tenant_id, id_):
+        return self._get_resource(Router, id_, self.dto['routers'],
+                           {'tenant_id':tenant_id}, self.get_routers)
+
     def get_bridges(self, query):
         headers = {'Content-Type': 'application/vnd.com.midokura.midolman.mgmt.collection.Bridge+json'}
         return self.get_children(self.dto['bridges'], query, headers, Bridge)
+
+    def get_bridge(self, tenant_id, id_):
+        return self._get_resource(Bridge, id_, self.dto['bridges'],
+                           {'tenant_id':tenant_id}, self.get_bridges)
 
     def get_port_groups(self, query):
         headers = {'Content-Type': 'application/vnd.com.midokura.midolman.mgmt.collection.PortGroup+json'}
