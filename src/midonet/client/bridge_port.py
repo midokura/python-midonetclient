@@ -13,6 +13,9 @@ class BridgePort(ResourceBase):
     def get_id(self):
         return self.dto['id']
 
+    def get_type(self):
+        return self.dto['type']
+
     def get_device_id(self):
         return self.dto['deviceId']
 
