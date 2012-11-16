@@ -144,7 +144,7 @@ if __name__ == '__main__':
     rp4 = router1.add_logical_port().port_address(
         '1.1.1.3').network_address(
         '1.1.1.0').network_length(24).create()
-
+    print router1.get_port(rp1.get_id())
 
     # Router/Routes
 
@@ -202,6 +202,7 @@ if __name__ == '__main__':
         random_uuid).create()
     bp2 = bridge1.add_logical_port().create()
 
+    print bridge1.get_port(bp1.get_id())
     bp2.link(rp4.get_id())
 
 

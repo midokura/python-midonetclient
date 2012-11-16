@@ -52,11 +52,16 @@ class Bridge(ResourceBase):
              'application/vnd.com.midokura.midolman.mgmt.collection.Port+json'}
         return self.get_children(self.dto['ports'], query, headers, BridgePort)
 
+    def get_port(self, id_):
+        return self._get_resource(BridgePort, id_, self.dto['ports'], {},
+                                  self.get_ports)
+
     def get_peer_ports(self, query):
         headers = \
             {'Content-Type':
              'application/vnd.com.midokura.midolman.mgmt.collection.Port+json'}
-        res, peer_ports =  self.web_resource.get(self.dto['peerPorts'], headers, query)
+        res, peer_ports =  self.web_resource.get(self.dto['peerPorts'],
+                                                 headers, query)
 
         res = []
         for pp in peer_ports:
