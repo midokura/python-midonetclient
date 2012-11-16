@@ -25,6 +25,9 @@ class BridgePort(ResourceBase):
     def get_outbound_filter_id(self):
         return self.dto['outboundFilterId']
 
+    def get_vif_id(self):
+        return self.dto['vifId']
+
     def inbound_filter_id(self, id_) :
         self.dto['inboundFilterId'] = id_
         return self
