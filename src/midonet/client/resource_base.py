@@ -72,7 +72,7 @@ class ResourceBase(object):
                     found = True
                     return resource
             if not found:
-                raise LookupError('Resource=%r, id=%r, not found')
+                raise LookupError('Resource=%r, id=%r, not found', clazz, id_)
 
     def __repr__(self):
         return self.__class__.__name__ + str(self.dto)
