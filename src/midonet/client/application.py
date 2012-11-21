@@ -49,6 +49,10 @@ class Application(ResourceBase):
                    'Accept': 'application/vnd.com.midokura.midolman.mgmt.collection.Host+json'}
         return self.get_children(self.dto['hosts'], query, headers, Host)
 
+    def get_host(self, id_):
+        return self._get_resource(Host, id_, self.dto['hosts'], {},
+                                  self.get_hosts)
+
     def add_router(self):
         return Router(self.web_resource, self.dto['routers'], {})
 

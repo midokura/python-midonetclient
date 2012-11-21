@@ -39,6 +39,9 @@ class MidonetMgmt(object):
     def get_hosts(self, query={}):
         return self.app.get_hosts(query)
 
+    def get_host(self, id_):
+        return self.app.get_host(id_)
+
     def add_router(self):
         return self.app.add_router()
 
