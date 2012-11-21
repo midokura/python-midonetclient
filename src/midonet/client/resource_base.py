@@ -37,6 +37,9 @@ class ResourceBase(object):
     def get_children(self, uri, query, headers, clazz, extra_args=None):
         resources = []
         res, dtos =  self.web_resource.get(uri, query=query, headers=headers)
+        if dtos is None: # work around for hosts API returning empty when
+                         # there's no hosts
+            return resources
         for dto in dtos:
             if dto.get('id'):
                 self.resource_cache[dto['id']] = dto['uri']
