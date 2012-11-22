@@ -4,6 +4,8 @@ import json
 import logging
 import urllib
 
+from eventlet.semaphore import Semaphore
+
 LOG = None
 class WebResource(object):
 
@@ -13,6 +15,7 @@ class WebResource(object):
 
         self.h = httplib2.Http()
         self.auth = auth
+        self.sem = Semaphore()
         if logger == None:
             logging.basicConfig()
             #LOG = logging.getLogger('midonet.http_resource')
@@ -30,7 +33,8 @@ class WebResource(object):
         if self.auth:
             headers.update(self.auth.generate_auth_header())
 
-        response, content = self.h.request(uri, method, body,
+        with self.sem:
+            response, content = self.h.request(uri, method, body,
                                                headers=headers)
 
         boarder = '=' * 20
