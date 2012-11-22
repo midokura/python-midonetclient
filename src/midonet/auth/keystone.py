@@ -22,22 +22,21 @@ class KeystoneAuth:
         if (self.token_expires == None or
             self.token_expires - datetime.now() < timedelta(seconds=60*60)):
             try:
-                self.token = self._generate_token()
+                self.token = self.get_token()
+                self.token_expires = datetime.strptime(self.token.expires,
+                        '%Y-%m-%dT%H:%M:%SZ')
             except Exception as e:
                 print 'failed ', e
 
-        self.headers["X-Auth-Token"] = self.token
+        self.headers["X-Auth-Token"] = self.token.id
         return self.headers
 
-    def _generate_token(self):
-        ks_conn = keystone_client.Client(endpoint=self.uri)
-        token = ks_conn.tokens.authenticate(
-            username=self.username, password=self.password,
-            tenant_id=self.tenant_id, tenant_name=self.tenant_name)
-
-
-        self.token_expires = datetime.strptime(token.expires, '%Y-%m-%dT%H:%M:%SZ')
-        return token.id
-
-
+    def get_token(self):
+        if (self.token_expires == None or
+                self.token_expires - datetime.now() < timedelta(seconds=60*60)):
+            ks_conn = keystone_client.Client(endpoint=self.uri)
+            self.token = ks_conn.tokens.authenticate(
+                    username=self.username, password=self.password,
+                    tenant_id=self.tenant_id, tenant_name=self.tenant_name)
+        return self.token
 
