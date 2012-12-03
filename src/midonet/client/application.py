@@ -38,7 +38,7 @@ class Application(ResourceBase):
 
     def get_chains(self, query):
         headers = {'Content-Type': 'application/vnd.com.midokura.midolman.mgmt.collection.Chain+json'}
-        return self.get_children(self.dto['chains'], query, headers, PortGroup)
+        return self.get_children(self.dto['chains'], query, headers, Chain)
 
     def get_tunnel_zones(self, query):
         headers = {'Content-Type': 'application/vnd.com.midokura.midolman.mgmt.collection.TunnelZone+json'}
