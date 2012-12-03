@@ -63,7 +63,7 @@ class Router(ResourceBase):
         return self.get_children(self.dto['routes'], query, headers, Route)
 
 
-    def get_peer_ports(self, query):
+    def get_peer_ports(self, query={}):
         headers = \
             {'Content-Type':
              'application/vnd.com.midokura.midolman.mgmt.collection.Port+json'}
