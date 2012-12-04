@@ -130,9 +130,6 @@ class Rule(ResourceBase):
         self.dto['invPortGroup'] = inv_port_group
         return self
 
-    def get_uri(self):
-        return self.dto['uri']
-
     def tp_src_start(self, tp_src_start):
         self.dto['tpSrcStart'] = tp_src_start
         return self

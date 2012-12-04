@@ -49,6 +49,9 @@ class ResourceBase(object):
                 resources.append(clazz(self.web_resource, uri, dto, *extra_args))
         return resources
 
+    def get_uri(self):
+        return self.dto['uri']
+
     def update(self, headers={}):
         if self.media_type:
             headers['Content-Type'] = self.media_type
