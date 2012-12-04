@@ -152,7 +152,7 @@ if __name__ == '__main__':
     # Router/Routes
 
     print '-------- router/routes'
-    router1.add_route().type('normal').src_network_addr(
+    router1.add_route().type('Normal').src_network_addr(
         '0.0.0.0').src_network_length(0).dst_network_addr(
         '100.100.100.1').dst_network_length(32).weight(
             1000).next_hop_port(rp4.get_id()).next_hop_gateway('10.0.0.1').create()
