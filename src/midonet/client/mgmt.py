@@ -17,17 +17,9 @@ class MidonetMgmt(object):
         self._ensure_application()
         return self.app.get_routers(query)
 
-    def get_router(self, tenant_id, id_):
-        self._ensure_application()
-        return self.app.get_router(tenant_id, id_)
-
     def get_bridges(self, query):
         self._ensure_application()
         return self.app.get_bridges(query)
-
-    def get_bridge(self, tenant_id, id_):
-        self._ensure_application()
-        return self.app.get_bridge(tenant_id, id_)
 
     def get_port_groups(self, query):
         self._ensure_application()
@@ -52,6 +44,46 @@ class MidonetMgmt(object):
     def get_host(self, id_):
         self._ensure_application()
         return self.app.get_host(id_)
+
+    def get_ad_route(self, id_):
+        self._ensure_application()
+        return self.app.get_ad_route(id_)
+
+    def get_bgp(self, id_):
+        self._ensure_application()
+        return self.app.get_bgp(id_)
+
+    def get_bridge(self, id_):
+        self._ensure_application()
+        return self.app.get_bridge(id_)
+
+    def get_chain(self, id_):
+        self._ensure_application()
+        return self.app.get_chain(id_)
+
+    def get_host(self, id_):
+        self._ensure_application()
+        return self.app.get_host(id_)
+
+    def get_port_group(self, id_):
+        self._ensure_application()
+        return self.app.get_port_group(id_)
+
+    def get_port(self, id_):
+        self._ensure_application()
+        return self.app.get_port(id_)
+
+    def get_route(self, id_):
+        self._ensure_application()
+        return self.app.get_route(id_)
+
+    def get_router(self, id_):
+        self._ensure_application()
+        return self.app.get_router(id_)
+
+    def get_rule(self, id_):
+        self._ensure_application()
+        return self.app.get_rule(id_)
 
     def add_router(self):
         self._ensure_application()
@@ -135,14 +167,14 @@ if __name__ == '__main__':
         'tenant-1').inbound_filter_id(random_uuid).create()
 
     mgmt.get_routers({'tenant_id':'non-existent'})
-    mgmt.get_router('tenant-1', router1.get_id())
+    mgmt.get_router(router1.get_id())
 
     router2  = mgmt.add_router().name('router-2').tenant_id(
         'tenant-1').outbound_filter_id(random_uuid).create()
 
     router1.name('router1-changed').update()
 
-    mgmt.get_router('tenant-1', router1.get_id())
+    mgmt.get_router(router1.get_id())
 
     for r in  mgmt.get_routers({'tenant_id': 'tenant-1'}):
         print '--------', r.get_name()
@@ -151,7 +183,7 @@ if __name__ == '__main__':
         print 'outboundFilterId: ', r.get_outbound_filter_id()
 
 
-    mgmt.get_router('tenant-1', router1.get_id())
+    mgmt.get_router(router1.get_id())
 
     # Routers/Ports
 
@@ -221,7 +253,7 @@ if __name__ == '__main__':
         print 'outboundFilterId: ', b.get_outbound_filter_id()
 
 
-    print mgmt.get_bridge('tenant-1', bridge1.get_id())
+    print mgmt.get_bridge(bridge1.get_id())
 
     # Bridges/Ports
     bp1 = bridge1.add_materialized_port().inbound_filter_id(
