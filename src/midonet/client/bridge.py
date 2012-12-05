@@ -75,6 +75,18 @@ class Bridge(ResourceBase):
         return self.get_children(self.dto['dhcpSubnets'], query, headers,
                                  DhcpSubnet)
 
+    def get_dhcp_subnet(self, subnet_str):
+        """
+        given the subnet_str (x.x.x.x_y, address_length), returns DhcpSubnet
+        resource that has subnet prefix and length found in the subnet_str.
+        """
+        prefix, length = subnet_str.split('_')
+        for ds in self.get_dhcp_subnets():
+            if ds.get_subnet_prefix() == prefix and \
+                    ds.get_subnet_length() == int(length):
+                return ds
+        raise LookupError('subnet=%r not found' % subnet_str)
+
     def add_logical_port(self):
         return BridgePort(self.web_resource, self.dto['ports'],
                           {'type': port_type.LOGICAL_BRIDGE})

@@ -292,6 +292,8 @@ if __name__ == '__main__':
     for ds in bridge1.get_dhcp_subnets():
         print 'dhcp subnet', ds
 
+    bridge1.get_dhcp_subnet('11.11.11.0_24')
+
 
     # tear down routers and bridges
 
