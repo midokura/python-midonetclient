@@ -33,6 +33,9 @@ class MidonetMgmt(object):
     def get_chains(self, query):
         return self.app.get_chains(query)
 
+    def get_chain(self, tenant_id, id_):
+        return self.app.get_chain(tenant_id, id_)
+
     def get_tunnel_zones(self, query={}):
         return self.app.get_tunnel_zones(query)
 
