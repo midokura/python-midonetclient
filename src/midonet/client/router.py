@@ -52,10 +52,6 @@ class Router(ResourceBase):
 
         return self.get_children(self.dto['ports'], query, headers, RouterPort)
 
-    def get_port(self, id_):
-        return self._get_resource(RouterPort, id_, self.dto['ports'], {},
-                                  self.get_ports)
-
     def get_routes(self, query={}):
         headers = {'Content-Type':
                        vendor_media_type.APPLICATION_ROUTE_JSON}
