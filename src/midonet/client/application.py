@@ -20,34 +20,34 @@ class Application(ResourceBase):
         super(Application, self).__init__(web, uri, dto)
 
     def get_ad_route_template(self):
-        return self.dto['adRoute']
+        return self.dto['adRouteTemplate']
 
     def get_bgp_template(self):
-        return self.dto['bgp']
+        return self.dto['bgpTemplate']
 
     def get_bridge_template(self):
-        return self.dto['bridge']
+        return self.dto['bridgeTemplate']
 
     def get_chain_template(self):
-        return self.dto['chain']
+        return self.dto['chainTemplate']
 
     def get_host_template(self):
-        return self.dto['host']
+        return self.dto['hostTemplate']
 
     def get_port_group_template(self):
-        return self.dto['portGroup']
+        return self.dto['portGroupTemplate']
 
     def get_port_template(self):
-        return self.dto['port']
+        return self.dto['portTemplate']
 
     def get_route_template(self):
-        return self.dto['route']
+        return self.dto['routeTemplate']
 
     def get_router_template(self):
-        return self.dto['router']
+        return self.dto['routerTemplate']
 
     def get_rule_template(self):
-        return self.dto['rule']
+        return self.dto['ruleTemplate']
 
     def get_routers(self, query):
         headers = {'Content-Type':
