@@ -1,10 +1,11 @@
 # Copyright 2012 Midokura Japan KK
 
 from resource_base import ResourceBase
+import vendor_media_type
 
 class Rule(ResourceBase):
 
-    media_type = 'application/vnd.com.midokura.midolman.mgmt.Rule+json'
+    media_type = vendor_media_type.APPLICATION_RULE_JSON
 
     def __init__(self, http, uri, dto):
         super(Rule, self).__init__(http, uri, dto)

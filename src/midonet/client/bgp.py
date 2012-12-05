@@ -2,10 +2,11 @@
 
 from resource_base import ResourceBase
 from ad_route import AdRoute
+import vendor_media_type
 
 class Bgp(ResourceBase):
 
-    media_type = 'application/vnd.com.midokura.midolman.mgmt.Bgp+json'
+    media_type = vendor_media_type.APPLICATION_BGP_JSON
 
     def __init__(self, http, uri, dto):
         super(Bgp, self).__init__(http, uri, dto)
@@ -36,7 +37,9 @@ class Bgp(ResourceBase):
 
     def get_ad_routes(self):
         query = {}
-        headers = {'Content-Type': 'application/vnd.com.midokura.midolman.mgmt.collection.AdRoute+json'}
-        return self.get_children(self.dto['adRoutes'], query, headers, AdRoute)
+        headers = {'Content-Type':
+                   vendor_media_type.APPLICATION_AD_ROUTE_COLLECTION_JSON}
+        return self.get_children(self.dto['adRoutes'], query, headers,
+                                 AdRoute)
     def add_ad_route(self):
         return AdRoute(self.web_resource, self.dto['adRoutes'], {})

@@ -6,11 +6,12 @@ from router_port import RouterPort
 from dhcp_subnet import DhcpSubnet
 
 import port_type
+import vendor_media_type
 
 
 class Bridge(ResourceBase):
 
-    media_type = 'application/vnd.com.midokura.midolman.mgmt.Bridge+json'
+    media_type = vendor_media_type.APPLICATION_BRIDGE_JSON
 
     def __init__(self, http, uri, dto):
         super(Bridge, self).__init__(http, uri, dto)
@@ -47,9 +48,8 @@ class Bridge(ResourceBase):
         return self
 
     def get_ports(self, query={}):
-        headers = \
-            {'Content-Type':
-             'application/vnd.com.midokura.midolman.mgmt.collection.Port+json'}
+        headers = {'Content-Type':
+                       vendor_media_type.APPLICATION_PORT_COLLECTION_JSON}
         return self.get_children(self.dto['ports'], query, headers, BridgePort)
 
     def get_port(self, id_):
@@ -57,9 +57,8 @@ class Bridge(ResourceBase):
                                   self.get_ports)
 
     def get_peer_ports(self, query):
-        headers = \
-            {'Content-Type':
-             'application/vnd.com.midokura.midolman.mgmt.collection.Port+json'}
+        headers = {'Content-Type':
+                       vendor_media_type.APPLICATION_PORT_COLLECTION_JSON}
         res, peer_ports =  self.web_resource.get(self.dto['peerPorts'],
                                                  headers, query)
 
@@ -73,9 +72,10 @@ class Bridge(ResourceBase):
 
     def get_dhcp_subnets(self):
         query = {}
-        headers = \
-            {'Content-Type':
-             'application/vnd.com.midokura.midolman.mgmt.collection.DhcpSubnet+json'}
+        headers = {
+            'Content-Type':
+                vendor_media_type.APPLICATION_DHCP_SUBNET_COLLECTION_JSON
+            }
         return self.get_children(self.dto['dhcpSubnets'], query, headers,
                                  DhcpSubnet)
 

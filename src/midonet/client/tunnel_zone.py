@@ -2,8 +2,11 @@
 
 from resource_base import ResourceBase
 from tunnel_zone_host import TunnelZoneHost
+import vendor_media_type
 
 class TunnelZone(ResourceBase):
+
+    media_type = vendor_media_type.APPLICATION_TUNNEL_ZONE_JSON
 
     def __init__(self, http, uri, dto, mt=None, lmt=None):
         super(TunnelZone, self).__init__(http, uri, dto)
@@ -14,18 +17,20 @@ class TunnelZone(ResourceBase):
         if self.tunnel_zone_host_media_type:
             return self.tunnel_zone_host_media_type
         elif self.dto.get('type') == 'gre':
-            return 'application/vnd.com.midokura.midolman.mgmt.GreTunnelZoneHost+json'
+            return vendor_media_type.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON
         elif self.dto.get('type') == 'capwap':
-            return 'application/vnd.com.midokura.midolman.mgmt.CapwapTunnelZoneHost+json'
-
+            return vendor_media_type.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON
 
     def _get_tunnel_zone_host_list_media_type(self):
         if self.tunnel_zone_host_list_media_type:
             return self.tunnel_zone_host_list_media_type
         elif self.dto.get('type') == 'gre':
-            return 'application/vnd.com.midokura.midolman.mgmt.collection.GreTunnelZoneHost+json'
+            return vendor_media_type.\
+                APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON
+
         elif self.dto.get('type') == 'capwap':
-            return 'application/vnd.com.midokura.midolman.mgmt.collection.CapwapTunnelZoneHost+json'
+            return vendor_media_type.\
+                sAPPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON
 
     def name(self, name):
         self.dto['name'] = name

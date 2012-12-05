@@ -2,10 +2,11 @@
 
 from resource_base import ResourceBase
 from rule import Rule
+import vendor_media_type
 
 class Chain(ResourceBase):
 
-    media_type = 'application/vnd.com.midokura.midolman.mgmt.Chain+json'
+    media_type = vendor_media_type.APPLICATION_CHAIN_JSON
 
     def __init__(self, http, uri, dto):
         super(Chain, self).__init__(http, uri, dto)
@@ -26,9 +27,9 @@ class Chain(ResourceBase):
 
     def get_rules(self):
         query = {}
-        headers = \
-            {'Content-Type':
-             'application/vnd.com.midokura.midolman.mgmt.collection.Rule+json'}
+        headers = {'Content-Type':
+                       vendor_media_type.APPLICATION_RULE_COLLECTION_JSON}
+
         return self.get_children(self.dto['rules'], query, headers,
                                  Rule)
     def add_rule(self):

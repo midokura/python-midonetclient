@@ -2,10 +2,12 @@
 
 from resource_base import ResourceBase
 import port_type
+import vendor_media_type
+
 
 class BridgePort(ResourceBase):
 
-    media_type = 'application/vnd.com.midokura.midolman.mgmt.Port+json'
+    media_type = vendor_media_type.APPLICATION_PORT_JSON
 
     def __init__(self, http, uri, dto):
         super(BridgePort, self).__init__(http, uri, dto)

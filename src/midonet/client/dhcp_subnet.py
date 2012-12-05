@@ -2,11 +2,11 @@
 
 from resource_base import ResourceBase
 from dhcp_host import DhcpHost
+import vendor_media_type
 
 class DhcpSubnet(ResourceBase):
 
-    media_type = \
-        'application/vnd.com.midokura.midolman.mgmt.DhcpSubnet+json'
+    media_type = vendor_media_type.APPLICATION_DHCP_SUBNET_JSON
 
     def __init__(self, http, uri, dto):
         super(DhcpSubnet, self).__init__(http, uri, dto)
@@ -34,9 +34,8 @@ class DhcpSubnet(ResourceBase):
 
     def get_dhcp_hosts(self):
         query = {}
-        headers = \
-            {'Content-Type':
-             'application/vnd.com.midokura.midolman.mgmt.collection.DhcpHost+json'}
+        headers = {'Content-Type':
+                       vendor_media_type.APPLICATION_DHCP_HOST_COLLECTION_JSON}
         return self.get_children(self.dto['hosts'], query, headers,
                                  DhcpHost)
 

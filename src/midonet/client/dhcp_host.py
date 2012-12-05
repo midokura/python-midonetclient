@@ -1,11 +1,11 @@
 # Copyright 2012 Midokura Japan KK
 
 from resource_base import ResourceBase
+import vendor_media_type
 
 class DhcpHost(ResourceBase):
 
-    media_type = \
-        'application/vnd.com.midokura.midolman.mgmt.DhcpHost+json'
+    media_type = vendor_media_type.APPLICATION_DHCP_HOST_JSON
 
     def __init__(self, http, uri, dto):
         super(DhcpHost, self).__init__(http, uri, dto)

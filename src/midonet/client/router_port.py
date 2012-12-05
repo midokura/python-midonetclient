@@ -2,13 +2,13 @@
 
 from resource_base import ResourceBase
 from bgp import Bgp
-
 import port_type
+import vendor_media_type
 
 
 class RouterPort(ResourceBase):
 
-    media_type = 'application/vnd.com.midokura.midolman.mgmt.Port+json'
+    media_type = vendor_media_type.APPLICATION_PORT_JSON
 
     def __init__(self, web, uri, dto):
         super(RouterPort, self).__init__(web, uri, dto)
@@ -75,9 +75,8 @@ class RouterPort(ResourceBase):
 
     def get_bgps(self):
         query = {}
-        headers = \
-            {'Content-Type':
-             'application/vnd.com.midokura.midolman.mgmt.collection.Bgp+json'}
+        headers = {'Content-Type':
+                       vendor_media_type.APPLICATION_BGP_COLLECTION_JSON}
         return self.get_children(self.dto['bgps'], query, headers, Bgp)
 
     #TODO

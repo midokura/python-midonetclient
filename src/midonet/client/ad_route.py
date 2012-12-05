@@ -1,10 +1,11 @@
 # Copyright 2012 Midokura Japan KK
 
 from resource_base import ResourceBase
+import vendor_media_type
 
 class AdRoute(ResourceBase):
 
-    media_type = 'application/vnd.com.midokura.midolman.mgmt.AdRoute+json'
+    media_type = vendor_media_type.APPLICATION_AD_ROUTE_JSON
 
     def __init__(self, http, uri, dto):
         super(AdRoute, self).__init__(http, uri, dto)

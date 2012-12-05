@@ -4,13 +4,13 @@ from resource_base import ResourceBase
 from router_port import RouterPort
 from bridge_port import BridgePort
 from route import Route
-
+import vendor_media_type
 import port_type
 
 
 class Router(ResourceBase):
 
-    media_type = 'application/vnd.com.midokura.midolman.mgmt.Router+json'
+    media_type = vendor_media_type.APPLICATION_ROUTER_JSON
 
     def __init__(self, web, uri, dto):
         super(Router, self).__init__(web, uri, dto)
@@ -47,9 +47,9 @@ class Router(ResourceBase):
         return self
 
     def get_ports(self, query={}):
-        headers = \
-            {'Content-Type':
-             'application/vnd.com.midokura.midolman.mgmt.collection.Port+json'}
+        headers = {'Content-Type':
+                   vendor_media_type.APPLICATION_PORT_COLLECTION_JSON}
+
         return self.get_children(self.dto['ports'], query, headers, RouterPort)
 
     def get_port(self, id_):
@@ -57,17 +57,16 @@ class Router(ResourceBase):
                                   self.get_ports)
 
     def get_routes(self, query={}):
-        headers = \
-            {'Content-Type':
-             'application/vnd.com.midokura.midolman.mgmt.collection.Route+json'}
+        headers = {'Content-Type':
+                       vendor_media_type.APPLICATION_ROUTE_JSON}
         return self.get_children(self.dto['routes'], query, headers, Route)
 
 
     def get_peer_ports(self, query={}):
-        headers = \
-            {'Content-Type':
-             'application/vnd.com.midokura.midolman.mgmt.collection.Port+json'}
-        res, peer_ports =  self.web_resource.get(self.dto['peerPorts'], headers, query)
+        headers ={'Content-Type':
+                      vendor_media_type.APPLICATION_PORT_COLLECTION_JSON}
+        res, peer_ports =  self.web_resource.get(self.dto['peerPorts'], headers,
+                                                 query)
 
         res = []
         for pp in peer_ports:
