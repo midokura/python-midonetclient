@@ -40,6 +40,10 @@ class Application(ResourceBase):
         headers = {'Content-Type': 'application/vnd.com.midokura.midolman.mgmt.collection.Chain+json'}
         return self.get_children(self.dto['chains'], query, headers, Chain)
 
+    def get_chain(self, tenant_id, id_):
+        return self._get_resource(Chain, id_, self.dto['chains'],
+                           {'tenant_id': tenant_id}, self.get_chains)
+
     def get_tunnel_zones(self, query):
         headers = {'Content-Type': 'application/vnd.com.midokura.midolman.mgmt.collection.TunnelZone+json'}
         return self.get_children(self.dto['tunnelZones'], query, headers, TunnelZone)
