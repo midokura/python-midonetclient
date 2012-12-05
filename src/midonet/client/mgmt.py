@@ -11,57 +11,77 @@ class MidonetMgmt(object):
 
         self.midonet_uri = midonet_uri
         self.web_resource = web_resource
-        self.app = Application(self.web_resource, None,
-                {'uri': self.midonet_uri})
-        self.app.get()
+        self.app = None
 
     def get_routers(self, query):
+        self._ensure_application()
         return self.app.get_routers(query)
 
     def get_router(self, tenant_id, id_):
+        self._ensure_application()
         return self.app.get_router(tenant_id, id_)
 
     def get_bridges(self, query):
+        self._ensure_application()
         return self.app.get_bridges(query)
 
     def get_bridge(self, tenant_id, id_):
+        self._ensure_application()
         return self.app.get_bridge(tenant_id, id_)
 
     def get_port_groups(self, query):
+        self._ensure_application()
         return self.app.get_port_groups(query)
 
     def get_chains(self, query):
+        self._ensure_application()
         return self.app.get_chains(query)
 
     def get_chain(self, tenant_id, id_):
+        self._ensure_application()
         return self.app.get_chain(tenant_id, id_)
 
     def get_tunnel_zones(self, query={}):
+        self._ensure_application()
         return self.app.get_tunnel_zones(query)
 
     def get_hosts(self, query={}):
+        self._ensure_application()
         return self.app.get_hosts(query)
 
     def get_host(self, id_):
+        self._ensure_application()
         return self.app.get_host(id_)
 
     def add_router(self):
+        self._ensure_application()
         return self.app.add_router()
 
     def add_bridge(self):
+        self._ensure_application()
         return self.app.add_bridge()
 
     def add_port_group(self):
+        self._ensure_application()
         return self.app.add_port_group()
 
     def add_chain(self):
+        self._ensure_application()
         return self.app.add_chain()
 
     def add_gre_tunnel_zone(self):
+        self._ensure_application()
         return self.app.add_gre_tunnel_zone()
 
     def add_capwap_tunnel_zone(self):
+        self._ensure_application()
         return self.app.add_capwap_tunnel_zone()
+
+    def _ensure_application(self):
+        if (self.app == None):
+            self.app = Application(self.web_resource, None,
+                                   {'uri': self.midonet_uri})
+            self.app.get()
 
 
 # just for testing
