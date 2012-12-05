@@ -1,12 +1,14 @@
 # Copyright 2012 Midokura Japan KK
 
+from bridge import Bridge
+from bridge_port import BridgePort
+from chain import Chain
+from host import Host
+from port_group import PortGroup
 from resource_base import ResourceBase
 from router import Router
-from bridge import Bridge
-from port_group import PortGroup
-from chain import Chain
+from router_port import RouterPort
 from tunnel_zone import TunnelZone
-from host import Host
 import vendor_media_type
 
 class Application(ResourceBase):
@@ -108,7 +110,11 @@ class Application(ResourceBase):
                                         self.get_host_template(), id_)
 
     def get_port_group(self, id_):
-        return self._get_resource_by_id(Port, self.dto['ports'],
+        return self._get_resource_by_id(PortGroup, self.dto['portGroups'],
+                                        self.get_port_groups_template(), id_)
+
+    def get_port(self, id_):
+        return self._get_resource_by_id('Port', None,
                                         self.get_port_template(), id_)
 
     def get_route(self, id_):
@@ -156,7 +162,14 @@ class Application(ResourceBase):
         uri = self._create_uri_from_template(template,
                                              self.ID_TOKEN,
                                              id_)
-        return clazz(self.web_resource, create_uri, {'uri': uri}).get()
+        if clazz == 'Port' : # nasty hack to determine the type of port
+            res, dto = self.web_resource.get(uri)
+            if dto['type'].endswith('Router'):
+                return RouterPort(self.web_resource, None, dto)
+            elif dto['type'].endswith('Bridge'):
+                return BridgePort(self.web_resource, None, dto)
+        else:
+            return clazz(self.web_resource, create_uri, {'uri': uri}).get()
 
 
 
