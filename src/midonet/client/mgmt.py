@@ -185,12 +185,20 @@ if __name__ == '__main__':
 
     mgmt.get_router(router1.get_id())
 
+
     # Routers/Ports
 
-    rp1 = router1.add_exterior_port().port_address(
-        '2.2.2.2').network_address(
-        '2.2.2.0').network_length(24).local_network_address(
-            '169.254.1.1').local_network_length(24).create()
+    # port group1
+    pg1 = mgmt.add_port_group().tenant_id('tenant-1').name('pg-1').create()
+    pg2 = mgmt.add_port_group().tenant_id('tenant-1').name('pg-2').create()
+
+    rp1 = router1.add_exterior_port()\
+                 .port_address('2.2.2.2')\
+                 .network_address('2.2.2.0')\
+                 .network_length(24)\
+                 .port_group_ids([pg1.get_id(), pg2.get_id()]).create()
+
+    print 'rp1 port group ids=%r' % rp1.get_port_group_ids()
 
     rp2 = router1.add_interior_port().port_address(
         '1.1.1.1').network_address(
@@ -256,8 +264,10 @@ if __name__ == '__main__':
     print mgmt.get_bridge(bridge1.get_id())
 
     # Bridges/Ports
-    bp1 = bridge1.add_exterior_port().inbound_filter_id(
-        random_uuid).create()
+    bp1 = bridge1.add_exterior_port().inbound_filter_id(random_uuid)\
+                 .port_group_ids([pg1.get_id(), pg2.get_id()]).create()
+
+    print 'bp1 port_group_ids=%r' % bp1.get_port_group_ids()
     bp2 = bridge1.add_interior_port().create()
 
     print mgmt.get_port(bp1.get_id())
@@ -307,10 +317,8 @@ if __name__ == '__main__':
     bridge1.delete()
     bridge2.delete()
 
-    # PortGroups
-    pg1 = mgmt.add_port_group().tenant_id('tenant-1').name('pg-1').create()
-    pg2 = mgmt.add_port_group().tenant_id('tenant-1').name('pg-2').create()
 
+    # list port groups and remove them.
     pgs = mgmt.get_port_groups({'tenant_id': 'tenant-1'})
     for pg in pgs:
         print pg.get_name()
