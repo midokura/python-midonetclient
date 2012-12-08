@@ -56,12 +56,12 @@ class RouterPort(ResourceBase):
         return self
 
     def local_network_address(self, local_network_address):
-        assert self.get_type() == port_type.MATERIALIZED_ROUTER
+        assert self.get_type() == port_type.EXTERIOR_ROUTER
         self.dto['localNetworkAddress'] = local_network_address
         return self
 
     def local_network_length(self, local_network_length):
-        assert self.get_type() == port_type.MATERIALIZED_ROUTER
+        assert self.get_type() == port_type.EXTERIOR_ROUTER
         self.dto['localNetworkLength'] = local_network_length
         return self
 

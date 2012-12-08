@@ -66,19 +66,19 @@ class Router(ResourceBase):
 
         res = []
         for pp in peer_ports:
-            if pp['type'] == port_type.LOGICAL_ROUTER:
+            if pp['type'] == port_type.INTERIOR_ROUTER:
                 res.append(RouterPort(self.web_resource, self.dto['ports'], pp))
-            elif pp['type'] == port_type.LOGICAL_BRIDGE:
+            elif pp['type'] == port_type.INTERIOR_BRIDGE:
                 res.append(BridgePort(self.web_resource, self.dto['ports'], pp))
         return res
 
-    def add_logical_port(self):
+    def add_interior_port(self):
         return RouterPort(self.web_resource, self.dto['ports'],
-                          {'type': port_type.LOGICAL_ROUTER})
+                          {'type': port_type.INTERIOR_ROUTER})
 
-    def add_materialized_port(self):
+    def add_exterior_port(self):
         return RouterPort(self.web_resource, self.dto['ports'],
-                          {'type': port_type.MATERIALIZED_ROUTER})
+                          {'type': port_type.EXTERIOR_ROUTER})
 
     def add_route(self):
         return Route(self.web_resource, self.dto['routes'], {})

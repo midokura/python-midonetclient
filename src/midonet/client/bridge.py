@@ -60,9 +60,9 @@ class Bridge(ResourceBase):
 
         res = []
         for pp in peer_ports:
-            if pp['type'] == port_type.LOGICAL_ROUTER:
+            if pp['type'] == port_type.INTERIOR_ROUTER:
                 res.append(RouterPort(self.web_resource, self.dto['ports'], pp))
-            elif pp['type'] == port_type.LOGICAL_BRIDGE:
+            elif pp['type'] == port_type.INTERIOR_BRIDGE:
                 res.append(BridgePort(self.web_resource, self.dto['ports'], pp))
         return res
 
@@ -87,13 +87,13 @@ class Bridge(ResourceBase):
                 return ds
         raise LookupError('subnet=%r not found' % subnet_str)
 
-    def add_logical_port(self):
+    def add_interior_port(self):
         return BridgePort(self.web_resource, self.dto['ports'],
-                          {'type': port_type.LOGICAL_BRIDGE})
+                          {'type': port_type.INTERIOR_BRIDGE})
 
-    def add_materialized_port(self):
+    def add_exterior_port(self):
         return BridgePort(self.web_resource, self.dto['ports'],
-                          {'type': port_type.MATERIALIZED_BRIDGE})
+                          {'type': port_type.EXTERIOR_BRIDGE})
 
     def add_dhcp_subnet(self):
         return DhcpSubnet(self.web_resource, self.dto['dhcpSubnets'], {})

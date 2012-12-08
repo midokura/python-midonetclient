@@ -1,5 +1,5 @@
 
-MATERIALIZED_BRIDGE = "MaterializedBridge"
-MATERIALIZED_ROUTER = "MaterializedRouter"
-LOGICAL_BRIDGE = "LogicalBridge"
-LOGICAL_ROUTER = "LogicalRouter"
+EXTERIOR_BRIDGE = "ExteriorBridge"
+EXTERIOR_ROUTER = "ExteriorRouter"
+INTERIOR_BRIDGE = "InteriorBridge"
+INTERIOR_ROUTER = "InteriorRouter"

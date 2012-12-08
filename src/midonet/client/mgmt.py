@@ -187,19 +187,19 @@ if __name__ == '__main__':
 
     # Routers/Ports
 
-    rp1 = router1.add_materialized_port().port_address(
+    rp1 = router1.add_exterior_port().port_address(
         '2.2.2.2').network_address(
         '2.2.2.0').network_length(24).local_network_address(
             '169.254.1.1').local_network_length(24).create()
 
-    rp2 = router1.add_logical_port().port_address(
+    rp2 = router1.add_interior_port().port_address(
         '1.1.1.1').network_address(
         '1.1.1.0').network_length(24).create()
 
-    rp3 = router1.add_logical_port().port_address(
+    rp3 = router1.add_interior_port().port_address(
         '1.1.1.2').network_address(
         '1.1.1.0').network_length(24).create()
-    rp4 = router1.add_logical_port().port_address(
+    rp4 = router1.add_interior_port().port_address(
         '1.1.1.3').network_address(
         '1.1.1.0').network_length(24).create()
     print mgmt.get_port(rp1.get_id())
@@ -256,9 +256,9 @@ if __name__ == '__main__':
     print mgmt.get_bridge(bridge1.get_id())
 
     # Bridges/Ports
-    bp1 = bridge1.add_materialized_port().inbound_filter_id(
+    bp1 = bridge1.add_exterior_port().inbound_filter_id(
         random_uuid).create()
-    bp2 = bridge1.add_logical_port().create()
+    bp2 = bridge1.add_interior_port().create()
 
     print mgmt.get_port(bp1.get_id())
     bp2.link(rp4.get_id())
