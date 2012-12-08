@@ -204,7 +204,7 @@ class Rule(ResourceBase):
         return self
 
     def jump_chain_name(self, jump_chain_name):
-        self.dto['getJumpChainName'] = jump_chain_name
+        self.dto['jumpChainName'] = jump_chain_name
         return self
 
     def inv_dl_type(self, inv_dl_type):
