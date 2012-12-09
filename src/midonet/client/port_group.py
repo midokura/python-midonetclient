@@ -1,6 +1,7 @@
 # Copyright 2012 Midokura Japan KK
 
 from resource_base import ResourceBase
+from port_group_port import PortGroupPort
 import vendor_media_type
 
 class PortGroup(ResourceBase):
@@ -24,3 +25,13 @@ class PortGroup(ResourceBase):
     def get_id(self):
         return self.dto['id']
 
+    def get_ports(self, query={}):
+        headers = {'Content-Type':
+                       vendor_media_type.\
+                       APPLICATION_PORTGROUP_PORT_COLLECTION_JSON}
+        return self.get_children(self.dto['ports'], query, headers,
+                                 PortGroupPort)
+
+
+    def add_port_group_port(self):
+        return PortGroupPort(self.web_resource, self.dto['ports'], {})

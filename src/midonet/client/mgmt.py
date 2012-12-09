@@ -304,10 +304,31 @@ if __name__ == '__main__':
 
     bridge1.get_dhcp_subnet('11.11.11.0_24')
 
+    # list port groups and remove them.
+    pgs = mgmt.get_port_groups({'tenant_id': 'tenant-1'})
+    for pg in pgs:
+        print pg.get_name()
+        print pg.get_id()
+
+    # Add a port(bp2) to pg2
+    pgp1 = pg2.add_port_group_port().port_id(bp2.get_id()).create()
+
+    membership = pg2.get_ports()
+    size = len(membership)
+    print 'pg2(id=%r) membership=%r, size=%d' % (pg2.get_id(), membership,
+                                                 size)
+    pgp1.delete()
+    membership = pg2.get_ports()
+    size_after_delete_pgp1 = len(membership)
+    print 'pg2(id=%r) membership=%r, size=%d' % (pg2.get_id(),
+                                                 membership,
+                                                 size_after_delete_pgp1)
+    assert size == size_after_delete_pgp1 + 1
+
+    pg1.delete()
+    pg2.delete()
 
     # tear down routers and bridges
-
-
     bp2.unlink()    # if I don't unlink, deletion of router blows up
     rp2.unlink()
     #time.sleep(30)
@@ -316,16 +337,6 @@ if __name__ == '__main__':
     router2.delete()
     bridge1.delete()
     bridge2.delete()
-
-
-    # list port groups and remove them.
-    pgs = mgmt.get_port_groups({'tenant_id': 'tenant-1'})
-    for pg in pgs:
-        print pg.get_name()
-        print pg.get_id()
-    pg1.delete()
-    pg2.delete()
-
 
     # Chains
     chain1 = mgmt.add_chain().tenant_id('tenant-1').name('chain-1').create()
