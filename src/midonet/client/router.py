@@ -54,7 +54,7 @@ class Router(ResourceBase):
 
     def get_routes(self, query={}):
         headers = {'Content-Type':
-                       vendor_media_type.APPLICATION_ROUTE_JSON}
+                       vendor_media_type.APPLICATION_ROUTE_COLLECTION_JSON}
         return self.get_children(self.dto['routes'], query, headers, Route)
 
 
