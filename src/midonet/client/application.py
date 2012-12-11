@@ -1,13 +1,17 @@
 # Copyright 2012 Midokura Japan KK
 
+from ad_route import AdRoute
+from bgp import Bgp
 from bridge import Bridge
 from bridge_port import BridgePort
 from chain import Chain
 from host import Host
 from port_group import PortGroup
 from resource_base import ResourceBase
+from route import Route
 from router import Router
 from router_port import RouterPort
+from rule import Rule
 from tunnel_zone import TunnelZone
 import vendor_media_type
 
@@ -71,14 +75,10 @@ class Application(ResourceBase):
                        vendor_media_type.APPLICATION_CHAIN_COLLECTION_JSON}
         return self.get_children(self.dto['chains'], query, headers, Chain)
 
-    def get_chain(self, tenant_id, id_):
-        return self._get_resource(Chain, id_, self.dto['chains'],
-                           {'tenant_id': tenant_id}, self.get_chains)
-
     def get_tunnel_zones(self, query):
         headers = {
             'Content-Type':
-                vendor_media_type.py.APPLICATION_TUNNEL_ZONE_COLLECTION_JSON}
+                vendor_media_type.APPLICATION_TUNNEL_ZONE_COLLECTION_JSON}
         return self.get_children(self.dto['tunnelZones'], query, headers,
                                  TunnelZone)
 
@@ -111,7 +111,7 @@ class Application(ResourceBase):
 
     def get_port_group(self, id_):
         return self._get_resource_by_id(PortGroup, self.dto['portGroups'],
-                                        self.get_port_groups_template(), id_)
+                                        self.get_port_group_template(), id_)
 
     def get_port(self, id_):
         return self._get_resource_by_id('Port', None,
