@@ -30,6 +30,9 @@ class BridgePort(ResourceBase):
     def get_vif_id(self):
         return self.dto['vifId']
 
+    def get_peer_id(self):
+        return self.dto['peerId']
+
     def get_port_group_ids(self):
         return self.dto['portGroupIDs']
 
