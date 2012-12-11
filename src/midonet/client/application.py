@@ -118,16 +118,16 @@ class Application(ResourceBase):
                                         self.get_port_template(), id_)
 
     def get_route(self, id_):
-        return self._get_resource_by_id(Route, self.dto['routes'],
-                                        self.get_route_template(), id_)
+        return self._get_resource_by_id(Route, None, self.get_route_template(),
+                                        id_)
 
     def get_router(self, id_):
         return self._get_resource_by_id(Router, self.dto['routers'],
                                         self.get_router_template(), id_)
 
     def get_rule(self, id_):
-        return self._get_resource_by_id(Rule, self.dto['rules'],
-                                        self.get_rule_template(), id_)
+        return self._get_resource_by_id(Rule, None, self.get_rule_template(),
+                                        id_)
 
     def add_router(self):
         return Router(self.web_resource, self.dto['routers'], {})
