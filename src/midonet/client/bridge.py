@@ -52,7 +52,7 @@ class Bridge(ResourceBase):
                        vendor_media_type.APPLICATION_PORT_COLLECTION_JSON}
         return self.get_children(self.dto['ports'], query, headers, BridgePort)
 
-    def get_peer_ports(self, query):
+    def get_peer_ports(self, query={}):
         headers = {'Content-Type':
                        vendor_media_type.APPLICATION_PORT_COLLECTION_JSON}
         res, peer_ports =  self.web_resource.get(self.dto['peerPorts'],
