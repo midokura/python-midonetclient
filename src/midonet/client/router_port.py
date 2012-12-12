@@ -43,9 +43,6 @@ class RouterPort(ResourceBase):
     def get_peer_id(self):
         return self.dto['peerId']
 
-    def get_port_group_ids(self):
-        return self.dto['portGroupIDs']
-
     def port_address(self, port_address):
         self.dto['portAddress'] = port_address
         return self
@@ -70,16 +67,12 @@ class RouterPort(ResourceBase):
         self.dto['localNetworkLength'] = local_network_length
         return self
 
-    def inbound_filter_id(self, id_) :
+    def inbound_filter_id(self, id_):
         self.dto['inboundFilterId'] = id_
         return self
 
-    def outbound_filter_id(self, id_) :
+    def outbound_filter_id(self, id_):
         self.dto['outboundFilterId'] = id_
-        return self
-
-    def port_group_ids(self, ids):
-        self.dto['portGroupIDs'] = ids
         return self
 
     def get_bgps(self):
