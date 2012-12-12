@@ -1,0 +1,106 @@
+#!/usr/bin/env python
+# Copyright 2012 Midokura Japan KK
+
+import sys
+import argparse
+import readline
+import time
+
+
+def interactive_mode(args=None):
+    print "interactive_mode"
+
+def router_create(args):
+    print "router_create"
+
+def router_delete(args):
+    print "router_delete"
+
+def router_list(args):
+    print "router_list"
+
+# top_sub_cmds = ['router', 'bride', 'port', 'chain', 'rule']
+
+# Need this class to jump directly to interactive_mode instead of checking
+# sub-command arguments.
+class _InteractiveModeAction(argparse.Action):
+    def __init__(self, option_strings, dest, default=False, required=False,
+                 help=None):
+        super(_InteractiveModeAction, self).__init__(
+            option_strings=option_strings, dest=dest, nargs=0, const=True,
+            default=default, required=required, help=help)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        #print '%r %r %r' % (namespace, values, option_string)
+        setattr(namespace, self.dest, self.const)
+
+        # Check common parser's inputs.
+        user = getattr(namespace, 'user')
+        pwd = getattr(namespace, 'pwd')
+        tenant_id = getattr(namespace, 'tenant_id')
+        if not (user and pwd and tenant_id):
+            parser.print_help()
+
+        namespace.func()
+        parser.exit()
+
+
+# TODO(yoshi): add auto-complete support. nova-manage?
+def main():
+    # TODO(yoshi): add support for reading the config file. Read the values
+    # for the config file, set the default values with them.
+
+    # Common parser
+    parent_parser = argparse.ArgumentParser(add_help=False)
+    parent_parser.add_argument('--url', metavar='URL',
+                               help='The URL of MN API Server', required=True)
+    parent_parser.add_argument('--user', metavar='username', help='username',
+                               required=True)
+    parent_parser.add_argument('--pwd', metavar='password', help='password',
+                               required=True)
+    parent_parser.add_argument('--tenant-id', metavar='tenant_id',
+                               help='Tenant ID', required=True)
+
+    # Create the top level parser
+    parser = argparse.ArgumentParser(parents=[parent_parser],
+        description='MidoNet Virtual Topology Configuration Tool')
+    print parser._defaults
+
+    # Support interactive shell mode
+    parser.add_argument('--interactive', '-i', action=_InteractiveModeAction,
+                        help='interactive mode')
+    parser.set_defaults(func=interactive_mode)
+
+    # Sub commands support.
+    subparsers = parser.add_subparsers(help='virtual network resources')
+
+    # router commands
+    router_parser = subparsers.add_parser(
+        'router', help='router commands',
+        parents=[parent_parser]).add_subparsers(help='router commands')
+    # router create command
+    router_create_parser = router_parser.add_parser(
+        'create', parents=[parent_parser], help='create a router')
+    router_create_parser.add_argument('--name', metavar='name', required=True)
+    router_create_parser.set_defaults(func=router_create)
+    # router delete command
+    router_delete_parser = router_parser.add_parser(
+        'delete', parents=[parent_parser], help='delete a router')
+    router_delete_parser.add_argument('--name', metavar='name', required=True)
+    router_delete_parser.set_defaults(func=router_delete)
+    # router list command
+    router_list_parser = router_parser.add_parser(
+        'list', parents=[parent_parser], help='list routers')
+    router_list_parser.add_argument('--name', metavar='name', required=True)
+    router_list_parser.set_defaults(func=router_list)
+
+    # bridge commands
+    bridge_parser = subparsers.add_parser(
+        'bridge', parents=[parent_parser], help='bridge commands')
+
+    args = parser.parse_args()
+    args.func(args)
+
+
+if __name__ == '__main__':
+    sys.exit(main())
