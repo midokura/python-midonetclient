@@ -53,7 +53,7 @@ class WebResource(object):
             if self.auth and response['status'] == '401' and retries_left > 0:
                 self.auth.get_token(regenerate=True)
                 retries_left -= 1
-                self._do_request(uri, method, body, headers, retries_left)
+                return self._do_request(uri, method, body, headers, retries_left)
 
             LOG.error("%s got an error status %s", req, response['status'])
             e = exc.get_exception(response['status'])(content)
