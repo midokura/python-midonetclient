@@ -94,12 +94,14 @@ class RouterPort(ResourceBase):
 
     def link(self, peer_uuid):
         self.dto['peerId'] = peer_uuid
-        headers = {'Content-Type': self.media_type}
+        headers = {'Content-Type':
+                    vendor_media_type.APPLICATION_PORT_LINK_JSON}
         self.web_resource.post(self.dto['link'], self.dto, headers=headers)
         return self.web_resource.get(self.dto['uri'], headers=headers)
 
     def unlink(self):
         self.dto['peerId'] = None
-        headers = {'Content-Type': self.media_type}
-        self.web_resource.post(self.dto['link'], self.dto, headers=headers)
+        headers = {'Content-Type':
+                    vendor_media_type.APPLICATION_PORT_LINK_JSON}
+        self.web_resource.delete(self.dto['link'], headers=headers)
         return self.web_resource.get(self.dto['uri'], headers=headers)

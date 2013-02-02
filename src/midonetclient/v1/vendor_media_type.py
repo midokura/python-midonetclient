@@ -51,3 +51,5 @@ APPLICATION_TUNNEL_ZONE_HOST_JSON = 'application/vnd.com.midokura.midolman.mgmt.
 APPLICATION_TUNNEL_ZONE_JSON = 'application/vnd.com.midokura.midolman.mgmt.TunnelZone+json'
 APPLICATION_VPN_COLLECTION_JSON = 'application/vnd.com.midokura.midolman.mgmt.collection.Vpn+json'
 APPLICATION_VPN_JSON = 'application/vnd.com.midokura.midolman.mgmt.Vpn+json'
+
+APPLICATION_PORT_LINK_JSON = 'application/vnd.com.midokura.midolman.mgmt.PortLink+json'
