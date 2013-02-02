@@ -4,7 +4,7 @@ from web_resource import WebResource
 from application import Application
 
 
-class MidonetMgmt(object):
+class MidonetApi(object):
 
     def __init__(self, midonet_uri='http://localhost:8080//midolmanj-mgmt',
                  web_resource=None, logger=None):
@@ -132,64 +132,64 @@ if __name__ == '__main__':
     import logging
     FORMAT = '%(asctime)-15s %(name)s %(message)s'
     logging.basicConfig(format=FORMAT)
-    LOG = logging.getLogger('nova...midonet.client')
+    LOG = logging.getLogger(__name__)
     LOG.setLevel(logging.DEBUG)
 
     web_resource = WebResource(auth=None, logger=LOG)
-    mgmt = MidonetMgmt(web_resource=web_resource, logger=LOG)
+    api = MidonetApi(web_resource=web_resource, logger=LOG)
 
-#    for z in mgmt.get_tunnel_zones():
+#    for z in api.get_tunnel_zones():
 #        for h in z.get_hosts():
 #            print h
 
-#    hosts =  mgmt.get_hosts()
+#    hosts =  api.get_hosts()
 #    print hosts[0]
 #    random_uuid = str(uuid.uuid4())
 #    hosts[0].add_host_interface_port().interface_name('ika').port_id(
 #        random_uuid).create()
 
     # Tunnel zones
-    tz1 = mgmt.add_gre_tunnel_zone().name('tunnel_vision').create()
+    tz1 = api.add_gre_tunnel_zone().name('tunnel_vision').create()
     tz1.name("going' through my head").update()
     tz1.get_hosts()
     tz1.delete()
 
-    tz2 = mgmt.add_capwap_tunnel_zone().name('tunnel_vision2').create()
+    tz2 = api.add_capwap_tunnel_zone().name('tunnel_vision2').create()
     tz2.name("going' through my head2").update()
     tz2.get_hosts()
     tz2.delete()
 
     # Routers
-    mgmt.get_routers({'tenant_id': 'non-existent'})
-    print mgmt.get_routers({'tenant_id': 'tenant-1'})
+    api.get_routers({'tenant_id': 'non-existent'})
+    print api.get_routers({'tenant_id': 'tenant-1'})
 
     random_uuid = str(uuid.uuid4())
-    router1 = mgmt.add_router().name('router-1').tenant_id(
-        'tenant-1').inbound_filter_id(random_uuid).create()
+    router1 = api.add_router().name('router-1').tenant_id('tenant-1')\
+                              .inbound_filter_id(random_uuid).create()
 
-    mgmt.get_routers({'tenant_id': 'non-existent'})
-    mgmt.get_router(router1.get_id())
+    api.get_routers({'tenant_id': 'non-existent'})
+    api.get_router(router1.get_id())
 
-    router2 = mgmt.add_router().name('router-2').tenant_id(
-        'tenant-1').outbound_filter_id(random_uuid).create()
+    router2 = api.add_router().name('router-2').tenant_id('tenant-1')\
+                  .outbound_filter_id(random_uuid).create()
 
     router1.name('router1-changed').update()
 
-    mgmt.get_router(router1.get_id())
+    api.get_router(router1.get_id())
 
-    for r in  mgmt.get_routers({'tenant_id': 'tenant-1'}):
+    for r in  api.get_routers({'tenant_id': 'tenant-1'}):
         print '--------', r.get_name()
         print 'id: ', r.get_id()
         print 'inboundFilterId: ', r.get_inbound_filter_id()
         print 'outboundFilterId: ', r.get_outbound_filter_id()
 
-    mgmt.get_router(router1.get_id())
+    api.get_router(router1.get_id())
 
     # Routers/Ports
 
     # port group1
-    pg1 = mgmt.add_port_group().tenant_id('tenant-1').name('pg-1').create()
-    pg2 = mgmt.add_port_group().tenant_id('tenant-1').name('pg-2').create()
+    pg1 = api.add_port_group().tenant_id('tenant-1').name('pg-1').create()
+    pg2 = api.add_port_group().tenant_id('tenant-1').name('pg-2').create()
 
     rp1 = router1.add_exterior_port()\
                  .port_address('2.2.2.2')\
@@ -202,38 +202,39 @@ if __name__ == '__main__':
     print 'rp1 port group ids=%r' % [pgp1.get_port_group_id(),
                                      pgp2.get_port_group_id()]
 
-    rp2 = router1.add_interior_port().port_address(
-        '1.1.1.1').network_address(
-        '1.1.1.0').network_length(24).create()
+    rp2 = router1.add_interior_port().port_address('1.1.1.1')\
+                 .network_address('1.1.1.0').network_length(24).create()
 
-    rp3 = router1.add_interior_port().port_address(
-        '1.1.1.2').network_address(
-        '1.1.1.0').network_length(24).create()
-    rp4 = router1.add_interior_port().port_address(
-        '1.1.1.3').network_address(
-        '1.1.1.0').network_length(24).create()
-    print mgmt.get_port(rp1.get_id())
+    rp3 = router1.add_interior_port().port_address('1.1.1.2')\
+                 .network_address('1.1.1.0').network_length(24).create()
+    rp4 = router1.add_interior_port().port_address('1.1.1.3')\
+                 .network_address('1.1.1.0').network_length(24).create()
+    print api.get_port(rp1.get_id())
 
     # Router/Routes
 
     print '-------- router/routes'
-    router1.add_route().type('Normal').src_network_addr(
-        '0.0.0.0').src_network_length(0).dst_network_addr(
-        '100.100.100.1').dst_network_length(32).weight(
-            1000).next_hop_port(rp4.get_id()).next_hop_gateway(
-                '10.0.0.1').create()
+    router1.add_route().type('Normal').src_network_addr('0.0.0.0')\
+                       .src_network_length(0)\
+                       .dst_network_addr('100.100.100.1')\
+                       .dst_network_length(32)\
+                       .weight(1000)\
+                       .next_hop_port(rp4.get_id())\
+                       .next_hop_gateway('10.0.0.1').create()
 
     print router1.get_routes()
 
     rp2.link(rp3.get_id())
 
-    bgp1 = rp1.add_bgp().local_as(1234).peer_as(5678).peer_addr(
-        '3.3.3.3').create()
+    bgp1 = rp1.add_bgp().local_as(1234).peer_as(5678)\
+              .peer_addr('3.3.3.3').create()
 
-    ar1 = bgp1.add_ad_route().nw_prefix('4.4.4.0').nw_prefix_length(
-        24).create()
-    ar2 = bgp1.add_ad_route().nw_prefix('5.5.5.0').nw_prefix_length(
-        24).create()
+    ar1 = bgp1.add_ad_route().nw_prefix('4.4.4.0')\
+                             .nw_prefix_length(24)\
+                             .create()
+    ar2 = bgp1.add_ad_route().nw_prefix('5.5.5.0')\
+                             .nw_prefix_length(24)\
+                             .create()
 
     for ar in  bgp1.get_ad_routes():
         print 'advertised route--------'
@@ -244,20 +245,19 @@ if __name__ == '__main__':
     print rp1.get_bgps()
 
     # Bridges
-    bridge1 = mgmt.add_bridge().name('bridge-1').tenant_id(
-        'tenant-1').create()
+    bridge1 = api.add_bridge().name('bridge-1').tenant_id('tenant-1').create()
     bridge1.name('bridge1-changed').update()
 
-    bridge2 = mgmt.add_bridge().name('bridge-2').tenant_id(
+    bridge2 = api.add_bridge().name('bridge-2').tenant_id(
         'tenant-1').inbound_filter_id(random_uuid).create()
 
-    for b in  mgmt.get_bridges({'tenant_id': 'tenant-1'}):
+    for b in  api.get_bridges({'tenant_id': 'tenant-1'}):
         print '--------', b.get_name()
         print 'id: ', b.get_id()
         print 'inboundFilterId: ', b.get_inbound_filter_id()
         print 'outboundFilterId: ', b.get_outbound_filter_id()
 
-    print mgmt.get_bridge(bridge1.get_id())
+    print api.get_bridge(bridge1.get_id())
 
     # Bridges/Ports
     bp1 = bridge1.add_exterior_port().inbound_filter_id(random_uuid).create()
@@ -270,7 +270,7 @@ if __name__ == '__main__':
 
     bp2 = bridge1.add_interior_port().create()
 
-    print mgmt.get_port(bp1.get_id())
+    print api.get_port(bp1.get_id())
     bp2.link(rp4.get_id())
 
     print router1.get_peer_ports({})
@@ -280,18 +280,16 @@ if __name__ == '__main__':
         print 'bridge port----'
         print bp.get_id()
 
-    dhcp1 = bridge1.add_dhcp_subnet().default_gateway(
-        '10.10.10.1').subnet_prefix(
-        '10.10.10.0').subnet_length(24).create()
+    dhcp1 = bridge1.add_dhcp_subnet().default_gateway('10.10.10.1')\
+                   .subnet_prefix('10.10.10.0').subnet_length(24).create()
 
-    dhcp2 = bridge1.add_dhcp_subnet().default_gateway(
-        '11.11.11.1').subnet_prefix(
-        '11.11.11.0').subnet_length(24).create()
+    dhcp2 = bridge1.add_dhcp_subnet().default_gateway('11.11.11.1')\
+                    .subnet_prefix('11.11.11.0').subnet_length(24).create()
 
-    dhcp1.add_dhcp_host().name('host-1').ip_addr(
-        '10.10.10.2').mac_addr('00:00:00:aa:bb:cc').create()
-    dhcp1.add_dhcp_host().name('host-2').ip_addr(
-        '10.10.10.3').mac_addr('00:00:00:aa:bb:dd').create()
+    dhcp1.add_dhcp_host().name('host-1').ip_addr('10.10.10.2')\
+                         .mac_addr('00:00:00:aa:bb:cc').create()
+    dhcp1.add_dhcp_host().name('host-2').ip_addr('10.10.10.3')\
+                         .mac_addr('00:00:00:aa:bb:dd').create()
 
     assert 2 == len(dhcp1.get_dhcp_hosts())
 
@@ -301,7 +299,7 @@ if __name__ == '__main__':
     bridge1.get_dhcp_subnet('11.11.11.0_24')
 
     # list port groups and remove them.
-    pgs = mgmt.get_port_groups({'tenant_id': 'tenant-1'})
+    pgs = api.get_port_groups({'tenant_id': 'tenant-1'})
     for pg in pgs:
         print pg.get_name()
         print pg.get_id()
@@ -335,10 +333,10 @@ if __name__ == '__main__':
     bridge2.delete()
 
     # Chains
-    chain1 = mgmt.add_chain().tenant_id('tenant-1').name('chain-1').create()
-    chain2 = mgmt.add_chain().tenant_id('tenant-1').name('chain-2').create()
+    chain1 = api.add_chain().tenant_id('tenant-1').name('chain-1').create()
+    chain2 = api.add_chain().tenant_id('tenant-1').name('chain-2').create()
 
-    for c in mgmt.get_chains({'tenant_id': 'tenant-1'}):
+    for c in api.get_chains({'tenant_id': 'tenant-1'}):
         print '------- chain: ', c.get_name()
         print c.get_id()
 
@@ -355,9 +353,11 @@ if __name__ == '__main__':
                     'portTo': 80},
                   ]
 
-    rule3 = chain1.add_rule().type('dnat').nw_dst_address(
-        '1.1.1.1').nw_dst_length(32).flow_action(
-        'accept').nat_targets(nat_targets).create()
+    rule3 = chain1.add_rule().type('dnat').nw_dst_address('1.1.1.1')\
+                             .nw_dst_length(32)\
+                             .flow_action('accept')\
+                             .nat_targets(nat_targets)\
+                             .create()
 
     print '=' * 10
     print rule3.get_nat_targets()
