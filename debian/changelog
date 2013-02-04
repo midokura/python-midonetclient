@@ -1,3 +1,9 @@
+midonetclient (13.01.0) precise; urgency=low
+
+  * Chamicuro release
+
+ -- Tomoe Sugihara <tomoe@midokura.com>  Mon, 04 Feb 2013 13:50:19 +0900
+
 midonet-client (12.12.1) precise; urgency=low
 
   * Caddo update1
