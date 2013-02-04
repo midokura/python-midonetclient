@@ -6,7 +6,7 @@ from application import Application
 
 class MidonetApi(object):
 
-    def __init__(self, midonet_uri='http://localhost:8080//midolmanj-mgmt',
+    def __init__(self, midonet_uri='http://localhost:8080/midonet-api/',
                  web_resource=None, logger=None):
 
         self.midonet_uri = midonet_uri
