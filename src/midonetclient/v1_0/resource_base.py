@@ -23,9 +23,6 @@ class ResourceBase(object):
         return self
 
     def get(self, headers={}, **kwargs):
-        if self.media_type:
-            headers['Content-Type'] = self.media_type
-            headers['Accept'] = self.media_type
 
         uri = self.dto['uri']
         res, self.dto =  self.web_resource.get(uri, headers=headers)

@@ -169,7 +169,5 @@ class Application(ResourceBase):
             elif dto['type'].endswith('Bridge'):
                 return BridgePort(self.web_resource, None, dto)
         else:
-            return clazz(self.web_resource, create_uri, {'uri': uri}).get()
-
-
-
+            return clazz(self.web_resource, create_uri, {'uri': uri}).get(
+                {'Content-Type': clazz.media_type, 'Accept': clazz.media_type})
