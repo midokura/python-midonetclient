@@ -1,4 +1,22 @@
-# Copyright 2012 Midokura Japan KK
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
+
+# Copyright 2013 Midokura PTE LTD.
+# All Rights Reserved
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
+# @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
 from ad_route import AdRoute
 from bgp import Bgp
@@ -15,13 +33,14 @@ from rule import Rule
 from tunnel_zone import TunnelZone
 import vendor_media_type
 
+
 class Application(ResourceBase):
 
     media_type = vendor_media_type.APPLICATION_JSON
     ID_TOKEN = '{id}'
 
-    def __init__(self, web, uri, dto):
-        super(Application, self).__init__(web, uri, dto)
+    def __init__(self, uri, dto, auth):
+        super(Application, self).__init__(uri, dto, auth)
 
     def get_ad_route_template(self):
         return self.dto['adRouteTemplate']
@@ -54,39 +73,36 @@ class Application(ResourceBase):
         return self.dto['ruleTemplate']
 
     def get_routers(self, query):
-        headers = {'Content-Type':
-                       vendor_media_type.APPLICATION_ROUTER_COLLECTION_JSON}
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_ROUTER_COLLECTION_JSON}
         return self.get_children(self.dto['routers'], query, headers, Router)
 
     def get_bridges(self, query):
-        headers = {'Content-Type':
+        headers = {'Accept':
                    vendor_media_type.APPLICATION_BRIDGE_COLLECTION_JSON}
         return self.get_children(self.dto['bridges'], query, headers, Bridge)
 
     def get_port_groups(self, query):
-        headers = {'Content-Type':
-                       vendor_media_type.APPLICATION_PORTGROUP_COLLECTION_JSON}
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_PORTGROUP_COLLECTION_JSON}
 
         return self.get_children(self.dto['portGroups'], query, headers,
                                  PortGroup)
 
     def get_chains(self, query):
-        headers = {'Content-Type':
-                       vendor_media_type.APPLICATION_CHAIN_COLLECTION_JSON}
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_CHAIN_COLLECTION_JSON}
         return self.get_children(self.dto['chains'], query, headers, Chain)
 
     def get_tunnel_zones(self, query):
-        headers = {
-            'Content-Type':
-                vendor_media_type.APPLICATION_TUNNEL_ZONE_COLLECTION_JSON}
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_TUNNEL_ZONE_COLLECTION_JSON}
         return self.get_children(self.dto['tunnelZones'], query, headers,
                                  TunnelZone)
 
     def get_hosts(self, query):
-        headers = {'Content-Type':
-                       vendor_media_type.APPLICATION_HOST_COLLECTION_JSON,
-                   'Accept':
-                       vendor_media_type.APPLICATION_HOST_COLLECTION_JSON}
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_HOST_COLLECTION_JSON}
         return self.get_children(self.dto['hosts'], query, headers, Host)
 
     def get_ad_route(self, id_):
@@ -114,8 +130,8 @@ class Application(ResourceBase):
                                         self.get_port_group_template(), id_)
 
     def get_port(self, id_):
-        return self._get_resource_by_id('Port', None,
-                                        self.get_port_template(), id_)
+        return self._get_port_resource_by_id(None, self.get_port_template(),
+                                             id_)
 
     def get_route(self, id_):
         return self._get_resource_by_id(Route, None, self.get_route_template(),
@@ -130,26 +146,26 @@ class Application(ResourceBase):
                                         id_)
 
     def add_router(self):
-        return Router(self.web_resource, self.dto['routers'], {})
+        return Router(self.dto['routers'], {}, self.auth)
 
     def add_bridge(self):
-        return Bridge(self.web_resource, self.dto['bridges'], {})
+        return Bridge(self.dto['bridges'], {}, self.auth)
 
     def add_port_group(self):
-        return PortGroup(self.web_resource, self.dto['portGroups'], {})
+        return PortGroup(self.dto['portGroups'], {}, self.auth)
 
     def add_chain(self):
-        return Chain(self.web_resource, self.dto['chains'], {})
+        return Chain(self.dto['chains'], {}, self.auth)
 
     def add_gre_tunnel_zone(self):
         return TunnelZone(
-            self.web_resource, self.dto['tunnelZones'], {'type':'gre'},
+            self.dto['tunnelZones'], {'type': 'gre'}, self.auth,
             vendor_media_type.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON,
             vendor_media_type.APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON)
 
     def add_capwap_tunnel_zone(self):
         return TunnelZone(
-            self.web_resource, self.dto['tunnelZones'], {'type':'capwap'},
+            self.dto['tunnelZones'], {'type': 'capwap'}, self.auth,
             vendor_media_type.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON,
             vendor_media_type.\
                 APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON)
@@ -157,17 +173,23 @@ class Application(ResourceBase):
     def _create_uri_from_template(self, template, token, value):
         return template.replace(token, value)
 
+    def _get_port_resource_by_id(self, create_uri, template, id_):
+        uri = self._create_uri_from_template(template,
+                                             self.ID_TOKEN,
+                                             id_)
+        res, dto = self._do_request(uri, 'GET',
+            headers={'Accept': vendor_media_type.APPLICATION_PORT_JSON})
+
+        if dto['type'].endswith('Router'):
+            return RouterPort(None, dto, self.auth)
+        elif dto['type'].endswith('Bridge'):
+            return BridgePort(None, dto, self.auth)
+
     def _get_resource_by_id(self, clazz, create_uri,
                             template, id_):
         uri = self._create_uri_from_template(template,
                                              self.ID_TOKEN,
                                              id_)
-        if clazz == 'Port' : # nasty hack to determine the type of port
-            res, dto = self.web_resource.get(uri)
-            if dto['type'].endswith('Router'):
-                return RouterPort(self.web_resource, None, dto)
-            elif dto['type'].endswith('Bridge'):
-                return BridgePort(self.web_resource, None, dto)
-        else:
-            return clazz(self.web_resource, create_uri, {'uri': uri}).get(
-                {'Content-Type': clazz.media_type, 'Accept': clazz.media_type})
+        return clazz(create_uri, {'uri': uri}, self.auth).get(
+            headers={'Content-Type': clazz.media_type,
+                     'Accept': clazz.media_type})

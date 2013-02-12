@@ -1,17 +1,37 @@
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
 
+# Copyright 2013 Midokura PTE LTD.
+# All Rights Reserved
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
+# @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
-from web_resource import WebResource
 from application import Application
+import auth_lib
+import logging
 
+LOG = logging.getLogger(__name__)
 
 class MidonetApi(object):
 
-    def __init__(self, midonet_uri='http://localhost:8080/midonet-api/',
-                 web_resource=None, logger=None):
-
-        self.midonet_uri = midonet_uri
-        self.web_resource = web_resource
+    def __init__(self, base_uri, username, password, project_id=None):
+        self.base_uri = base_uri
+        self.project_id = project_id
         self.app = None
+        self.auth = auth_lib.Auth(base_uri + '/login', username, password,
+                                  project_id)
 
     def get_routers(self, query):
         self._ensure_application()
@@ -29,15 +49,15 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.get_chains(query)
 
-    def get_chain(self, tenant_id, id_):
+    def get_chain(self, id_):
         self._ensure_application()
-        return self.app.get_chain(tenant_id, id_)
+        return self.app.get_chain(id_)
 
-    def get_tunnel_zones(self, query={}):
+    def get_tunnel_zones(self, query=None):
         self._ensure_application()
         return self.app.get_tunnel_zones(query)
 
-    def get_hosts(self, query={}):
+    def get_hosts(self, query=None):
         self._ensure_application()
         return self.app.get_hosts(query)
 
@@ -56,14 +76,6 @@ class MidonetApi(object):
     def get_bridge(self, id_):
         self._ensure_application()
         return self.app.get_bridge(id_)
-
-    def get_chain(self, id_):
-        self._ensure_application()
-        return self.app.get_chain(id_)
-
-    def get_host(self, id_):
-        self._ensure_application()
-        return self.app.get_host(id_)
 
     def get_port_group(self, id_):
         self._ensure_application()
@@ -111,8 +123,7 @@ class MidonetApi(object):
 
     def _ensure_application(self):
         if (self.app == None):
-            self.app = Application(self.web_resource, None,
-                                   {'uri': self.midonet_uri})
+            self.app = Application(None, {'uri': self.base_uri}, self.auth)
             self.app.get()
 
 
@@ -123,30 +134,26 @@ if __name__ == '__main__':
     import time
     import sys
 
-    # add keystone auth
-    # from midonet.auth.keystone import KeystoneAuth
-    # auth = KeystoneAuth(uri='http://localhost:5000/v2.0',
-    #                     username='admin', password='password',
-    #                     tenant_id='56b0ed0897c94b23bce00e42edcbb2dc')
+    if len(sys.argv) < 4:
+        print >> sys.stderr, "Usage: " + sys.argv[0] \
+            + " <URI> <username> <password> [project_id]"
+        sys.exit(-1)
 
-    import logging
+    uri = sys.argv[1]
+    username = sys.argv[2]
+    password = sys.argv[3]
+    if len(sys.argv) > 4:
+        project_id = sys.argv[4]
+    else:
+        project_id = None
+
+    tenant_id = str(uuid.uuid4())
+    
     FORMAT = '%(asctime)-15s %(name)s %(message)s'
     logging.basicConfig(format=FORMAT)
-    LOG = logging.getLogger(__name__)
     LOG.setLevel(logging.DEBUG)
 
-    web_resource = WebResource(auth=None, logger=LOG)
-    api = MidonetApi(web_resource=web_resource, logger=LOG)
-
-#    for z in api.get_tunnel_zones():
-#        for h in z.get_hosts():
-#            print h
-
-#    hosts =  api.get_hosts()
-#    print hosts[0]
-#    random_uuid = str(uuid.uuid4())
-#    hosts[0].add_host_interface_port().interface_name('ika').port_id(
-#        random_uuid).create()
+    api = MidonetApi(uri, username, password, project_id=project_id)
 
     # Tunnel zones
     tz1 = api.add_gre_tunnel_zone().name('tunnel_vision').create()
@@ -161,23 +168,23 @@ if __name__ == '__main__':
 
     # Routers
     api.get_routers({'tenant_id': 'non-existent'})
-    print api.get_routers({'tenant_id': 'tenant-1'})
+    print api.get_routers({'tenant_id': tenant_id})
 
     random_uuid = str(uuid.uuid4())
-    router1 = api.add_router().name('router-1').tenant_id('tenant-1')\
-                              .inbound_filter_id(random_uuid).create()
+    router1 = api.add_router().name('router-1').tenant_id(tenant_id)\
+                              .inbound_filter_id(random_uuid).create(headers={})
 
     api.get_routers({'tenant_id': 'non-existent'})
     api.get_router(router1.get_id())
 
-    router2 = api.add_router().name('router-2').tenant_id('tenant-1')\
+    router2 = api.add_router().name('router-2').tenant_id(tenant_id)\
                   .outbound_filter_id(random_uuid).create()
 
     router1.name('router1-changed').update()
 
     api.get_router(router1.get_id())
 
-    for r in  api.get_routers({'tenant_id': 'tenant-1'}):
+    for r in  api.get_routers({'tenant_id': tenant_id}):
         print '--------', r.get_name()
         print 'id: ', r.get_id()
         print 'inboundFilterId: ', r.get_inbound_filter_id()
@@ -188,8 +195,8 @@ if __name__ == '__main__':
     # Routers/Ports
 
     # port group1
-    pg1 = api.add_port_group().tenant_id('tenant-1').name('pg-1').create()
-    pg2 = api.add_port_group().tenant_id('tenant-1').name('pg-2').create()
+    pg1 = api.add_port_group().tenant_id(tenant_id).name('pg-1').create()
+    pg2 = api.add_port_group().tenant_id(tenant_id).name('pg-2').create()
 
     rp1 = router1.add_exterior_port()\
                  .port_address('2.2.2.2')\
@@ -245,13 +252,13 @@ if __name__ == '__main__':
     print rp1.get_bgps()
 
     # Bridges
-    bridge1 = api.add_bridge().name('bridge-1').tenant_id('tenant-1').create()
+    bridge1 = api.add_bridge().name('bridge-1').tenant_id(tenant_id).create()
     bridge1.name('bridge1-changed').update()
 
     bridge2 = api.add_bridge().name('bridge-2').tenant_id(
-        'tenant-1').inbound_filter_id(random_uuid).create()
+        tenant_id).inbound_filter_id(random_uuid).create()
 
-    for b in  api.get_bridges({'tenant_id': 'tenant-1'}):
+    for b in  api.get_bridges({'tenant_id': tenant_id}):
         print '--------', b.get_name()
         print 'id: ', b.get_id()
         print 'inboundFilterId: ', b.get_inbound_filter_id()
@@ -299,7 +306,7 @@ if __name__ == '__main__':
     bridge1.get_dhcp_subnet('11.11.11.0_24')
 
     # list port groups and remove them.
-    pgs = api.get_port_groups({'tenant_id': 'tenant-1'})
+    pgs = api.get_port_groups({'tenant_id': tenant_id})
     for pg in pgs:
         print pg.get_name()
         print pg.get_id()
@@ -325,7 +332,6 @@ if __name__ == '__main__':
     # tear down routers and bridges
     bp2.unlink()    # if I don't unlink, deletion of router blows up
     rp2.unlink()
-    #time.sleep(30)
 
     router1.delete()
     router2.delete()
@@ -333,10 +339,10 @@ if __name__ == '__main__':
     bridge2.delete()
 
     # Chains
-    chain1 = api.add_chain().tenant_id('tenant-1').name('chain-1').create()
-    chain2 = api.add_chain().tenant_id('tenant-1').name('chain-2').create()
+    chain1 = api.add_chain().tenant_id(tenant_id).name('chain-1').create()
+    chain2 = api.add_chain().tenant_id(tenant_id).name('chain-2').create()
 
-    for c in api.get_chains({'tenant_id': 'tenant-1'}):
+    for c in api.get_chains({'tenant_id': tenant_id}):
         print '------- chain: ', c.get_name()
         print c.get_id()
 
@@ -361,8 +367,6 @@ if __name__ == '__main__':
 
     print '=' * 10
     print rule3.get_nat_targets()
-
-    #time.sleep(20)
 
     chain1.delete()
     chain2.delete()

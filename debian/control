@@ -12,5 +12,5 @@ Vcs-Browser: https://github.com/midokura/python-midonetclient
 
 Package: python-midonetclient
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}, python-keystoneclient, python-webob, python-eventlet
+Depends: ${misc:Depends}, ${python:Depends}, python-webob, python-eventlet
 Description: Python client for MidoNet REST API.
