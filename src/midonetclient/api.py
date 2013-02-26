@@ -24,6 +24,7 @@ import logging
 
 LOG = logging.getLogger(__name__)
 
+
 class MidonetApi(object):
 
     def __init__(self, base_uri, username, password, project_id=None):
@@ -33,13 +34,25 @@ class MidonetApi(object):
         self.auth = auth_lib.Auth(base_uri + '/login', username, password,
                                   project_id)
 
+    def delete_router(self, id_):
+        self._ensure_application()
+        return self.app.delete_router(id_)
+
     def get_routers(self, query):
         self._ensure_application()
         return self.app.get_routers(query)
 
+    def delete_bridge(self, id_):
+        self._ensure_application()
+        return self.app.delete_bridge(id_)
+
     def get_bridges(self, query):
         self._ensure_application()
         return self.app.get_bridges(query)
+
+    def delete_port_group(self, id_):
+        self._ensure_application()
+        return self.app.delete_port_group(id_)
 
     def get_port_groups(self, query):
         self._ensure_application()
@@ -49,15 +62,23 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.get_chains(query)
 
+    def delete_chain(self, id_):
+        self._ensure_application()
+        return self.app.delete_chain(id_)
+
     def get_chain(self, id_):
         self._ensure_application()
         return self.app.get_chain(id_)
 
     def get_tunnel_zones(self, query=None):
+        if query is None:
+            query = {}
         self._ensure_application()
         return self.app.get_tunnel_zones(query)
 
     def get_hosts(self, query=None):
+        if query is None:
+            query = {}
         self._ensure_application()
         return self.app.get_hosts(query)
 
@@ -65,9 +86,17 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.get_host(id_)
 
+    def delete_ad_route(self, id_):
+        self._ensure_application()
+        return self.app.delete_ad_route(id_)
+
     def get_ad_route(self, id_):
         self._ensure_application()
         return self.app.get_ad_route(id_)
+
+    def delete_bgp(self, id_):
+        self._ensure_application()
+        return self.app.delete_bgp(id_)
 
     def get_bgp(self, id_):
         self._ensure_application()
@@ -81,9 +110,17 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.get_port_group(id_)
 
+    def delete_port(self, id_):
+        self._ensure_application()
+        return self.app.delete_port(id_)
+
     def get_port(self, id_):
         self._ensure_application()
         return self.app.get_port(id_)
+
+    def delete_route(self, id_):
+        self._ensure_application()
+        return self.app.delete_route(id_)
 
     def get_route(self, id_):
         self._ensure_application()
@@ -92,6 +129,10 @@ class MidonetApi(object):
     def get_router(self, id_):
         self._ensure_application()
         return self.app.get_router(id_)
+
+    def delete_rule(self, id_):
+        self._ensure_application()
+        return self.app.delete_rule(id_)
 
     def get_rule(self, id_):
         self._ensure_application()
@@ -148,7 +189,6 @@ if __name__ == '__main__':
         project_id = None
 
     tenant_id = str(uuid.uuid4())
-    
     FORMAT = '%(asctime)-15s %(name)s %(message)s'
     logging.basicConfig(format=FORMAT)
     LOG.setLevel(logging.DEBUG)
@@ -171,9 +211,8 @@ if __name__ == '__main__':
     print api.get_routers({'tenant_id': tenant_id})
 
     random_uuid = str(uuid.uuid4())
-    router1 = api.add_router().name('router-1').tenant_id(tenant_id)\
-                              .inbound_filter_id(random_uuid).create(headers={})
-
+    router1 = api.add_router().name('router-1').tenant_id(
+        tenant_id).inbound_filter_id(random_uuid).create(headers={})
     api.get_routers({'tenant_id': 'non-existent'})
     api.get_router(router1.get_id())
 
@@ -327,7 +366,8 @@ if __name__ == '__main__':
     assert size == size_after_delete_pgp1 + 1
 
     pg1.delete()
-    pg2.delete()
+    # Try deleting by ID
+    api.delete_port(pg2.get_id())
 
     # tear down routers and bridges
     bp2.unlink()    # if I don't unlink, deletion of router blows up

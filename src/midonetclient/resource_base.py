@@ -18,7 +18,6 @@
 # @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
-import api_lib
 from webob import exc
 
 
@@ -30,21 +29,6 @@ class ResourceBase(object):
         self.uri = uri
         self.dto = dto
         self.auth = auth
-
-    def _do_request(self, uri, method, body=None, query=None, headers=None):
-        ''' Wrapper for api_lib.do_request that includes auth logic.
-        '''
-        if headers == None:
-            headers = {}
-        self.auth.set_header_token(headers)
-        try:
-           return api_lib.do_request(uri, method, body=body,
-                                     query=query, headers=headers)
-        except exc.HTTPUnauthorized:
-            # Try one more time after logging in
-            self.auth.set_header_token(headers, force=True)
-            return api_lib.do_request(uri, method, body=body,
-                                      query=query, headers=headers)
 
     def _ensure_media_type(self, key, headers):
         if not(key in headers and headers[key]):
@@ -63,12 +47,12 @@ class ResourceBase(object):
         if headers == None:
             headers = {}
         self._ensure_content_type(headers)
-        resp, data = self._do_request(self.uri, 'POST', body=self.dto,
-                                      headers=headers)
+        resp, data = self.auth.do_request(self.uri, 'POST', body=self.dto,
+                                          headers=headers)
 
         self._ensure_accept(headers)
-        res, self.dto = self._do_request(resp['location'], 'GET',
-                                         headers=headers)
+        res, self.dto = self.auth.do_request(resp['location'], 'GET',
+                                             headers=headers)
         return self
 
     def get(self, headers=None, **kwargs):
@@ -76,13 +60,14 @@ class ResourceBase(object):
             headers = {}
         self._ensure_accept(headers)
         uri = self.dto['uri']
-        res, self.dto = self._do_request(uri, 'GET', headers=headers)
+        res, self.dto = self.auth.do_request(uri, 'GET', headers=headers)
         return self
 
     def get_children(self, uri, query, headers, clazz, extra_args=None):
         self._ensure_accept(headers)
         resources = []
-        res, dtos = self._do_request(uri, 'GET', query=query, headers=headers)
+        res, dtos = self.auth.do_request(uri, 'GET', query=query,
+                                         headers=headers)
         if dtos is None:  # work around for hosts API returning empty when
                           # there's no hosts
             return resources
@@ -100,15 +85,17 @@ class ResourceBase(object):
         if headers == None:
             headers = {}
         self._ensure_content_type(headers)
-        resp, body = self._do_request(self.dto['uri'], 'PUT', body=self.dto,
-                                      headers=headers)
-        self._ensure_accept(headers)
-        resp, self.dto = self._do_request(self.dto['uri'], 'GET',
-                                          headers=headers)
+        resp, body = self.auth.do_request(self.dto['uri'], 'PUT',
+                                          body=self.dto, headers=headers)
+        if self.media_type:
+            headers['Accept'] = self.media_type
+        resp, self.dto = self.auth.do_request(self.dto['uri'], 'GET',
+                                              headers=headers)
         return self
 
-    def delete(self):
-        resp, junk = self._do_request(self.dto['uri'], 'DELETE')
+    def delete(self, headers={}):
+        resp, junk = self.auth.do_request(self.dto['uri'], 'DELETE',
+                                          headers=headers)
         return None
 
     def __repr__(self):

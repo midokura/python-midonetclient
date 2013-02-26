@@ -66,7 +66,6 @@ class TunnelZone(ResourceBase):
 
     def get_hosts(self):
         headers = {'Accept': self._get_tunnel_zone_host_list_media_type()}
-                   
         query = {}
         return self.get_children(self.dto['hosts'], query, headers,
                 TunnelZoneHost, [self._get_tunnel_zone_host_media_type()])
