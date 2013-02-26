@@ -78,8 +78,8 @@ class Router(ResourceBase):
     def get_peer_ports(self, query=None):
         headers = {'Accept':
                       vendor_media_type.APPLICATION_PORT_COLLECTION_JSON}
-        res, peer_ports = self._do_request(self.dto['peerPorts'], 'GET',
-                                           headers=headers, query=query)
+        res, peer_ports = self.auth.do_request(self.dto['peerPorts'], 'GET',
+                                               headers=headers, query=query)
 
         res = []
         for pp in peer_ports:

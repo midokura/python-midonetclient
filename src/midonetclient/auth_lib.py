@@ -21,6 +21,7 @@ import api_lib
 import base64
 import logging
 import threading
+from webob import exc
 
 LOG = logging.getLogger(__name__)
 
@@ -80,3 +81,15 @@ class Auth:
         '''Sets the HTTP header with auth token
         '''
         header['X-Auth-Token'] = self.get_token(force)
+
+    def do_request(self, uri, method, body=None, query={}, headers={}):
+        ''' Wrapper for api_lib.do_request that includes auth logic.
+        '''
+        self.set_header_token(headers)
+        try:
+            return api_lib.do_request(uri, method, body=body,
+                                      query=query, headers=headers)
+        except exc.HTTPUnauthorized:
+            # Try one more time after logging in
+            self.set_header_token(headers, force=True)
+            return api_lib.do_request(uri, method, body=body, headers=headers)

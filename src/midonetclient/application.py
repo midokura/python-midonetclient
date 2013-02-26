@@ -105,17 +105,29 @@ class Application(ResourceBase):
                    vendor_media_type.APPLICATION_HOST_COLLECTION_JSON}
         return self.get_children(self.dto['hosts'], query, headers, Host)
 
+    def delete_ad_route(self, id_):
+        return self._delete_resource_by_id(self.get_ad_route_template(), id_)
+
     def get_ad_route(self, id_):
         return self._get_resource_by_id(AdRoute, self.dto['adRoutes'],
                                         self.get_ad_route_template(), id_)
+
+    def delete_bgp(self, id_):
+        return self._delete_resource_by_id(self.get_bgp_template(), id_)
 
     def get_bgp(self, id_):
         return self._get_resource_by_id(Bgp, self.dto['bgps'],
                                         self.get_bgp_template(), id_)
 
+    def delete_bridge(self, id_):
+        return self._delete_resource_by_id(self.get_bridge_template(), id_)
+
     def get_bridge(self, id_):
         return self._get_resource_by_id(Bridge, self.dto['bridges'],
                                         self.get_bridge_template(), id_)
+
+    def delete_chain(self, id_):
+        return self._delete_resource_by_id(self.get_chain_template(), id_)
 
     def get_chain(self, id_):
         return self._get_resource_by_id(Chain, self.dto['chains'],
@@ -125,21 +137,36 @@ class Application(ResourceBase):
         return self._get_resource_by_id(Host, self.dto['hosts'],
                                         self.get_host_template(), id_)
 
+    def delete_port_group(self, id_):
+        return self._delete_resource_by_id(self.get_port_group_template(), id_)
+
     def get_port_group(self, id_):
         return self._get_resource_by_id(PortGroup, self.dto['portGroups'],
                                         self.get_port_group_template(), id_)
+
+    def delete_port(self, id_):
+        return self._delete_resource_by_id(self.get_port_template(), id_)
 
     def get_port(self, id_):
         return self._get_port_resource_by_id(None, self.get_port_template(),
                                              id_)
 
+    def delete_route(self, id_):
+        return self._delete_resource_by_id(self.get_route_template(), id_)
+
     def get_route(self, id_):
         return self._get_resource_by_id(Route, None, self.get_route_template(),
                                         id_)
 
+    def delete_router(self, id_):
+        return self._delete_resource_by_id(self.get_router_template(), id_)
+
     def get_router(self, id_):
         return self._get_resource_by_id(Router, self.dto['routers'],
                                         self.get_router_template(), id_)
+
+    def delete_rule(self, id_):
+        return self._delete_resource_by_id(self.get_rule_template(), id_)
 
     def get_rule(self, id_):
         return self._get_resource_by_id(Rule, None, self.get_rule_template(),
@@ -177,7 +204,7 @@ class Application(ResourceBase):
         uri = self._create_uri_from_template(template,
                                              self.ID_TOKEN,
                                              id_)
-        res, dto = self._do_request(uri, 'GET',
+        res, dto = self.auth.do_request(uri, 'GET',
             headers={'Accept': vendor_media_type.APPLICATION_PORT_JSON})
 
         if dto['type'].endswith('Router'):
@@ -193,3 +220,9 @@ class Application(ResourceBase):
         return clazz(create_uri, {'uri': uri}, self.auth).get(
             headers={'Content-Type': clazz.media_type,
                      'Accept': clazz.media_type})
+
+    def _delete_resource_by_id(self, template, id_):
+        uri = self._create_uri_from_template(template,
+                                             self.ID_TOKEN,
+                                             id_)
+        self.auth.do_request(uri, 'DELETE')

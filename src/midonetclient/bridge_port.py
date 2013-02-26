@@ -67,7 +67,8 @@ class BridgePort(resource_base.ResourceBase):
         self.dto['peerId'] = peer_uuid
         headers = {'Content-Type':
                     vendor_media_type.APPLICATION_PORT_LINK_JSON}
-        self._do_request(self.dto['link'], 'POST', self.dto, headers=headers)
+        self.auth.do_request(self.dto['link'], 'POST', self.dto,
+                             headers=headers)
 
         self.get()
         return self
@@ -75,6 +76,6 @@ class BridgePort(resource_base.ResourceBase):
     def unlink(self):
         headers = {'Content-Type':
                     vendor_media_type.APPLICATION_PORT_LINK_JSON}
-        self._do_request(self.dto['link'], 'DELETE')
+        self.auth.do_request(self.dto['link'], 'DELETE')
         self.get()
         return self
