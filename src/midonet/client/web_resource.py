@@ -7,8 +7,9 @@ import urllib
 from eventlet.semaphore import Semaphore
 
 LOG = None
-class WebResource(object):
 
+
+class WebResource(object):
 
     def __init__(self, auth=None, logger=None):
         global LOG
@@ -24,9 +25,9 @@ class WebResource(object):
         else:
             LOG = logger
 
-    def _do_request(self, uri, method, body='{}', headers={}):
+    def _do_request(self, uri, method, body='{}', headers={}, retries_left=1):
         if not method == 'DELETE':
-            if not( headers.has_key('Content-Type') and \
+            if not('Content-Type' in headers and \
                         headers['Content-Type']):
                 headers['Content-Type'] = 'application/json'
 
@@ -48,10 +49,15 @@ class WebResource(object):
         LOG.debug(boarder)
 
         if int(response['status']) > 300:
-#            raise exc.HTTPError(content)
+            # In case of authentication error, try re-generating auth header
+            if self.auth and response['status'] == '401' and retries_left > 0:
+                self.auth.get_token(regenerate=True)
+                retries_left -= 1
+                self._do_request(uri, method, body, headers, retries_left)
+
             LOG.error("%s got an error status %s", req, response['status'])
             e = exc.get_exception(response['status'])(content)
-            LOG.error("Raising an exeption: (%r): %r" %  (e, str(e)))
+            LOG.error("Raising an exeption: (%r): %r" % (e, str(e)))
             raise e
         try:
             body = json.loads(content) if content else None
