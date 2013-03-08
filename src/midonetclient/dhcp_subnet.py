@@ -39,6 +39,9 @@ class DhcpSubnet(ResourceBase):
     def get_subnet_length(self):
         return self.dto['subnetLength']
 
+    def get_opt121_routes(self)
+        return self.dto['opt121Routes']
+
     def default_gateway(self, gw):
         self.dto['defaultGateway'] = gw
         return self
@@ -49,6 +52,10 @@ class DhcpSubnet(ResourceBase):
 
     def subnet_length(self, length):
         self.dto['subnetLength'] = length
+        return self
+
+    def opt121_routes(self, routes)
+        self.dto['opt121Routes'] = routes
         return self
 
     def get_dhcp_hosts(self):
