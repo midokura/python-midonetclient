@@ -1,29 +1,6 @@
-midonetclient (13.01.0) precise; urgency=low
+python-midonetclient (0.9.9) precise; urgency=low
 
-  * Chamicuro release
+  * RC for v1.0.0
 
- -- Tomoe Sugihara <tomoe@midokura.com>  Mon, 04 Feb 2013 13:50:19 +0900
+ -- Tomoe Sugihara <tomoe@midokura.com>  Mon, 13 May 2013 16:41:45 +0900
 
-midonet-client (12.12.1) precise; urgency=low
-
-  * Caddo update1
-
- -- Tomoe Sugihara <tomoe@midokura.com>  Fri, 18 Jan 2013 12:20:02 +0900
-
-midonet-client (12.12.0) precise; urgency=low
-
-  * Caddo release
-
- -- midokura <midokura@iida16>  Wed, 12 Dec 2012 22:04:31 +0900
-
-midonet-client (12.06.0) quantal; urgency=low
-
-  * Official Babuza release
-
- -- Tomoe Sugihara <tomoe@tomoe-MacBookPro>  Fri, 15 Jun 2012 18:19:47 +0900
-
-midonet-client (12.04) babuza; urgency=low
-
-  * Initial release.
-
- -- Captain Suzuki <suzuki@midokura.com>  Mon, 23 Apr 2012 16:22:40 +0900
