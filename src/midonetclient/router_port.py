@@ -94,6 +94,10 @@ class RouterPort(ResourceBase):
         self.dto['outboundFilterId'] = id_
         return self
 
+    def type(self, type_):
+        self.dto['type'] = type_
+        return self
+
     def get_bgps(self):
         query = {}
         headers = {'Accept':
