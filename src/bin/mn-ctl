@@ -22,9 +22,7 @@ import readline
 import sys
 from shlex import split as shsplit
 
-from midonet.auth.keystone import KeystoneAuth
-from midonet.client.mgmt import MidonetMgmt
-from midonet.client.web_resource import WebResource
+from midonetclient.api import MidonetApi
 
 # TODO:
 #   + Command space completeness:
@@ -32,7 +30,6 @@ from midonet.client.web_resource import WebResource
 
 class Session():
     def __init__(self):
-        self.keystone_url = None
         self.api_url = None
         self.username = None
         self.password = None
@@ -50,8 +47,6 @@ class Session():
             cfg.read(cfgfile)
         except:
             return
-        if cfg.has_option('cli', 'keystone_url'):
-            self.keystone_url = cfg.get('cli', 'keystone_url')
         if cfg.has_option('cli', 'api_url'):
             self.api_url = cfg.get('cli', 'api_url')
         if cfg.has_option('cli', 'username'):
@@ -63,8 +58,6 @@ class Session():
 
     def _load_from_env(self):
         import os
-        if os.environ.has_key('MIDO_KEYSTONE_URL'):
-            self.keystone_url = os.environ['MIDO_KEYSTONE_URL']
         if os.environ.has_key('MIDO_API_URL'):
             self.api_url = os.environ['MIDO_API_URL']
         if os.environ.has_key('MIDO_USER'):
@@ -78,8 +71,6 @@ class Session():
         parser.add_option("-A", "--no-auth", dest="skip_auth",
                             action="store_true",
                             help="Skip authentication")
-        parser.add_option("--keystone-url", dest="keystone_url",
-                            help="Keystone URL", metavar="URL")
         parser.add_option("--midonet-url", dest="api_url",
                             help="Midonet API server URL", metavar="URL")
         parser.add_option("-u", "--user", dest="username",
@@ -101,8 +92,6 @@ class Session():
                 sys.__stdin__.isatty():
             from getpass import getpass
             self.password = getpass()
-        if options.keystone_url is not None:
-            self.keystone_url = options.keystone_url
         if options.api_url is not None:
             self.api_url = options.api_url
         if options.username is not None:
@@ -118,8 +107,6 @@ class Session():
         self._load_from_env()
         self._load_from_args()
 
-        if self.do_auth and self.keystone_url is None:
-            raise Exception("Missing: keystone URL")
         if self.api_url is None:
             raise Exception("Missing: Midonet API URL")
         if self.do_auth and self.username is None:
@@ -133,14 +120,10 @@ class Session():
     def connect(self):
         import logging
         auth = None
-        if self.do_auth:
-            auth = KeystoneAuth(self.keystone_url, self.username, self.password,
-                                tenant_id = self.tenant_id)
         logging.basicConfig()
         logger = logging.getLogger('midonet.api')
         logger.setLevel(logging.CRITICAL)
-        web_resource = WebResource(auth, logger)
-        return MidonetMgmt(self.api_url, web_resource)
+        return MidonetApi(self.api_url, self.username, self.password)
 
 
 ################################################################################
@@ -507,6 +490,8 @@ class ObjectType():
         return False
 
     def fetch_one_for_type(self, object_type, id_):
+        # FIXME(guillermo) The API is now logging an an ERROR if
+        # id_ is not a valid UUID. It should be verified here.
         if not self.has_type(object_type):
             raise Exception("%s: no such member %s" % (object_type, id_))
 
