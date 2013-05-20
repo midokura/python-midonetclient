@@ -176,6 +176,7 @@ if __name__ == '__main__':
     import sys
 
     if len(sys.argv) < 4:
+        print >> sys.stderr, "Functional testing with MN API"
         print >> sys.stderr, "Usage: " + sys.argv[0] \
             + " <URI> <username> <password> [project_id]"
         sys.exit(-1)

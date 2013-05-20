@@ -52,8 +52,11 @@ class Host(ResourceBase):
                                  HostInterface)
 
     def get_ports(self):
-        headers = {'Accept':
-                   vendor_media_type.APPLICATION_INTERFACE_COLLECTION_JSON}
+        headers = {
+            'Accept':
+                vendor_media_type.\
+                APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON
+            }
 
         query = {}
         return self.get_children(self.dto['ports'], query, headers,
