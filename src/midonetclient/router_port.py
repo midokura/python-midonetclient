@@ -18,10 +18,11 @@
 # @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
-from resource_base import ResourceBase
-from bgp import Bgp
-import port_type
-import vendor_media_type
+
+from midonetclient import port_type
+from midonetclient import vendor_media_type
+from midonetclient.bgp import Bgp
+from midonetclient.resource_base import ResourceBase
 
 
 class RouterPort(ResourceBase):

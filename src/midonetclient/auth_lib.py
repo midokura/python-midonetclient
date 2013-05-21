@@ -17,13 +17,18 @@
 #
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
-import api_lib
+
 import base64
 import logging
 import threading
+
 from webob import exc
 
+from midonetclient import api_lib
+
+
 LOG = logging.getLogger(__name__)
+
 
 _token = None
 _sem = threading.Semaphore(1)
@@ -51,7 +56,8 @@ class Auth:
             try:
                 auth = base64.encodestring(self.username + ':' + self.password)
                 headers = {'Authorization': 'Basic ' + auth}
-                if self.project_id != None:
+
+                if self.project_id is not None:
                     headers['X-Auth-Project'] = self.project_id
 
                 resp, _body = api_lib.do_request(self.uri, 'POST', body={},
@@ -82,9 +88,14 @@ class Auth:
         '''
         header['X-Auth-Token'] = self.get_token(force)
 
-    def do_request(self, uri, method, body=None, query={}, headers={}):
+    # TODO: check is this is used anywhere at all.
+    #         => seems to conflict with api_lib.do_request ?
+    def do_request(self, uri, method, body=None, query=None, headers=None):
         ''' Wrapper for api_lib.do_request that includes auth logic.
         '''
+        query = query or dict()
+        headers = headers or dict()
+
         self.set_header_token(headers)
         try:
             return api_lib.do_request(uri, method, body=body,

@@ -18,9 +18,11 @@
 # @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
-from application import Application
-import auth_lib
 import logging
+
+from midonetclient import auth_lib
+from midonetclient.application import Application
+
 
 LOG = logging.getLogger(__name__)
 
@@ -163,7 +165,7 @@ class MidonetApi(object):
         return self.app.add_capwap_tunnel_zone()
 
     def _ensure_application(self):
-        if (self.app == None):
+        if self.app is None:
             self.app = Application(None, {'uri': self.base_uri}, self.auth)
             self.app.get()
 

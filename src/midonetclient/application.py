@@ -18,20 +18,21 @@
 # @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
-from ad_route import AdRoute
-from bgp import Bgp
-from bridge import Bridge
-from bridge_port import BridgePort
-from chain import Chain
-from host import Host
-from port_group import PortGroup
-from resource_base import ResourceBase
-from route import Route
-from router import Router
-from router_port import RouterPort
-from rule import Rule
-from tunnel_zone import TunnelZone
-import vendor_media_type
+
+from midonetclient import vendor_media_type
+from midonetclient.ad_route import AdRoute
+from midonetclient.bgp import Bgp
+from midonetclient.bridge import Bridge
+from midonetclient.bridge_port import BridgePort
+from midonetclient.chain import Chain
+from midonetclient.host import Host
+from midonetclient.port_group import PortGroup
+from midonetclient.resource_base import ResourceBase
+from midonetclient.route import Route
+from midonetclient.router import Router
+from midonetclient.router_port import RouterPort
+from midonetclient.rule import Rule
+from midonetclient.tunnel_zone import TunnelZone
 
 
 class Application(ResourceBase):

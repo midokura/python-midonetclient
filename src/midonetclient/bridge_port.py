@@ -18,9 +18,10 @@
 # @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
-import port_type
-import vendor_media_type
-import resource_base
+
+from midonetclient import port_type
+from midonetclient import resource_base
+from midonetclient import vendor_media_type
 
 
 class BridgePort(resource_base.ResourceBase):

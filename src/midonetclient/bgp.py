@@ -18,9 +18,10 @@
 # @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
-from resource_base import ResourceBase
-from ad_route import AdRoute
-import vendor_media_type
+
+from midonetclient import vendor_media_type
+from midonetclient.ad_route import AdRoute
+from midonetclient.resource_base import ResourceBase
 
 
 class Bgp(ResourceBase):

@@ -18,9 +18,10 @@
 # @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
-from resource_base import ResourceBase
-from tunnel_zone_host import TunnelZoneHost
-import vendor_media_type
+
+from midonetclient import vendor_media_type
+from midonetclient.resource_base import ResourceBase
+from midonetclient.tunnel_zone_host import TunnelZoneHost
 
 
 class TunnelZone(ResourceBase):

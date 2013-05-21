@@ -18,9 +18,10 @@
 # @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
-from resource_base import ResourceBase
-from rule import Rule
-import vendor_media_type
+
+from midonetclient.resource_base import ResourceBase
+from midonetclient.rule import Rule
+from midonetclient import vendor_media_type
 
 
 class Chain(ResourceBase):
