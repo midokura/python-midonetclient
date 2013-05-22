@@ -18,8 +18,9 @@
 # @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
-from resource_base import ResourceBase
-import vendor_media_type
+
+from midonetclient import vendor_media_type
+from midonetclient.resource_base import ResourceBase
 
 
 class HostInterface(ResourceBase):

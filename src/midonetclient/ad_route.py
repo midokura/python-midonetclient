@@ -18,8 +18,9 @@
 # @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
-import resource_base
-import vendor_media_type
+
+from midonetclient import resource_base
+from midonetclient import vendor_media_type
 
 
 class AdRoute(resource_base.ResourceBase):

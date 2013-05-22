@@ -18,12 +18,13 @@
 # @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
-from resource_base import ResourceBase
-from router_port import RouterPort
-from bridge_port import BridgePort
-from route import Route
-import vendor_media_type
-import port_type
+
+from midonetclient import port_type
+from midonetclient import vendor_media_type
+from midonetclient.bridge_port import BridgePort
+from midonetclient.resource_base import ResourceBase
+from midonetclient.route import Route
+from midonetclient.router_port import RouterPort
 
 
 class Router(ResourceBase):

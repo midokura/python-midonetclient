@@ -18,9 +18,10 @@
 # @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
-from resource_base import ResourceBase
-from port_group_port import PortGroupPort
-import vendor_media_type
+
+from midonetclient import vendor_media_type
+from midonetclient.port_group_port import PortGroupPort
+from midonetclient.resource_base import ResourceBase
 
 
 class PortGroup(ResourceBase):

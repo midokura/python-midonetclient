@@ -18,10 +18,11 @@
 # @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
-from resource_base import ResourceBase
-from host_interface import HostInterface
-from host_interface_port import HostInterfacePort
-import vendor_media_type
+
+from midonetclient import vendor_media_type
+from midonetclient.host_interface import HostInterface
+from midonetclient.host_interface_port import HostInterfacePort
+from midonetclient.resource_base import ResourceBase
 
 
 class Host(ResourceBase):
