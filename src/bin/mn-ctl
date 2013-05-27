@@ -185,7 +185,9 @@ class SingleAttr(Attr):
                  setter = None,
                  writeable = True,
                  show = True,
-                 optional = False):
+                 optional = False,
+                 inv_getter = None,
+                 inv_setter = None):
         self.name = name
         self.value_type = value_type
         self.getter = getter
@@ -193,14 +195,45 @@ class SingleAttr(Attr):
         self.writeable = writeable
         self.show = show
         self.optional = optional
+        self.inv_getter = inv_getter
+        self.inv_setter = inv_setter
+
+    def has_inv(self):
+        return self.inv_getter is not None
 
     def fetch(self, obj):
-        func = obj.reflect(self.getter)
-        return func()
+        try:
+            func = obj.reflect(self.getter)
+            return self.fetch_inv(obj, func())
+        except KeyError as e:
+            return None
+
+    def fetch_inv(self, obj, v):
+        try:
+            inv = False
+            if self.has_inv():
+                func = obj.reflect(self.inv_getter)
+                if func():
+                    return "!%s" % (v)
+        except KeyError as e:
+            pass
+        return v
 
     def set(self, obj, value):
+        v = self.set_inv(obj, value)
         func = obj.reflect(self.setter)
         func(value)
+
+    def set_inv(self, obj, value):
+        v = value
+        if self.inv_setter is not None:
+            inv = False
+            if (value.startswith("!")):
+                inv = True
+                v = value.lstrip('!')
+            func = obj.reflect(self.inv_setter)
+            func(inv)
+        return v
 
 class TenantAttr(SingleAttr):
     def __init__(self):
@@ -212,6 +245,43 @@ class TenantAttr(SingleAttr):
                             writeable = True,
                             show = False)
 
+class FlagSetFlag:
+    def __init__(self, literal, getter, setter = None):
+        self.literal = literal
+        self.getter = getter
+        self.setter = setter
+
+class FlagSet(SingleAttr):
+    def __init__(self, name,
+                 flags = [],
+                 writeable = True,
+                 show = True,
+                 optional = False):
+        SingleAttr.__init__(self, name, StringType(),
+                            getter = None,
+                            setter = None,
+                            writeable = writeable,
+                            show = show,
+                            optional = optional)
+        self.flags = flags
+
+    def fetch(self, obj):
+        for flag in self.flags:
+            func = obj.reflect(flag.getter)
+            v = func()
+            if v:
+                return flag.literal
+        return None
+
+    def set(self, obj, value):
+        for flag in self.flags:
+            if flag.setter is not None:
+                func = obj.reflect(flag.setter)
+                if flag.literal == value:
+                    func(True)
+                else:
+                    func(False)
+
 class CidrPair(SingleAttr):
     def __init__(self, name, value_type,
                  addr_getter,
@@ -220,13 +290,17 @@ class CidrPair(SingleAttr):
                  mask_setter = None,
                  writeable = True,
                  show = True,
-                 optional = False):
+                 optional = False,
+                 inv_getter = None,
+                 inv_setter = None):
         SingleAttr.__init__(self, name, value_type,
                             getter = None,
                             setter = None,
                             writeable = writeable,
                             show = show,
-                            optional = optional)
+                            optional = optional,
+                            inv_getter = inv_getter,
+                            inv_setter = inv_setter)
         self.addr_getter = addr_getter
         self.addr_setter = addr_setter
         self.mask_getter = mask_getter
@@ -242,16 +316,68 @@ class CidrPair(SingleAttr):
 
         address = address if address else '0.0.0.0'
         mask = mask if mask else '0'
-        return "%s/%s" % (address, mask)
+        return self.fetch_inv(obj, "%s/%s" % (address, mask))
 
     def set(self, obj, value):
-        values = value.split('/')
+        v = self.set_inv(obj, value)
+        values = v.split('/')
         if len(values) != 2:
-            raise Exception("Invalid network address: %s" % value)
+            raise Exception("Invalid network address: %s" % v)
         func = obj.reflect(self.addr_setter)
         func(values[0])
         func = obj.reflect(self.mask_setter)
         func(values[1])
+
+class L4PortRange(SingleAttr):
+    def __init__(self, name, value_type,
+                 start_getter,
+                 end_getter,
+                 start_setter = None,
+                 end_setter = None,
+                 writeable = True,
+                 show = True,
+                 optional = False,
+                 inv_getter = None,
+                 inv_setter = None):
+        SingleAttr.__init__(self, name, value_type,
+                            getter = None,
+                            setter = None,
+                            writeable = writeable,
+                            show = show,
+                            optional = optional,
+                            inv_getter = inv_getter,
+                            inv_setter = inv_setter)
+        self.start_getter = start_getter
+        self.start_setter = start_setter
+        self.end_getter = end_getter
+        self.end_setter = end_setter
+
+    def fetch(self, obj):
+        func = obj.reflect(self.start_getter)
+        start = func()
+        func = obj.reflect(self.end_getter)
+        end = func()
+        if start is None:
+            return None
+
+        v = start
+        if end is not None and end != start:
+            v = "%s:%s" % (start, end)
+        return self.fetch_inv(obj, v)
+
+    def set(self, obj, value):
+        v = self.set_inv(obj, value)
+        values = v.split(':')
+        if len(values) > 2 or len(values) < 1:
+            raise Exception("Invalid port range: %s" % v)
+        func = obj.reflect(self.start_setter)
+        func(values[0])
+
+        func = obj.reflect(self.end_setter)
+        if len(values) == 2:
+            func(values[1])
+        else:
+            func(values[0])
 
 class Collection(Attr):
     def __init__(self, name, element_type, list_method,
@@ -666,10 +792,12 @@ class Bridge(ObjectType):
                                  getter = 'get_name'))
         self.put_attr(SingleAttr(name = 'infilter',
                                  value_type = ObjectRef('chain'),
-                                 getter = 'get_inbound_filter_id'))
+                                 getter = 'get_inbound_filter_id',
+                                 setter = 'inbound_filter_id'))
         self.put_attr(SingleAttr(name = 'outfilter',
                                  value_type = ObjectRef('chain'),
-                                 getter = 'get_outbound_filter_id'))
+                                 getter = 'get_outbound_filter_id',
+                                 setter = 'outbound_filter_id'))
 
     def type_name(self):
         return "bridge"
@@ -683,19 +811,112 @@ class Chain(ObjectType):
                                  list_method = 'get_rules',
                                  getter = 'get_port',
                                  factory_method = 'add_rule'))
+        self.put_attr(SingleAttr(name = 'name',
+                                 value_type = StringType(),
+                                 setter = 'name',
+                                 getter = 'get_name'))
     def type_name(self):
         return "chain"
 
 class Rule(ObjectType):
     def __init__(self, obj):
         ObjectType.__init__(self, obj)
+        self.put_attr(SingleAttr(name = 'chain',
+                                 value_type = ObjectRef('chain'),
+                                 getter = 'get_chain_id',
+                                 setter = 'chain_id'))
         self.put_attr(SingleAttr(name = 'type',
                                  value_type = StringType(),
-                                 getter = 'get_type'))
+                                 getter = 'get_type',
+                                 setter = 'type'))
         self.put_attr(SingleAttr(name = 'action',
                                  value_type = StringType(),
-                                 getter = 'get_flow_action'))
-        # TODO -- complete
+                                 getter = 'get_flow_action',
+                                 setter = 'flow_action'))
+        self.put_attr(SingleAttr(name = 'hw-src',
+                                 value_type = StringType(),
+                                 getter = 'get_dl_src',
+                                 setter = 'dl_src',
+                                 inv_getter = 'is_inv_dl_src',
+                                 inv_setter = 'inv_dl_src',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'hw-dst',
+                                 value_type = StringType(),
+                                 getter = 'get_dl_dst',
+                                 setter = 'dl_dst',
+                                 inv_getter = 'is_inv_dl_dst',
+                                 inv_setter = 'inv_dl_dst',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'ethertype',
+                                 value_type = StringType(),
+                                 getter = 'get_dl_type',
+                                 setter = 'dl_type',
+                                 inv_getter = 'is_inv_dl_type',
+                                 inv_setter = 'inv_dl_type',
+                                 optional = True))
+        self.put_attr(CidrPair(name = 'src',
+                               value_type = StringType(),
+                               addr_getter = 'get_nw_src_address',
+                               mask_getter = 'get_nw_src_length',
+                               addr_setter = 'nw_src_address',
+                               mask_setter = 'nw_src_length',
+                               inv_getter = 'is_inv_nw_src',
+                               inv_setter = 'inv_nw_src',
+                               optional = True))
+        self.put_attr(CidrPair(name = 'dst',
+                               value_type = StringType(),
+                               addr_getter = 'get_nw_dst_address',
+                               mask_getter = 'get_nw_dst_length',
+                               addr_setter = 'nw_dst_address',
+                               mask_setter = 'nw_dst_length',
+                               inv_getter = 'is_inv_nw_dst',
+                               inv_setter = 'inv_nw_dst',
+                               optional = True))
+        self.put_attr(SingleAttr(name = 'proto',
+                                 value_type = StringType(),
+                                 getter = 'get_nw_proto',
+                                 setter = 'nw_proto',
+                                 inv_getter = 'is_inv_nw_proto',
+                                 inv_setter = 'inv_nw_proto',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'tos',
+                                 value_type = StringType(),
+                                 getter = 'get_nw_tos',
+                                 setter = 'nw_tos',
+                                 inv_getter = 'is_inv_nw_tos',
+                                 inv_setter = 'inv_nw_tos',
+                                 optional = True))
+        self.put_attr(L4PortRange(name = 'src-port',
+                                  value_type = StringType(),
+                                  start_getter = 'get_tp_src_start',
+                                  end_getter = 'get_tp_src_end',
+                                  start_setter = 'tp_src_start',
+                                  end_setter = 'tp_src_end',
+                                  inv_getter = 'is_inv_tp_src',
+                                  inv_setter = 'inv_tp_src',
+                                  optional = True))
+        self.put_attr(L4PortRange(name = 'dst-port',
+                                  value_type = StringType(),
+                                  start_getter = 'get_tp_dst_start',
+                                  end_getter = 'get_tp_dst_end',
+                                  start_setter = 'tp_dst_start',
+                                  end_setter = 'tp_dst_end',
+                                  inv_getter = 'is_inv_tp_dst',
+                                  inv_setter = 'inv_tp_dst',
+                                  optional = True))
+        self.put_attr(FlagSet(name = 'flow',
+                              flags = [ FlagSetFlag('fwd-flow',
+                                                    'is_match_forward_flow',
+                                                    'match_forward_flow'),
+                                        FlagSetFlag('return-flow',
+                                                    'is_match_return_flow',
+                                                    'match_return_flow') ],
+                              optional = True))
+
+        # TODO -- complete:
+        #   in_ports
+        #   out_ports
+        #   port_group
 
     def type_name(self):
         return "rule"
