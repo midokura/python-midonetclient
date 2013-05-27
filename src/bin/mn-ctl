@@ -20,13 +20,13 @@
 import cmd
 import re
 import readline
+import socket
 import sys
 from shlex import split as shsplit
 
 from midonetclient.api import MidonetApi
 
 # TODO:
-#   + validate attribute values (currently StringType is used everywhere)
 #   + implement Enum types
 #   + ease scriptability:
 #       + print uuid by itself on a single line as output of show and create
@@ -187,16 +187,41 @@ class ObjectRef(ValueType):
 class StringType(ValueType):
     pass
 
+class MacAddress(ValueType):
+    pass
+
 class IPv4Address(ValueType):
     def is_valid(self, value):
         try:
-            socket.inet_aton(ip)
+            socket.inet_aton(value)
             return True
         except:
             return False
 
+class L4PortNumber(ValueType):
+    def is_valid(self, value):
+        try:
+            port = int(value)
+            return  port >= 0 and port <= 65535
+        except:
+            return False
+
 class IPv4Subnet(ValueType):
-    pass
+    def is_valid(self, value):
+        values = value.split('/')
+        if not values:
+            return False
+        if not IPv4Address().is_valid(values.pop(0)):
+            return False
+        if not values:
+            return True
+        try:
+            mask = int(values.pop(0))
+        except:
+            return False
+        if mask < 0 or mask > 32 or values:
+            return False
+        return True
 
 class UUID(ValueType):
     def is_valid(self, value):
@@ -258,8 +283,10 @@ class SingleAttr(Attr):
 
     def set(self, obj, value):
         v = self.set_inv(obj, value)
+        if not self.value_type.is_valid(v):
+            raise Exception("Invalid value field %s: %s" % (self.name, v))
         func = obj.reflect(self.setter)
-        func(value)
+        func(v)
 
     def set_inv(self, obj, value):
         v = value
@@ -276,7 +303,7 @@ class TenantAttr(SingleAttr):
     def __init__(self):
         SingleAttr.__init__(self,
                             name = 'tenant',
-                            value_type = StringType(),
+                            value_type = UUID(),
                             getter = 'get_tenant_id',
                             setter = 'tenant_id',
                             writeable = True,
@@ -312,13 +339,17 @@ class FlagSet(SingleAttr):
         return None
 
     def set(self, obj, value):
+        found = False
         for flag in self.flags:
             if flag.setter is not None:
                 func = obj.reflect(flag.setter)
                 if flag.literal == value:
+                    found = True
                     func(True)
                 else:
                     func(False)
+        if not found:
+            raise Exception("%s is not a valid %s" % (value, self.name))
 
 class CidrPair(SingleAttr):
     def __init__(self, name, value_type,
@@ -354,13 +385,18 @@ class CidrPair(SingleAttr):
 
         address = address if address else '0.0.0.0'
         mask = mask if mask else '0'
-        return self.fetch_inv(obj, "%s/%s" % (address, mask))
+        if mask == 32:
+            return self.fetch_inv(obj, "%s" % (address))
+        else:
+            return self.fetch_inv(obj, "%s/%s" % (address, mask))
 
     def set(self, obj, value):
         v = self.set_inv(obj, value)
-        values = v.split('/')
-        if len(values) != 2:
+        if not IPv4Subnet().is_valid(v):
             raise Exception("Invalid network address: %s" % v)
+        values = v.split('/')
+        if len(values) == 1:
+            values.append(32)
         func = obj.reflect(self.addr_setter)
         func(values[0])
         func = obj.reflect(self.mask_setter)
@@ -406,16 +442,22 @@ class L4PortRange(SingleAttr):
     def set(self, obj, value):
         v = self.set_inv(obj, value)
         values = v.split(':')
-        if len(values) > 2 or len(values) < 1:
+        if len(values) == 1:
+            values.append(values[0])
+
+        if len(values) != 2:
             raise Exception("Invalid port range: %s" % v)
+        if not L4PortNumber().is_valid(values[0]):
+            raise Exception("Invalid port range: %s" % v)
+        if not L4PortNumber().is_valid(values[1]):
+            raise Exception("Invalid port range: %s" % v)
+        if int(values[1]) < int(values[0]):
+            raise Exception("Invalid port range: %s" % v)
+
         func = obj.reflect(self.start_setter)
         func(values[0])
-
         func = obj.reflect(self.end_setter)
-        if len(values) == 2:
-            func(values[1])
-        else:
-            func(values[0])
+        func(values[1])
 
 class Collection(Attr):
     def __init__(self, name, element_type, list_method,
@@ -623,7 +665,7 @@ class ObjectType():
         self._attr_list = []
         self.alias_from_root = False
         self.put_attr(SingleAttr(name = 'id',
-                                 value_type = StringType(),
+                                 value_type = UUID(),
                                  getter = 'get_id',
                                  show = False,
                                  writeable = False,
@@ -763,7 +805,7 @@ class Route(ObjectType):
                                addr_setter = 'dst_network_addr',
                                mask_setter = 'dst_network_length'))
         self.put_attr(SingleAttr(name = 'gw',
-                                 value_type = StringType(),
+                                 value_type = IPv4Address(),
                                  getter = 'get_next_hop_gateway',
                                  setter = 'next_hop_gateway',
                                  optional = True))
@@ -872,14 +914,14 @@ class Rule(ObjectType):
                                  getter = 'get_flow_action',
                                  setter = 'flow_action'))
         self.put_attr(SingleAttr(name = 'hw-src',
-                                 value_type = StringType(),
+                                 value_type = MacAddress(),
                                  getter = 'get_dl_src',
                                  setter = 'dl_src',
                                  inv_getter = 'is_inv_dl_src',
                                  inv_setter = 'inv_dl_src',
                                  optional = True))
         self.put_attr(SingleAttr(name = 'hw-dst',
-                                 value_type = StringType(),
+                                 value_type = MacAddress(),
                                  getter = 'get_dl_dst',
                                  setter = 'dl_dst',
                                  inv_getter = 'is_inv_dl_dst',
@@ -1071,12 +1113,12 @@ class RouterPort(ObjectType):
                                  getter = 'get_outbound_filter_id',
                                  setter = 'outbound_filter_id'))
         self.put_attr(SingleAttr(name = 'mac',
-                                 value_type = StringType(),
+                                 value_type = MacAddress(),
                                  getter = 'get_port_mac',
                                  setter = 'port_mac',
                                  optional = False))
         self.put_attr(SingleAttr(name = 'address',
-                                 value_type = StringType(),
+                                 value_type = IPv4Address(),
                                  getter = 'get_port_address',
                                  setter = 'port_address'))
         self.put_attr(CidrPair(name = 'net',
@@ -1720,8 +1762,8 @@ class Create(Command):
         factory = obj.reflect(collection.factory_method)
         new_object = factory()
         wrapper = collection.element_type(new_object)
-        if wrapper.has_field('tenant_id'):
-            wrapper.set_field('tenant_id', session.current_tenant())
+        if wrapper.has_field('tenant'):
+            wrapper.set_field('tenant', session.current_tenant())
         for f in fields:
             wrapper.set_field(f.name, f.value)
         new_object.create()
