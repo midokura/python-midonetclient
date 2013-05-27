@@ -96,6 +96,9 @@ class Session():
         parser.add_option("-p", "--password", dest="ask_for_password",
                             help="Ask for password interactively",
                             action="store_true")
+        parser.add_option("-d", "--debug", dest="debug",
+                            help="Enable debugging",
+                            action="store_true")
         (options, args) = parser.parse_args()
         if not options.do_eval and args is not None and len(args) > 0:
             raise Exception("Unrecognized command")
@@ -114,6 +117,9 @@ class Session():
         if not sys.__stdin__.isatty() or options.do_eval:
             self.enable_alias_manager = False
         self.do_auth = not options.skip_auth
+        if options.debug:
+            import logging
+            logging.basicConfig(level=logging.DEBUG)
 
     def load(self):
         self._load_from_config_file()
