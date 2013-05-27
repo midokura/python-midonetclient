@@ -26,6 +26,11 @@ from shlex import split as shsplit
 from midonetclient.api import MidonetApi
 
 # TODO:
+#   + validate attribute values (currently StringType is used everywhere)
+#   + implement Enum types
+#   + ease scriptability:
+#       + print uuid by itself on a single line as output of show and create
+#         commands
 #   + Command space completeness:
 #       - add full specs for all API objects
 
@@ -47,8 +52,25 @@ class Session():
         self.username = None
         self.password = None
         self.tenant_id = None
+        self.tenant_stack = []
         self.enable_alias_manager = True
         self.do_eval = False
+
+    def print_current_tenant(self):
+        print "tenant_id: %s" % (self.current_tenant())
+
+    def push_tenant(self, tenant_id):
+        self.tenant_stack.append(tenant_id)
+
+    def pop_tenant(self):
+        if self.tenant_stack:
+            self.tenant_stack.pop()
+
+    def current_tenant(self):
+        if not self.tenant_stack:
+            return self.tenant_id
+        else:
+            return self.tenant_stack[-1]
 
     def _load_from_config_file(self):
         import ConfigParser
@@ -166,10 +188,19 @@ class StringType(ValueType):
     pass
 
 class IPv4Address(ValueType):
-    pass
+    def is_valid(self, value):
+        try:
+            socket.inet_aton(ip)
+            return True
+        except:
+            return False
 
 class IPv4Subnet(ValueType):
     pass
+
+class UUID(ValueType):
+    def is_valid(self, value):
+        return True if uuid_pattern.match(value) is not None else False
 
 class Enum(ValueType):
     def __init__(self, first, *rest):
@@ -244,11 +275,12 @@ class SingleAttr(Attr):
 class TenantAttr(SingleAttr):
     def __init__(self):
         SingleAttr.__init__(self,
-                            name = 'tenant_id',
-                            value_type = StringType,
+                            name = 'tenant',
+                            value_type = StringType(),
                             getter = 'get_tenant_id',
                             setter = 'tenant_id',
                             writeable = True,
+                            optional = True,
                             show = False)
 
 class FlagSetFlag:
@@ -661,7 +693,7 @@ class ObjectType():
             return []
         func = self.reflect(attr.list_method)
         if attr.list_with_tenant:
-            objects = func({'tenant_id':session.tenant_id})
+            objects = func({'tenant_id':session.current_tenant()})
         else:
             objects = func()
         return map(lambda elem: attr.element_type(elem), objects)
@@ -1158,6 +1190,26 @@ class CommandToken():
 
     def matches(self, context):
         return ParsingSubmatch(context)
+
+    def complete(self, context):
+        return []
+
+class SingleValue(CommandToken):
+    """Matches one word of a given type"""
+
+    def __init__(self, value_type = StringType()):
+        self.value = None
+        self._value_type = value_type
+
+    def matches(self, context):
+        args = context.args()
+        if len(args) == 0:
+            return ParsingSubmatch(context)
+        if self._value_type.is_valid(args[0]):
+            self.value = args.pop(0)
+            return context.copy(args = args, new_tokens = [self])
+        else:
+            return ParsingSubmatch(context)
 
     def complete(self, context):
         return []
@@ -1668,10 +1720,10 @@ class Create(Command):
         factory = obj.reflect(collection.factory_method)
         new_object = factory()
         wrapper = collection.element_type(new_object)
+        if wrapper.has_field('tenant_id'):
+            wrapper.set_field('tenant_id', session.current_tenant())
         for f in fields:
             wrapper.set_field(f.name, f.value)
-        if wrapper.has_field('tenant_id'):
-            wrapper.set_field('tenant_id', session.tenant_id)
         new_object.create()
 
 class Set(Command):
@@ -1733,7 +1785,7 @@ class Delete(Command):
            """
 
     def name(self):
-        return 'set'
+        return 'delete'
 
     def do(self, tokens):
         assert(len(tokens) >= 2)
@@ -1791,6 +1843,50 @@ class Show(Command):
         ref = object_chain.pop()
         alias = alias_chain.pop()
         print "%s %s %s" % (ref.type_name(), alias, ref.describe())
+
+class PushTenant(Command):
+    def patterns(self):
+        return [ [Verb('pusht'), SingleValue(UUID())] ]
+
+    def name(self):
+        return 'pusht'
+
+    def help(self):
+        print """pusht - Adds a tenant id to the top of the tenant id stack
+
+    Usage: pusht <TENANT_ID>
+    Examples:
+           pusht <TENANT_ID_A>
+           list router
+           popt"""
+
+    def do(self, tokens):
+        for tok in tokens:
+            if isinstance(tok, Verb):
+                continue
+            elif isinstance(tok, SingleValue):
+                session.push_tenant(tok.value)
+                session.print_current_tenant()
+
+class PopTenant(Command):
+    def patterns(self):
+        return [ [Verb('popt') ] ]
+
+    def name(self):
+        return 'popt'
+
+    def help(self):
+        print """popt - Removes a tenant for the top of the tenant stack
+
+    Usage: popt
+    Examples:
+           pusht <TENANT_ID_A>
+           list router
+           popt"""
+
+    def do(self, tokens):
+        session.pop_tenant()
+        session.print_current_tenant()
 
 class List(Command):
     def patterns(self):
@@ -1957,7 +2053,8 @@ class MidonetCLI(cmd.Cmd):
         readline.set_completion_display_matches_hook(self.display_completions)
         cmd.Cmd.__init__(self)
         self._root = root
-        self._ops = [Show(), List(), Describe(), Create(), Delete(), Set()]
+        self._ops = [Show(), List(), Describe(), Create(), Delete(), Set(),
+                     PushTenant(), PopTenant()]
         for op in self._ops:
             if op.name() is not None:
                 setattr(self, "help_%s" % op.name(), op.help)
