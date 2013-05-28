@@ -18,6 +18,7 @@
 # @author: Guillermo Ontanon <guillermo@midokura.com>, Midokura
 
 import cmd
+import logging
 import re
 import readline
 import socket
@@ -140,8 +141,7 @@ class Session():
             self.enable_alias_manager = False
         self.do_auth = not options.skip_auth
         if options.debug:
-            import logging
-            logging.basicConfig(level=logging.DEBUG)
+            logging.getLogger().setLevel(logging.DEBUG)
 
     def load(self):
         self._load_from_config_file()
@@ -159,12 +159,11 @@ class Session():
                             "get a prompt using the -p option)")
 
     def connect(self):
-        import logging
         auth = None
         logging.basicConfig()
-        logger = logging.getLogger('midonet.api')
-        logger.setLevel(logging.CRITICAL)
+        logging.getLogger().setLevel(logging.CRITICAL)
         return MidonetApi(self.api_url, self.username, self.password)
+
 
 
 ################################################################################
@@ -1808,10 +1807,10 @@ class Set(Command):
 
 class Delete(Command):
     def patterns(self):
-        return [ [ Verb('delete', partial_match = False),
+        return [ [ Verb('delete', min_match = 'del'),
                    OnceOrMore(ObjectById()) ],
                  [ OnceOrMore(ObjectById()),
-                   Verb('delete', partial_match = False),
+                   Verb('delete', min_match = 'del'),
                    ZeroOrMore(ObjectById()) ] ]
 
     def help(self):
@@ -1888,7 +1887,7 @@ class Show(Command):
 
 class PushTenant(Command):
     def patterns(self):
-        return [ [Verb('pusht'), SingleValue(UUID())] ]
+        return [ [Verb('pusht', partial_match = False), SingleValue(UUID())] ]
 
     def name(self):
         return 'pusht'
@@ -1912,7 +1911,7 @@ class PushTenant(Command):
 
 class PopTenant(Command):
     def patterns(self):
-        return [ [Verb('popt') ] ]
+        return [ [Verb('popt', partial_match = False) ] ]
 
     def name(self):
         return 'popt'
@@ -1929,6 +1928,31 @@ class PopTenant(Command):
     def do(self, tokens):
         session.pop_tenant()
         session.print_current_tenant()
+
+class Debug(Command):
+    def patterns(self):
+        return [ [Verb('debug', partial_match = False),
+                  Verb('on', partial_match = False)],
+                 [Verb('debug', partial_match = False),
+                  Verb('off', partial_match = False)] ]
+
+    def name(self):
+        return 'debug'
+
+    def help(self):
+        print """debug - Toggle debug mode
+
+    Usage: debug on|off"""
+
+    def do(self, tokens):
+        for tok in tokens:
+            if isinstance(tok, Verb):
+                if tok._name == 'on':
+                    logging.getLogger().setLevel(logging.DEBUG)
+                    print "turned on debug mode"
+                elif tok._name == 'off':
+                    logging.getLogger().setLevel(logging.CRITICAL)
+                    print "turned off debug mode"
 
 class List(Command):
     def patterns(self):
@@ -1988,7 +2012,7 @@ class MidonetCLI(cmd.Cmd):
         cmd.Cmd.__init__(self)
         self._root = root
         self._ops = [Show(), List(), Describe(), Create(), Delete(), Set(),
-                     PushTenant(), PopTenant()]
+                     PushTenant(), PopTenant(), Debug()]
         for op in self._ops:
             if op.name() is not None:
                 setattr(self, "help_%s" % op.name(), op.help)
