@@ -73,5 +73,5 @@ class TunnelZone(ResourceBase):
 
     def add_tunnel_zone_host(self):
         return TunnelZoneHost(self.dto['hosts'], {},
-                              self._get_tunnel_zone_host_media_type(),
-                              self.auth)
+                              self.auth,
+                              self._get_tunnel_zone_host_media_type())
