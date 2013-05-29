@@ -184,8 +184,22 @@ class ObjectRef(ValueType):
     def __init__(self, top_level_collection):
         self.collection = top_level_collection
 
+    def is_valid(self, value):
+        uuid = value
+        if not is_valid_uuid(value):
+            uuid = aliases.lookup(value)
+            if not uuid: return False
+
+        o = self.dereference(uuid)
+        return True if o is not None else False
+
     def dereference(self, value):
-        o = app.fetch_one_for_type(self.collection, value)
+        uuid = value
+        if not is_valid_uuid(value):
+            uuid = aliases.lookup(value)
+            if not uuid: return None
+
+        o = app.fetch_one_for_type(self.collection, uuid)
         if o:
             o.alias_from_root = True
         return o
@@ -226,9 +240,14 @@ class RelativeObjectRef(ObjectRef):
         return child
 
     def dereference(self, value):
+        uuid = value
+        if not is_valid_uuid(value):
+            uuid = aliases.lookup(value)
+            if not uuid: return None
+
         for path in self._paths:
             try:
-                o = self._dereference(value, path)
+                o = self._dereference(uuid, path)
                 if o: return o
             except Exception as e:
                 pass
@@ -699,6 +718,9 @@ class FieldType():
         self._type = attr_spec.value_type
         self._spec = attr_spec
 
+    def is_valid(self):
+        return self._type.is_valid(self.value)
+
     def dereference(self):
         if isinstance(self._type, ObjectRef):
             ret = self._type.dereference(self.value)
@@ -1083,6 +1105,11 @@ class BridgePort(ObjectType):
         self.put_attr(SingleAttr(name = 'outfilter',
                                  value_type = ObjectRef('chain'),
                                  getter = 'get_outbound_filter_id'))
+        self.put_attr(SingleAttr(name = 'peer',
+                                 value_type = PortRef(),
+                                 getter = 'get_peer_id',
+                                 setter = 'link',
+                                 optional = True))
 
 class PortBinding(ObjectType):
     def type_name(self):
@@ -1100,8 +1127,6 @@ class PortBinding(ObjectType):
                                  getter = 'get_interface_name',
                                  setter = 'interface_name',
                                  optional = False))
-        # TODO - need support for mapping the result to the correct
-        # port subclass
         self.put_attr(SingleAttr(name = 'port',
                                  value_type = PortRef(),
                                  getter = 'get_port_id',
@@ -1189,6 +1214,11 @@ class RouterPort(ObjectType):
                                mask_getter = 'get_network_length',
                                addr_setter = 'network_address',
                                mask_setter = 'network_length'))
+        self.put_attr(SingleAttr(name = 'peer',
+                                 value_type = PortRef(),
+                                 getter = 'get_peer_id',
+                                 setter = 'link',
+                                 optional = True))
 
 class Midonet(ObjectType):
     """ This is the root context for the CLI. At the beggining of matchin on a
@@ -1865,7 +1895,13 @@ class Set(Command):
         assert(obj is not None)
 
         for f in fields:
-            obj.set_field(f.name, f.value)
+            if not f.is_valid():
+                raise Exception("Invalid %s value: %s" % (f.name, f.value))
+            o = f.dereference()
+            v = f.value
+            if isinstance(o, ObjectType):
+                v = o.fetch_field('id')
+            obj.set_field(f.name, v)
         obj.object().update()
 
 class Delete(Command):
