@@ -31,8 +31,9 @@ from midonetclient.api import MidonetApi
 #   + ease scriptability:
 #       + print uuid by itself on a single line as output of show and create
 #         commands
-#   + Command space completeness:
-#       - add full specs for all API objects
+#   + Figure out how to support the natTargets field.
+#   + Add a type of attribute for lists of literal values (such as an interface
+#     addresses)
 
 ################################################################################
 # Utility functions
@@ -1202,15 +1203,31 @@ class Rule(ObjectType):
         self.put_attr(SingleAttr(name = 'chain',
                                  value_type = ObjectRef('chain'),
                                  getter = 'get_chain_id',
-                                 setter = 'chain_id'))
-        self.put_attr(SingleAttr(name = 'type',
+                                 setter = 'chain_id',
+                                 show = False))
+        self.put_attr(SingleAttr(name = 'pos',
                                  value_type = StringType(),
-                                 getter = 'get_type',
-                                 setter = 'type'))
-        self.put_attr(SingleAttr(name = 'action',
-                                 value_type = StringType(),
-                                 getter = 'get_flow_action',
-                                 setter = 'flow_action'))
+                                 getter = 'get_position',
+                                 setter = 'position'))
+        self.put_attr(EnumAttr(name = 'type',
+                               mappings = {'accept': 'accept',
+                                           'continue': 'continue',
+                                           'drop': 'drop',
+                                           'jump': 'jump',
+                                           'reject': 'reject',
+                                           'return': 'return',
+                                           'dnat': 'dnat',
+                                           'snat': 'snat',
+                                           'rev_dnat': 'rev_dnat',
+                                           'rev_snat': 'rev_snat'},
+                               getter = 'get_type',
+                               setter = 'type'))
+        self.put_attr(EnumAttr(name = 'action',
+                               mappings = {'accept': 'accept',
+                                           'continue': 'continue',
+                                           'return': 'return'},
+                               getter = 'get_flow_action',
+                               setter = 'flow_action'))
         self.put_attr(SingleAttr(name = 'hw-src',
                                  value_type = MacAddress(),
                                  getter = 'get_dl_src',
@@ -1290,14 +1307,32 @@ class Rule(ObjectType):
                                                     'is_match_return_flow',
                                                     'match_return_flow') ],
                               optional = True))
-
-        # TODO -- complete:
-        #   in_ports
-        #   out_ports
-        #   port_group
-        #   jump_chain_name
-        #   get_nat_targets
-        #   position (sort by)
+        self.put_attr(SingleAttr(name = 'port-group',
+                                 value_type = ObjectRef('port-group'),
+                                 getter = 'get_port_group',
+                                 setter = 'port_group',
+                                 inv_getter = 'is_inv_port_group',
+                                 inv_setter = 'inv_port_group',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'in-ports',
+                                 value_type = StringType(),
+                                 getter = 'get_in_ports',
+                                 setter = 'in_ports',
+                                 inv_getter = 'is_inv_in_ports',
+                                 inv_setter = 'inv_in_ports',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'out-ports',
+                                 value_type = StringType(),
+                                 getter = 'get_out_ports',
+                                 setter = 'out_ports',
+                                 inv_getter = 'is_inv_out_ports',
+                                 inv_setter = 'inv_out_ports',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'jump-to',
+                                 value_type = ObjectRef('chain'),
+                                 getter = 'get_jump_chain_id',
+                                 setter = 'jump_chain_id',
+                                 optional = True))
 
     def type_name(self):
         return "rule"

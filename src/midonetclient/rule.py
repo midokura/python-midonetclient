@@ -99,6 +99,9 @@ class Rule(ResourceBase):
     def get_jump_chain_name(self):
         return self.dto['jumpChainName']
 
+    def get_jump_chain_id(self):
+        return self.dto['jumpChainId']
+
     def get_nat_targets(self):
         return self.dto['natTargets']
 
