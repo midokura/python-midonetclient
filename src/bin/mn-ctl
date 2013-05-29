@@ -127,6 +127,7 @@ class Session():
             raise Exception("Unrecognized command")
         if options.do_eval:
             self.command = " ".join(args)
+            self.do_eval = True
         if not options.skip_auth and options.ask_for_password and \
                 sys.__stdin__.isatty():
             from getpass import getpass
