@@ -929,6 +929,58 @@ class Route(ObjectType):
     def type_name(self):
         return "router"
 
+class Dhcp(ObjectType):
+    def type_name(self):
+        return "dhcp"
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.clear_attrs()
+        self.put_attr(SingleAttr(name = 'gw',
+                                 value_type = IPv4Address(),
+                                 getter = 'get_default_gateway',
+                                 setter = 'default_gateway'))
+        self.put_attr(CidrPair(name = 'subnet',
+                               value_type = StringType(),
+                               addr_getter = 'get_subnet_prefix',
+                               mask_getter = 'get_subnet_length',
+                               addr_setter = 'subnet_prefix',
+                               mask_setter = 'subnet_length'))
+        self.put_attr(SingleAttr(name = 'opt121-routes',
+                                 value_type = StringType(),
+                                 getter = 'get_opt121_routes',
+                                 setter = 'opt121_routes'))
+# FIXME(guillermo) dhcp subnets have no object id and therefore are not
+# reachable from the root app context. This makes it impossible to refer
+# to them (to add a host for example) except by filtering the result
+# of running get_dhcp_subnets on a bridge. Also, it prevents them from
+# having aliases. Not being able to get a hold of them makes it
+# impossible to create DhcpHost objects.
+        self.put_attr(Collection(name = 'host',
+                                 element_type = DhcpHost,
+                                 list_method = 'get_dhcp_hosts',
+                                 getter = 'get_dhcp_host',
+                                 factory_method = 'add_dhcp_host'))
+
+class DhcpHost(ObjectType):
+    def type_name(self):
+        return "dhcp-host"
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.put_attr(SingleAttr(name = 'name',
+                                 value_type = StringType(),
+                                 getter = 'get_name',
+                                 setter = 'name'))
+        self.put_attr(SingleAttr(name = 'address',
+                                 value_type = IPv4Address(),
+                                 getter = 'get_ip_addr',
+                                 setter = 'ip_addr'))
+        self.put_attr(SingleAttr(name = 'mac',
+                                 value_type = MacAddress(),
+                                 getter = 'get_mac_addr',
+                                 setter = 'mac_addr'))
+
 class Bgp(ObjectType):
     def __init__(self, obj):
         ObjectType.__init__(self, obj)
@@ -1009,6 +1061,11 @@ class Bridge(ObjectType):
                                  list_method = 'get_ports',
                                  getter = 'get_port',
                                  factory_method = 'add_interior_port'))
+        self.put_attr(Collection(name = 'dhcp',
+                                 element_type = Dhcp,
+                                 list_method = 'get_dhcp_subnets',
+                                 getter = 'get_dhcp_subnet',
+                                 factory_method = 'add_dhcp_subnet'))
         self.put_attr(SingleAttr(name = 'name',
                                  value_type = StringType(),
                                  setter = 'name',
