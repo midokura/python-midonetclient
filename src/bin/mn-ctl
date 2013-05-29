@@ -929,6 +929,39 @@ class Route(ObjectType):
     def type_name(self):
         return "router"
 
+class PortGroup(ObjectType):
+    def type_name(self):
+        return "pgroup"
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.put_attr(TenantAttr())
+        self.put_attr(SingleAttr(name = 'name',
+                                 value_type = StringType(),
+                                 getter = 'get_name',
+                                 setter = 'name'))
+        self.put_attr(Collection(name = 'member',
+                                 element_type = PortGroupPort,
+                                 list_method = 'get_ports',
+                                 factory_method = 'add_port_group_port'))
+
+class PortGroupPort(ObjectType):
+    def type_name(self):
+        return "port-group-port"
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.clear_attrs()
+        self.put_attr(SingleAttr(name = 'port-group',
+                                 value_type = ObjectRef('port-group'),
+                                 getter = 'get_port_group_id',
+                                 optional = False))
+        self.put_attr(SingleAttr(name = 'port',
+                                 value_type = PortRef(),
+                                 getter = 'get_port_id',
+                                 setter = 'port_id',
+                                 optional = False))
+
 class Dhcp(ObjectType):
     def type_name(self):
         return "dhcp"
@@ -959,7 +992,6 @@ class Dhcp(ObjectType):
         self.put_attr(Collection(name = 'host',
                                  element_type = DhcpHost,
                                  list_method = 'get_dhcp_hosts',
-                                 getter = 'get_dhcp_host',
                                  factory_method = 'add_dhcp_host'))
 
 class DhcpHost(ObjectType):
@@ -1064,7 +1096,6 @@ class Bridge(ObjectType):
         self.put_attr(Collection(name = 'dhcp',
                                  element_type = Dhcp,
                                  list_method = 'get_dhcp_subnets',
-                                 getter = 'get_dhcp_subnet',
                                  factory_method = 'add_dhcp_subnet'))
         self.put_attr(SingleAttr(name = 'name',
                                  value_type = StringType(),
@@ -1377,6 +1408,12 @@ class Midonet(ObjectType):
                                              element_type = Host,
                                              list_method = 'get_hosts',
                                              getter = 'get_host'))
+        ObjectType.put_attr(self, Collection(name = 'port-group',
+                                             element_type = PortGroup,
+                                             list_method = 'get_port_groups',
+                                             getter = 'get_port_group',
+                                             list_with_tenant = True,
+                                             factory_method = 'add_port_group'))
 
 ################################################################################
 # Grammar tokens
