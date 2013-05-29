@@ -32,8 +32,8 @@ from midonetclient.api import MidonetApi
 #       + print uuid by itself on a single line as output of show and create
 #         commands
 #   + Figure out how to support the natTargets field.
-#   + Add a type of attribute for lists of literal values (such as an interface
-#     addresses)
+#   + Add a type of attribute for lists of literal values (such as an
+#     interface's addresses or a rule's input ports)
 
 ################################################################################
 # Utility functions
@@ -2639,7 +2639,9 @@ class MidonetCLI(cmd.Cmd):
 
         if isinstance(context, MatchingContext) and previous is not None:
             if len(context.args()) == 0:
-                return pattern[len(pattern)-1].complete(previous)
+                return pattern[-1].complete(previous)
+            else:
+                return []
         else:
             return []
 
