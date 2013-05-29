@@ -32,8 +32,6 @@ from midonetclient.api import MidonetApi
 #       + print uuid by itself on a single line as output of show and create
 #         commands
 #   + Figure out how to support the natTargets field.
-#   + Add a type of attribute for lists of literal values (such as an
-#     interface's addresses or a rule's input ports)
 
 ################################################################################
 # Utility functions
@@ -372,6 +370,7 @@ class SingleAttr(Attr):
 
 class EnumAttr(SingleAttr):
     def __init__(self, name, mappings, getter, setter,
+                 inv_getter = None, inv_setter = None,
                  writeable = True, show = True, optional = False):
         SingleAttr.__init__(self, name, StringType(), getter, setter,
                             writeable, show, optional)
@@ -399,6 +398,56 @@ class EnumAttr(SingleAttr):
         api_val = self._cli_to_api(v)
         if not api_val:
             raise Exception("Invalid value field %s: %s" % (self.name, api_val))
+        func = obj.reflect(self.setter)
+        func(api_val)
+
+class ListAttr(SingleAttr):
+    def __init__(self, name, element_type, getter, setter = None,
+                 inv_getter = None, inv_setter = None,
+                 writeable = True, show = True, optional = False):
+        SingleAttr.__init__(self, name, StringType(), getter, setter,
+                            writeable, show, optional)
+        self.element_type = element_type
+
+    def _api_to_cli(self, value):
+        if not value:
+            return None
+        if not isinstance(value, list):
+            raise Exception("Bug: expected a list, received '%s'" % (value))
+        vals = value
+        if isinstance(self.element_type, ObjectRef):
+            objs = map(lambda v: self.element_type.dereference(v), vals)
+            vals = map(lambda o: ":".join(aliases.add(o)), objs)
+        return ",".join(vals)
+
+    def _cli_to_api(self, value):
+        values = map(lambda s: s.strip(), value.split(','))
+        if isinstance(self.element_type, ObjectRef):
+            uuids = []
+            for v in values:
+                uuid = v
+                if not is_valid_uuid(v):
+                    uuid = aliases.lookup(v)
+                if not uuid:
+                    return None
+                o = self.element_type.dereference(uuid)
+                if not o:
+                    return None
+                else:
+                    uuids.append(uuid)
+            return uuids
+        else:
+            return values
+
+    def fetch(self, obj):
+        func = obj.reflect(self.getter)
+        return self.fetch_inv(obj, self._api_to_cli(func()))
+
+    def set(self, obj, value):
+        v = self.set_inv(obj, value)
+        api_val = self._cli_to_api(v)
+        if api_val is None:
+            raise Exception("Invalid value field %s: %s" % (self.name, value))
         func = obj.reflect(self.setter)
         func(api_val)
 
@@ -1314,15 +1363,15 @@ class Rule(ObjectType):
                                  inv_getter = 'is_inv_port_group',
                                  inv_setter = 'inv_port_group',
                                  optional = True))
-        self.put_attr(SingleAttr(name = 'in-ports',
-                                 value_type = StringType(),
+        self.put_attr(ListAttr(name = 'in-ports',
+                                 element_type = PortRef(),
                                  getter = 'get_in_ports',
                                  setter = 'in_ports',
                                  inv_getter = 'is_inv_in_ports',
                                  inv_setter = 'inv_in_ports',
                                  optional = True))
-        self.put_attr(SingleAttr(name = 'out-ports',
-                                 value_type = StringType(),
+        self.put_attr(ListAttr(name = 'out-ports',
+                                 element_type = PortRef(),
                                  getter = 'get_out_ports',
                                  setter = 'out_ports',
                                  inv_getter = 'is_inv_out_ports',
@@ -1396,7 +1445,7 @@ class Host(ObjectType):
                                  getter = 'get_name', writeable = False))
         self.put_attr(SingleAttr(name = 'alive', value_type = StringType(),
                                  getter = 'is_alive', writeable = False))
-        self.put_attr(SingleAttr(name = 'addresses', value_type = StringType(),
+        self.put_attr(ListAttr(name = 'addresses', element_type = StringType(),
                                  getter = 'get_addresses', writeable = False))
         self.put_attr(Collection(name = 'interface',
                                  element_type = Interface,
