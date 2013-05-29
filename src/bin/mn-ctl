@@ -741,6 +741,20 @@ class FieldType():
         self._type = attr_spec.value_type
         self._spec = attr_spec
 
+    def compare_with_object(self, obj):
+        if not obj.has_field(self.name):
+            return False
+        v = obj.fetch_field(self.name)
+        if v is None:
+            return False
+        elif v == self.value:
+            return True
+        elif isinstance(self._type, ObjectRef):
+            uuid = aliases.lookup(self.value)
+            if uuid is not None and uuid == v:
+                return True
+        return False
+
     def is_valid(self):
         return self._type.is_valid(self.value)
 
@@ -833,7 +847,7 @@ class ObjectType():
             return None
         return attr.element_type(obj) if obj else None
 
-    def fetch_all_for_type(self, object_type):
+    def fetch_all_for_type(self, object_type, list_filter = []):
         if not self.has_type(object_type):
             raise Exception("%s: no such member" % object_type)
 
@@ -842,10 +856,23 @@ class ObjectType():
             return []
         func = self.reflect(attr.list_method)
         if attr.list_with_tenant:
-            objects = func({'tenant_id':session.current_tenant()})
+            api_objects = func({'tenant_id':session.current_tenant()})
         else:
-            objects = func()
-        return map(lambda elem: attr.element_type(elem), objects)
+            api_objects = func()
+        cli_objects = map(lambda elem: attr.element_type(elem), api_objects)
+        if list_filter is None or len(list_filter) == 0:
+            return cli_objects
+        else:
+            results = []
+            for obj in cli_objects:
+                add = True
+                for field in list_filter:
+                    if not field.compare_with_object(obj):
+                        add = False
+                        break
+                if add:
+                    results.append(obj)
+            return results
 
     def reflect(self, member_name):
         try:
@@ -1815,6 +1842,81 @@ class FieldAssignment(CommandToken):
         else:
             return []
 
+class ListFilter(CommandToken):
+    """Matches a set of field name - value pairs that can be used to filter
+       a collection of objects, be it to search through the list or to select
+       one of them for edition/deletion."""
+    def matches(self, context):
+        args = context.args()
+        collection = None
+        for tok in context.parsed_tokens():
+            if isinstance(tok, Collection):
+                collection = tok
+        if not collection:
+            return ParsingSubmatch(context)
+
+        element_type = collection.element_type
+        if not element_type:
+            return ParsingSubmatch(context)
+        template = element_type(None)
+        if not template:
+            return ParsingSubmatch(context)
+
+        list_filter = []
+        while len(args) > 1:
+            fname = args[-2]
+            fval = args[-1]
+
+            if template.has_field(fname):
+                fspec = template.attrs()[fname]
+                field = FieldType(fname, fspec, fval)
+                list_filter.append(field)
+                args.pop()
+                args.pop()
+            else:
+                break
+
+        if len(list_filter):
+            return context.copy(args = args, new_tokens = [list_filter])
+        else:
+            return ParsingSubmatch(context.copy(args = args))
+
+
+    def complete(self, context):
+        args = context.args()
+        collection = None
+        for tok in context.parsed_tokens():
+            if isinstance(tok, Collection):
+                collection = tok
+        if not collection:
+            return []
+
+        element_type = collection.element_type
+        if not element_type:
+            return []
+        template = element_type(None)
+        if not template:
+            return []
+
+        while len(args) > 1:
+            fname = args[-2]
+            fval = args[-1]
+
+            if template.has_field(fname):
+                args.pop()
+                args.pop()
+            else:
+                break
+
+        if len(args) > 1:
+            return []
+
+        attr_names = template.attrs().keys()
+        if len(args) == 0:
+            return attr_names
+        else:
+            return filter(lambda fname: fname.startswith(args[0]), attr_names)
+
 class ObjectById(CommandToken):
     """Matches an object within a collection identified by its UUID or CLI
        alias. Matches on two words: collection name (e.g. 'router') plus the
@@ -2267,11 +2369,13 @@ class Debug(Command):
 
 class List(Command):
     def patterns(self):
-        obj_selector = Or(OnceOrMore(ObjectById()), RootCtxToken())
+        selector = Or(OnceOrMore(ObjectById()), RootCtxToken())
+        verb = Verb('list')
+        list_filter = ZeroOrOne(ListFilter())
 
-        return [ [obj_selector, Verb('list'), CollectionByType()],
-                 [Verb('list'), obj_selector, CollectionByType()],
-                 [obj_selector, CollectionByType(), Verb('list')] ]
+        return [ [selector, verb, CollectionByType(), list_filter],
+                 [verb, selector, CollectionByType(), list_filter],
+                 [selector, CollectionByType(), verb, list_filter] ]
 
     def name(self):
         return 'list'
@@ -2291,6 +2395,7 @@ class List(Command):
         ref = None
         collection = None
         chain = []
+        list_filter = []
         for tok in tokens:
             if isinstance(tok, Verb):
                 continue
@@ -2300,9 +2405,11 @@ class List(Command):
                 ref = tok
                 if not isinstance(tok, Midonet):
                     chain.append(tok)
+            elif isinstance(tok, list):
+                list_filter = tok
         assert(ref is not None and collection is not None)
 
-        for o in ref.fetch_all_for_type(collection.name):
+        for o in ref.fetch_all_for_type(collection.name, list_filter):
             if o.has_field('id'):
                 ch = list(chain) + [o]
                 alias = aliases.add(*ch).pop()
