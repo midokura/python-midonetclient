@@ -55,6 +55,7 @@ class Session():
         self.tenant_stack = []
         self.enable_alias_manager = True
         self.do_eval = False
+        self.debug = False
 
     def print_current_tenant(self):
         print "tenant_id: %s" % (self.current_tenant())
@@ -142,6 +143,7 @@ class Session():
         self.do_auth = not options.skip_auth
         if options.debug:
             logging.getLogger().setLevel(logging.DEBUG)
+            self.debug = True
 
     def load(self):
         self._load_from_config_file()
@@ -1053,12 +1055,6 @@ class Dhcp(ObjectType):
                                  value_type = StringType(),
                                  getter = 'get_opt121_routes',
                                  setter = 'opt121_routes'))
-# FIXME(guillermo) dhcp subnets have no object id and therefore are not
-# reachable from the root app context. This makes it impossible to refer
-# to them (to add a host for example) except by filtering the result
-# of running get_dhcp_subnets on a bridge. Also, it prevents them from
-# having aliases. Not being able to get a hold of them makes it
-# impossible to create DhcpHost objects.
         self.put_attr(Collection(name = 'host',
                                  element_type = DhcpHost,
                                  list_method = 'get_dhcp_hosts',
@@ -1070,6 +1066,7 @@ class DhcpHost(ObjectType):
 
     def __init__(self, obj):
         ObjectType.__init__(self, obj)
+        self.clear_attrs()
         self.put_attr(SingleAttr(name = 'name',
                                  value_type = StringType(),
                                  getter = 'get_name',
@@ -1675,6 +1672,21 @@ class ZeroOrOne(CommandToken):
     def complete(self, context):
         return self._token.complete(context)
 
+class Seq(CommandToken):
+    def __init__(self, tokens):
+        self._tokens = tokens
+
+    def matches(self, context):
+        ctx = context
+        for tok in self._tokens:
+            ctx = tok.matches(ctx)
+            if not isinstance(ctx, MatchingContext):
+                break
+        return ctx
+
+    def complete(self, context):
+        return []
+
 class Or(CommandToken):
     def __init__(self, *tokens):
         self._tokens = list(tokens)
@@ -1726,6 +1738,47 @@ class CollectionByType(CommandToken):
             if t.startswith(object_type):
                 completions.append(t)
         return completions
+
+class ObjectFromCollection(CommandToken):
+    """Matches an collection of objects contained in another object.
+       Matches on one word: the collection name (e.g. 'router')"""
+    def __init__(self):
+        self.subtoken = Seq([CollectionByType(), ListFilter()])
+
+    def matches(self, context):
+        submatch = self.subtoken.matches(context)
+        if not isinstance(submatch, MatchingContext):
+            return submatch
+
+        obj = submatch.object()
+        tokens = submatch.parsed_tokens()
+
+        collection = None
+        collection_filter = None
+        for tok in tokens:
+            if isinstance(tok, Collection):
+                collection = tok
+            # FIXME(guillermo) - list filter should put something more
+            # specialized than a list in the token list.  right now it's fine
+            # because it's the only token that does so.
+            elif isinstance(tok, list):
+                collection_filter = tok
+
+        if collection is None:
+            return ParsingSubmatch(context)
+
+        elems = obj.fetch_all_for_type(collection.name, collection_filter)
+        if len(elems) != 1:
+            return ParsingSubmatch(context)
+        else:
+            return context.copy(elems[0], submatch.args(), elems)
+
+    def complete(self, context):
+        col = CollectionByType().complete(context)
+        if col:
+            return col
+        else:
+            return ListFilter().complete(context)
 
 class RootCtxToken(CommandToken):
     """ Always matches, consuming zero input arguments and inserting the current
@@ -1864,15 +1917,15 @@ class ListFilter(CommandToken):
 
         list_filter = []
         while len(args) > 1:
-            fname = args[-2]
-            fval = args[-1]
+            fname = args[0]
+            fval = args[1]
 
             if template.has_field(fname):
                 fspec = template.attrs()[fname]
                 field = FieldType(fname, fspec, fval)
                 list_filter.append(field)
-                args.pop()
-                args.pop()
+                args.pop(0)
+                args.pop(0)
             else:
                 break
 
@@ -1899,12 +1952,12 @@ class ListFilter(CommandToken):
             return []
 
         while len(args) > 1:
-            fname = args[-2]
-            fval = args[-1]
+            fname = args[0]
+            fval = args[1]
 
             if template.has_field(fname):
-                args.pop()
-                args.pop()
+                args.pop(0)
+                args.pop(0)
             else:
                 break
 
@@ -2124,13 +2177,16 @@ class Create(Command):
                     Verb('add', partial_match = False))
         return [ [ create,
                    ZeroOrMore(ObjectById()),
+                   ZeroOrOne(ObjectFromCollection()),
                    CollectionByType(),
                    ZeroOrMore(NewObjectFieldAssignment()) ],
                  [ ZeroOrMore(ObjectById()),
+                   ZeroOrOne(ObjectFromCollection()),
                    create,
                    CollectionByType(),
                    ZeroOrMore(NewObjectFieldAssignment()) ],
                  [ ZeroOrMore(ObjectById()),
+                   ZeroOrOne(ObjectFromCollection()),
                    CollectionByType(),
                    create,
                    ZeroOrMore(NewObjectFieldAssignment()) ] ]
@@ -2162,6 +2218,9 @@ class Create(Command):
                 fields.append(tok)
             elif isinstance(tok, Collection):
                 collection = tok
+
+        if collection is None:
+            raise Exception("Bug in command pattern definition")
 
         if not collection.factory_method:
             raise Exception("Creating elements of this type is not possible")
@@ -2221,10 +2280,16 @@ class Set(Command):
 class Delete(Command):
     def patterns(self):
         return [ [ Verb('delete', min_match = 'del'),
-                   OnceOrMore(ObjectById()) ],
+                   OnceOrMore(ObjectById()),
+                   ZeroOrMore(ObjectFromCollection()) ],
                  [ OnceOrMore(ObjectById()),
                    Verb('delete', min_match = 'del'),
-                   ZeroOrMore(ObjectById()) ] ]
+                   ZeroOrMore(ObjectById()),
+                   ZeroOrMore(ObjectFromCollection()) ],
+                 [ OnceOrMore(ObjectById()),
+                   ZeroOrMore(ObjectFromCollection()),
+                   Verb('delete', min_match = 'del'),
+                   ZeroOrMore(ObjectFromCollection()) ] ]
 
     def help(self):
         print """delete - Delete an object
@@ -2255,15 +2320,20 @@ class Show(Command):
         return [ [ ObjectById(),
                    Verb('show'),
                    ZeroOrMore(ObjectById()),
+                   ZeroOrOne(ObjectFromCollection()),
                    ZeroOrOne(FieldByName()) ],
                  [ ZeroOrOne(Verb('show')),
                    OnceOrMore(ObjectById()),
+                   ZeroOrOne(ObjectFromCollection()),
                    ZeroOrOne(FieldByName()) ],
                  [ OnceOrMore(ObjectById()),
+                   ZeroOrOne(ObjectFromCollection()),
                    ZeroOrOne(FieldByName()),
                    Verb('show') ],
                  [ OnceOrMore(ObjectById()),
+                   ZeroOrOne(ObjectFromCollection()),
                    Verb('show'),
+                   ZeroOrOne(ObjectFromCollection()),
                    ZeroOrOne(FieldByName()) ]]
 
     def name(self):
@@ -2295,8 +2365,11 @@ class Show(Command):
 
         alias_chain = aliases.add(*object_chain)
         ref = object_chain.pop()
-        alias = alias_chain.pop()
-        print "%s %s %s" % (ref.type_name(), alias, ref.describe())
+        if alias_chain:
+            alias = alias_chain.pop()
+            print "%s %s %s" % (ref.type_name(), alias, ref.describe())
+        else:
+            print "%s %s" % (ref.type_name(), ref.describe())
 
 class PushTenant(Command):
     def patterns(self):
@@ -2361,9 +2434,11 @@ class Debug(Command):
         for tok in tokens:
             if isinstance(tok, Verb):
                 if tok._name == 'on':
+                    session.debug = True
                     logging.getLogger().setLevel(logging.DEBUG)
                     print "turned on debug mode"
                 elif tok._name == 'off':
+                    session.debug = False
                     logging.getLogger().setLevel(logging.CRITICAL)
                     print "turned off debug mode"
 
@@ -2373,9 +2448,9 @@ class List(Command):
         verb = Verb('list')
         list_filter = ZeroOrOne(ListFilter())
 
-        return [ [selector, verb, CollectionByType(), list_filter],
-                 [verb, selector, CollectionByType(), list_filter],
-                 [selector, CollectionByType(), verb, list_filter] ]
+        return [ [selector, ZeroOrOne(ObjectFromCollection()), verb, CollectionByType(), list_filter],
+                 [verb, selector, ZeroOrOne(ObjectFromCollection()), CollectionByType(), list_filter],
+                 [selector, ZeroOrOne(ObjectFromCollection()), CollectionByType(), verb, list_filter] ]
 
     def name(self):
         return 'list'
@@ -2505,6 +2580,9 @@ class MidonetCLI(cmd.Cmd):
                         error = error.best_match(result)
             print error.describe()
         except Exception as e:
+            import traceback
+            if session.debug:
+                print traceback.format_exc()
             print "Internal error: %s" % e
 
         return False
@@ -2538,9 +2616,14 @@ class MidonetCLI(cmd.Cmd):
         return res
 
     def complete(self, line, state):
-        if state == 0:
-            self._cached_completions = self._complete(line, state)
-        completions = self._cached_completions
+        try:
+            if state == 0:
+                self._cached_completions = self._complete(line, state)
+            completions = self._cached_completions
+        except:
+            import traceback
+            if session.debug:
+                print traceback.format_exc()
 
         if len(completions) <= state:
             return None
