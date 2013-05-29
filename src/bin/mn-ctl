@@ -183,6 +183,64 @@ class ObjectRef(ValueType):
     def __init__(self, top_level_collection):
         self.collection = top_level_collection
 
+    def dereference(self, value):
+        o = app.fetch_one_for_type(self.collection, value)
+        if o:
+            o.alias_from_root = True
+        return o
+
+class RelativeObjectPath():
+    def __init__(self, root_getter, parent_pointer, parent_getter,
+                 parent_type, child_type):
+        self.root_getter = root_getter
+        self.parent_pointer = parent_pointer
+        self.parent_getter = parent_getter
+        self.parent_type = parent_type
+        self.child_type = child_type
+
+class RelativeObjectRef(ObjectRef):
+    """A reference to an object found in any lookup context
+       (see class Midonet)"""
+    def __init__(self, paths):
+        self._paths = paths
+
+    def _dereference(self, value, path):
+        func = app.reflect(path.root_getter)
+        if not func: return None
+        v = func(value)
+        if not v: return None
+        child = path.child_type(v)
+
+        parent_id = child.fetch_field(path.parent_pointer)
+        if not parent_id: return None
+
+        func = app.reflect(path.parent_getter)
+        if not func: return None
+        v = func(parent_id)
+        if not v: return None
+        parent = path.parent_type(v)
+
+        alias_chain = aliases.add(parent, child)
+        child.parent = parent
+        return child
+
+    def dereference(self, value):
+        for path in self._paths:
+            try:
+                o = self._dereference(value, path)
+                if o: return o
+            except Exception as e:
+                pass
+        return None
+
+class PortRef(RelativeObjectRef):
+    def __init__(self):
+        RelativeObjectRef.__init__(self,
+            [RelativeObjectPath('get_port', 'device', 'get_router',
+                                 Router, RouterPort),
+             RelativeObjectPath('get_port', 'device', 'get_bridge',
+                                 Bridge, BridgePort)])
+
 class StringType(ValueType):
     pass
 
@@ -591,7 +649,12 @@ class AliasManager():
 
     def add(self, *obj):
         namespace = self._root_namespace
-        objects = list(obj)
+        objects = []
+        for obj in list(obj):
+            if obj.parent is not None:
+                objects.append(obj.parent)
+            objects.append(obj)
+
         chain = []
         while len(objects) > 0:
             o = objects.pop(0)
@@ -637,10 +700,8 @@ class FieldType():
 
     def dereference(self):
         if isinstance(self._type, ObjectRef):
-            o = app.fetch_one_for_type(self._type.collection, self.value)
-            if o:
-                o.alias_from_root = True
-            return o
+            ret = self._type.dereference(self.value)
+            return ret
         else:
             return self
 
@@ -663,6 +724,7 @@ class ObjectType():
         self._attrs = {}
         self._attr_list = []
         self.alias_from_root = False
+        self.parent = None
         self.put_attr(SingleAttr(name = 'id',
                                  value_type = UUID(),
                                  getter = 'get_id',
@@ -771,7 +833,7 @@ class ObjectType():
 
     def _value_to_str(self, value):
         if isinstance(value, ObjectType):
-            return aliases.add(value).pop()
+            return ":".join(aliases.add(value))
         else:
             return value.value
 
@@ -1023,7 +1085,7 @@ class BridgePort(ObjectType):
 
 class PortBinding(ObjectType):
     def type_name(self):
-        return "port_binding"
+        return "binding"
 
     def __init__(self, obj):
         ObjectType.__init__(self, obj)
@@ -1040,7 +1102,7 @@ class PortBinding(ObjectType):
         # TODO - need support for mapping the result to the correct
         # port subclass
         self.put_attr(SingleAttr(name = 'port',
-                                 value_type = ObjectRef('port'),
+                                 value_type = PortRef(),
                                  getter = 'get_port_id',
                                  setter = 'port_id',
                                  optional = False))
