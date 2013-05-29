@@ -929,6 +929,49 @@ class Route(ObjectType):
     def type_name(self):
         return "router"
 
+class TunnelZone(ObjectType):
+    def type_name(self):
+        return "tzone"
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.put_attr(SingleAttr(name = 'name',
+                                 value_type = StringType(),
+                                 getter = 'get_name',
+                                 setter = 'name'))
+        self.put_attr(EnumAttr(name = 'type',
+                               mappings = {'gre': 'gre',
+                                           'capwap': 'capwap'},
+                               getter = 'get_type',
+                               setter = 'type',
+                               optional = False))
+        self.put_attr(Collection(name = 'member',
+                                 element_type = TunnelZoneHost,
+                                 list_method = 'get_hosts',
+                                 factory_method = 'add_tunnel_zone_host'))
+
+class TunnelZoneHost(ObjectType):
+    def type_name(self):
+        return "tunnel-zone-host"
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.clear_attrs()
+        self.put_attr(SingleAttr(name = 'zone',
+                                 value_type = ObjectRef('tunnel-zone'),
+                                 getter = 'get_tunnel_zone_id',
+                                 optional = False))
+        self.put_attr(SingleAttr(name = 'host',
+                                 value_type = ObjectRef('host'),
+                                 getter = 'get_host_id',
+                                 setter = 'host_id',
+                                 optional = False))
+        self.put_attr(SingleAttr(name = 'address',
+                                 value_type = IPv4Address(),
+                                 getter = 'get_ip_address',
+                                 setter = 'ip_address',
+                                 optional = False))
+
 class PortGroup(ObjectType):
     def type_name(self):
         return "pgroup"
@@ -1414,6 +1457,12 @@ class Midonet(ObjectType):
                                              getter = 'get_port_group',
                                              list_with_tenant = True,
                                              factory_method = 'add_port_group'))
+        ObjectType.put_attr(self, Collection(name = 'tunnel-zone',
+                                             element_type = TunnelZone,
+                                             list_method = 'get_tunnel_zones',
+                                             getter = 'get_tunnel_zone',
+                                             list_with_tenant = True,
+                                             factory_method = 'add_tunnel_zone'))
 
 ################################################################################
 # Grammar tokens
