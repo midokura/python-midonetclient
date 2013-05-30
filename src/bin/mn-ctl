@@ -1244,7 +1244,7 @@ class Chain(ObjectType):
         self.put_attr(Collection(name = 'rule',
                                  element_type = Rule,
                                  list_method = 'get_rules',
-                                 getter = 'get_port',
+                                 getter = 'get_rule',
                                  sort_by = 'pos',
                                  factory_method = 'add_rule'))
         self.put_attr(SingleAttr(name = 'name',
