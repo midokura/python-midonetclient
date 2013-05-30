@@ -615,6 +615,7 @@ class Collection(Attr):
     def __init__(self, name, element_type, list_method,
                  list_with_tenant = False,
                  getter = None,
+                 sort_by = None,
                  factory_method = None,
                  show = True):
         self.name = name
@@ -624,6 +625,7 @@ class Collection(Attr):
         self.list_with_tenant = list_with_tenant
         self.factory_method = factory_method
         self.show = show
+        self.sort_by = sort_by
 
 ################################################################################
 # Alias manager
@@ -799,7 +801,7 @@ class FieldType():
         v = obj.fetch_field(self.name)
         if v is None:
             return False
-        elif v == self.value:
+        elif v == self.value or str(v) == str(self.value):
             return True
         elif isinstance(self._type, ObjectRef):
             uuid = aliases.lookup(self.value)
@@ -913,7 +915,7 @@ class ObjectType():
             api_objects = func()
         cli_objects = map(lambda elem: attr.element_type(elem), api_objects)
         if list_filter is None or len(list_filter) == 0:
-            return cli_objects
+            results = cli_objects
         else:
             results = []
             for obj in cli_objects:
@@ -924,7 +926,12 @@ class ObjectType():
                         break
                 if add:
                     results.append(obj)
+        if not attr.sort_by:
             return results
+        for r in results:
+            # avoid querying the API server for every comparison
+            r._sort_key = r.fetch_field(attr.sort_by)
+        return sorted(results, key=lambda r: r._sort_key)
 
     def reflect(self, member_name):
         try:
@@ -1238,6 +1245,7 @@ class Chain(ObjectType):
                                  element_type = Rule,
                                  list_method = 'get_rules',
                                  getter = 'get_port',
+                                 sort_by = 'pos',
                                  factory_method = 'add_rule'))
         self.put_attr(SingleAttr(name = 'name',
                                  value_type = StringType(),
