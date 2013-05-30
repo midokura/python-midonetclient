@@ -2409,12 +2409,11 @@ class Delete(Command):
 
 class Show(Command):
     def patterns(self):
-        return [ [ ObjectById(),
+        return [ [ OnceOrMore(ObjectById()),
                    Verb('show'),
-                   ZeroOrMore(ObjectById()),
                    ZeroOrOne(ObjectFromCollection()),
                    ZeroOrOne(FieldByName()) ],
-                 [ ZeroOrOne(Verb('show')),
+                 [ Verb('show'),
                    OnceOrMore(ObjectById()),
                    ZeroOrOne(ObjectFromCollection()),
                    ZeroOrOne(FieldByName()) ],
@@ -2541,6 +2540,7 @@ class List(Command):
         list_filter = ZeroOrOne(ListFilter())
 
         return [ [selector, ZeroOrOne(ObjectFromCollection()), verb, CollectionByType(), list_filter],
+                 [selector, verb, ZeroOrOne(ObjectFromCollection()), CollectionByType(), list_filter],
                  [verb, selector, ZeroOrOne(ObjectFromCollection()), CollectionByType(), list_filter],
                  [selector, ZeroOrOne(ObjectFromCollection()), CollectionByType(), verb, list_filter] ]
 
@@ -2681,18 +2681,24 @@ class MidonetCLI(cmd.Cmd):
 
     def complete_command(self, context, pattern):
         previous = None
+        accumulated = []
         for token in pattern:
-            if len(context.args()) == 1:
+            args_left = len(context.args())
+            if args_left == 1:
                 return token.complete(context)
 
             res = token.matches(context)
             if isinstance(res, MatchingContext):
                 if len(res.args()) == 0:
-                    return token.complete(context)
+                    accumulated.extend(token.complete(context))
+                    return accumulated
+                if len(res.args()) == args_left:
+                    accumulated.extend(token.complete(context))
                 previous = context
                 context = res
             else:
-                return token.complete(context)
+                accumulated.extend(token.complete(context))
+                return accumulated
 
         if isinstance(context, MatchingContext) and previous is not None:
             if len(context.args()) == 0:
