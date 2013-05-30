@@ -39,9 +39,6 @@ class HostInterface(ResourceBase):
     def get_host_id(self):
         return self.dto['hostId']
 
-    def get_id(self):
-        return self.dto['id']
-
     def get_mac(self):
         return self.dto['mac']
 

@@ -1,1 +1,2 @@
 src/midonetclient usr/share/pyshared/
+src/bin/mn-ctl usr/bin

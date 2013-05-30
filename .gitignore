@@ -1,1 +1,6 @@
 *.pyc
+debian/files
+debian/*.debhelper
+debian/*.log
+debian/*.substvars
+debian/python-midonetclient/

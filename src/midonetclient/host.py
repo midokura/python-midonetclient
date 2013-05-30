@@ -44,7 +44,7 @@ class Host(ResourceBase):
     def get_addresses(self):
         return self.dto['addresses']
 
-    def get_interfaces(self, query):
+    def get_interfaces(self, query = {}):
         headers = {
             'Accept':
                 vendor_media_type.APPLICATION_INTERFACE_COLLECTION_JSON

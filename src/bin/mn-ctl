@@ -1,106 +1,2452 @@
 #!/usr/bin/env python
-# Copyright 2012 Midokura Japan KK
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
 
-import sys
-import argparse
+# Copyright 2013 Midokura PTE LTD.
+# All Rights Reserved
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# @author: Guillermo Ontanon <guillermo@midokura.com>, Midokura
+
+import cmd
+import logging
+import re
 import readline
-import time
+import socket
+import sys
+from shlex import split as shsplit
+
+from midonetclient.api import MidonetApi
+
+# TODO:
+#   + ease scriptability:
+#       + print uuid by itself on a single line as output of show and create
+#         commands
+#   + Command space completeness:
+#       - add full specs for all API objects
+
+################################################################################
+# Utility functions
+################################################################################
+
+uuid_pattern = re.compile("^[0-F]{8}-[0-F]{4}-[0-F]{4}-[0-F]{4}-[0-F]{12}$", re.I)
+def is_valid_uuid(value):
+    return True if uuid_pattern.match(value) is not None else False
+
+################################################################################
+# Session initialization
+################################################################################
+
+class Session():
+    def __init__(self):
+        self.api_url = None
+        self.username = None
+        self.password = None
+        self.tenant_id = None
+        self.tenant_stack = []
+        self.enable_alias_manager = True
+        self.do_eval = False
+
+    def print_current_tenant(self):
+        print "tenant_id: %s" % (self.current_tenant())
+
+    def push_tenant(self, tenant_id):
+        self.tenant_stack.append(tenant_id)
+
+    def pop_tenant(self):
+        if self.tenant_stack:
+            self.tenant_stack.pop()
+
+    def current_tenant(self):
+        if not self.tenant_stack:
+            return self.tenant_id
+        else:
+            return self.tenant_stack[-1]
+
+    def _load_from_config_file(self):
+        import ConfigParser
+        import os
+        home = os.path.expanduser("~")
+        try:
+            cfg = ConfigParser.ConfigParser()
+            cfgfile = "%s%s%s" % (home, os.path.sep, '.midonetrc')
+            cfg.read(cfgfile)
+        except:
+            return
+        if cfg.has_option('cli', 'api_url'):
+            self.api_url = cfg.get('cli', 'api_url')
+        if cfg.has_option('cli', 'username'):
+            self.username = cfg.get('cli', 'username')
+        if cfg.has_option('cli', 'password'):
+            self.password = cfg.get('cli', 'password')
+        if cfg.has_option('cli', 'tenant'):
+            self.tenant_id = cfg.get('cli', 'tenant')
+
+    def _load_from_env(self):
+        import os
+        if os.environ.has_key('MIDO_API_URL'):
+            self.api_url = os.environ['MIDO_API_URL']
+        if os.environ.has_key('MIDO_USER'):
+            self.username = os.environ['MIDO_USER']
+        if os.environ.has_key('MIDO_TENANT'):
+            self.tenant_id = os.environ['MIDO_TENANT']
+
+    def _load_from_args(self):
+        from optparse import OptionParser
+        parser = OptionParser()
+        parser.add_option("-A", "--no-auth", dest="skip_auth",
+                            action="store_true",
+                            help="Skip authentication")
+        parser.add_option("--midonet-url", dest="api_url",
+                            help="Midonet API server URL", metavar="URL")
+        parser.add_option("-u", "--user", dest="username",
+                            help="Username", metavar="USERNAME")
+        parser.add_option("--tenant", dest="tenant",
+                            help="Tenant id", metavar="UUID")
+        parser.add_option("-e", "--eval", dest="do_eval", action="store_true",
+                            help="Evaluate a single command, given at the end "+
+                                 "of the argument list")
+        parser.add_option("-p", "--password", dest="ask_for_password",
+                            help="Ask for password interactively",
+                            action="store_true")
+        parser.add_option("-d", "--debug", dest="debug",
+                            help="Enable debugging",
+                            action="store_true")
+        (options, args) = parser.parse_args()
+        if not options.do_eval and args is not None and len(args) > 0:
+            raise Exception("Unrecognized command")
+        if options.do_eval:
+            self.command = " ".join(args)
+            self.do_eval = True
+        if not options.skip_auth and options.ask_for_password and \
+                sys.__stdin__.isatty():
+            from getpass import getpass
+            self.password = getpass()
+        if options.api_url is not None:
+            self.api_url = options.api_url
+        if options.username is not None:
+            self.username = options.username
+        if options.tenant is not None:
+            self.tenant_id = options.tenant
+        if not sys.__stdin__.isatty() or options.do_eval:
+            self.enable_alias_manager = False
+        self.do_auth = not options.skip_auth
+        if options.debug:
+            logging.getLogger().setLevel(logging.DEBUG)
+
+    def load(self):
+        self._load_from_config_file()
+        self._load_from_env()
+        self._load_from_args()
+
+        if self.api_url is None:
+            raise Exception("Missing: Midonet API URL")
+        if self.do_auth and self.username is None:
+            raise Exception("Missing: username")
+        if self.tenant_id is None:
+            raise Exception("Missing: tenant id")
+        if self.do_auth and self.password is None:
+            raise Exception("No password given (add it to ~/.midonetrc or "+
+                            "get a prompt using the -p option)")
+
+    def connect(self):
+        auth = None
+        logging.basicConfig()
+        logging.getLogger().setLevel(logging.CRITICAL)
+        return MidonetApi(self.api_url, self.username, self.password)
 
 
-def interactive_mode(args=None):
-    print "interactive_mode"
 
-def router_create(args):
-    print "router_create"
+################################################################################
+# Field value types
+################################################################################
 
-def router_delete(args):
-    print "router_delete"
+class ValueType():
+    def __init__(self):
+        pass
 
-def router_list(args):
-    print "router_list"
+    def is_valid(self, value):
+        return True
 
-# top_sub_cmds = ['router', 'bride', 'port', 'chain', 'rule']
+class ObjectRef(ValueType):
+    """A reference to an object found in the root lookup context (see class
+       Midonet)"""
+    def __init__(self, top_level_collection):
+        self.collection = top_level_collection
 
-# Need this class to jump directly to interactive_mode instead of checking
-# sub-command arguments.
-class _InteractiveModeAction(argparse.Action):
-    def __init__(self, option_strings, dest, default=False, required=False,
-                 help=None):
-        super(_InteractiveModeAction, self).__init__(
-            option_strings=option_strings, dest=dest, nargs=0, const=True,
-            default=default, required=required, help=help)
+    def is_valid(self, value):
+        uuid = value
+        if not is_valid_uuid(value):
+            uuid = aliases.lookup(value)
+            if not uuid: return False
 
-    def __call__(self, parser, namespace, values, option_string=None):
-        #print '%r %r %r' % (namespace, values, option_string)
-        setattr(namespace, self.dest, self.const)
+        o = self.dereference(uuid)
+        return True if o is not None else False
 
-        # Check common parser's inputs.
-        user = getattr(namespace, 'user')
-        pwd = getattr(namespace, 'pwd')
-        tenant_id = getattr(namespace, 'tenant_id')
-        if not (user and pwd and tenant_id):
-            parser.print_help()
+    def dereference(self, value):
+        uuid = value
+        if not is_valid_uuid(value):
+            uuid = aliases.lookup(value)
+            if not uuid: return None
 
-        namespace.func()
-        parser.exit()
+        o = app.fetch_one_for_type(self.collection, uuid)
+        if o:
+            o.alias_from_root = True
+        return o
 
+class RelativeObjectPath():
+    def __init__(self, root_getter, parent_pointer, parent_getter,
+                 parent_type, child_type):
+        self.root_getter = root_getter
+        self.parent_pointer = parent_pointer
+        self.parent_getter = parent_getter
+        self.parent_type = parent_type
+        self.child_type = child_type
 
-# TODO(yoshi): add auto-complete support. nova-manage?
-def main():
-    # TODO(yoshi): add support for reading the config file. Read the values
-    # for the config file, set the default values with them.
+class RelativeObjectRef(ObjectRef):
+    """A reference to an object found in any lookup context
+       (see class Midonet)"""
+    def __init__(self, paths):
+        self._paths = paths
 
-    # Common parser
-    parent_parser = argparse.ArgumentParser(add_help=False)
-    parent_parser.add_argument('--url', metavar='URL',
-                               help='The URL of MN API Server', required=True)
-    parent_parser.add_argument('--user', metavar='username', help='username',
-                               required=True)
-    parent_parser.add_argument('--pwd', metavar='password', help='password',
-                               required=True)
-    parent_parser.add_argument('--tenant-id', metavar='tenant_id',
-                               help='Tenant ID', required=True)
+    def _dereference(self, value, path):
+        func = app.reflect(path.root_getter)
+        if not func: return None
+        v = func(value)
+        if not v: return None
+        child = path.child_type(v)
 
-    # Create the top level parser
-    parser = argparse.ArgumentParser(parents=[parent_parser],
-        description='MidoNet Virtual Topology Configuration Tool')
-    print parser._defaults
+        parent_id = child.fetch_field(path.parent_pointer)
+        if not parent_id: return None
 
-    # Support interactive shell mode
-    parser.add_argument('--interactive', '-i', action=_InteractiveModeAction,
-                        help='interactive mode')
-    parser.set_defaults(func=interactive_mode)
+        func = app.reflect(path.parent_getter)
+        if not func: return None
+        v = func(parent_id)
+        if not v: return None
+        parent = path.parent_type(v)
 
-    # Sub commands support.
-    subparsers = parser.add_subparsers(help='virtual network resources')
+        alias_chain = aliases.add(parent, child)
+        child.parent = parent
+        return child
 
-    # router commands
-    router_parser = subparsers.add_parser(
-        'router', help='router commands',
-        parents=[parent_parser]).add_subparsers(help='router commands')
-    # router create command
-    router_create_parser = router_parser.add_parser(
-        'create', parents=[parent_parser], help='create a router')
-    router_create_parser.add_argument('--name', metavar='name', required=True)
-    router_create_parser.set_defaults(func=router_create)
-    # router delete command
-    router_delete_parser = router_parser.add_parser(
-        'delete', parents=[parent_parser], help='delete a router')
-    router_delete_parser.add_argument('--name', metavar='name', required=True)
-    router_delete_parser.set_defaults(func=router_delete)
-    # router list command
-    router_list_parser = router_parser.add_parser(
-        'list', parents=[parent_parser], help='list routers')
-    router_list_parser.add_argument('--name', metavar='name', required=True)
-    router_list_parser.set_defaults(func=router_list)
+    def dereference(self, value):
+        uuid = value
+        if not is_valid_uuid(value):
+            uuid = aliases.lookup(value)
+            if not uuid: return None
 
-    # bridge commands
-    bridge_parser = subparsers.add_parser(
-        'bridge', parents=[parent_parser], help='bridge commands')
+        for path in self._paths:
+            try:
+                o = self._dereference(uuid, path)
+                if o: return o
+            except Exception as e:
+                pass
+        return None
 
-    args = parser.parse_args()
-    args.func(args)
+class PortRef(RelativeObjectRef):
+    def __init__(self):
+        RelativeObjectRef.__init__(self,
+            [RelativeObjectPath('get_port', 'device', 'get_router',
+                                 Router, RouterPort),
+             RelativeObjectPath('get_port', 'device', 'get_bridge',
+                                 Bridge, BridgePort)])
 
+class StringType(ValueType):
+    pass
+
+class MacAddress(ValueType):
+    pass
+
+class IPv4Address(ValueType):
+    def is_valid(self, value):
+        try:
+            socket.inet_aton(value)
+            return True
+        except:
+            return False
+
+class L4PortNumber(ValueType):
+    def is_valid(self, value):
+        try:
+            port = int(value)
+            return  port >= 0 and port <= 65535
+        except:
+            return False
+
+class IPv4Subnet(ValueType):
+    def is_valid(self, value):
+        values = value.split('/')
+        if not values:
+            return False
+        if not IPv4Address().is_valid(values.pop(0)):
+            return False
+        if not values:
+            return True
+        try:
+            mask = int(values.pop(0))
+        except:
+            return False
+        if mask < 0 or mask > 32 or values:
+            return False
+        return True
+
+class UUID(ValueType):
+    def is_valid(self, value):
+        return True if uuid_pattern.match(value) is not None else False
+
+################################################################################
+# Object member types
+################################################################################
+
+class Attr():
+    pass
+
+class SingleAttr(Attr):
+    def __init__(self, name, value_type, getter,
+                 setter = None,
+                 writeable = True,
+                 show = True,
+                 optional = False,
+                 inv_getter = None,
+                 inv_setter = None):
+        self.name = name
+        self.value_type = value_type
+        self.getter = getter
+        self.setter = setter
+        self.writeable = writeable
+        self.show = show
+        self.optional = optional
+        self.inv_getter = inv_getter
+        self.inv_setter = inv_setter
+
+    def has_inv(self):
+        return self.inv_getter is not None
+
+    def fetch(self, obj):
+        try:
+            func = obj.reflect(self.getter)
+            return self.fetch_inv(obj, func())
+        except KeyError as e:
+            return None
+
+    def fetch_inv(self, obj, v):
+        try:
+            inv = False
+            if self.has_inv():
+                func = obj.reflect(self.inv_getter)
+                if func():
+                    return "!%s" % (v)
+        except KeyError as e:
+            pass
+        return v
+
+    def set(self, obj, value):
+        v = self.set_inv(obj, value)
+        if not self.value_type.is_valid(v):
+            raise Exception("Invalid value field %s: %s" % (self.name, v))
+        func = obj.reflect(self.setter)
+        func(v)
+
+    def set_inv(self, obj, value):
+        v = value
+        if self.inv_setter is not None:
+            inv = False
+            if (value.startswith("!")):
+                inv = True
+                v = value.lstrip('!')
+            func = obj.reflect(self.inv_setter)
+            func(inv)
+        return v
+
+class EnumAttr(SingleAttr):
+    def __init__(self, name, mappings, getter, setter,
+                 writeable = True, show = True, optional = False):
+        SingleAttr.__init__(self, name, StringType(), getter, setter,
+                            writeable, show, optional)
+        self.mappings = mappings
+
+    def _api_to_cli(self, value):
+        # mappings are api -> cli
+        return self.mappings[value]
+
+    def _cli_to_api(self, value):
+        for k,v in self.mappings.items():
+            if v == value:
+                return k
+        return None
+
+    def fetch(self, obj):
+        try:
+            func = obj.reflect(self.getter)
+            return self.fetch_inv(obj, self._api_to_cli(func()))
+        except KeyError as e:
+            return None
+
+    def set(self, obj, value):
+        v = self.set_inv(obj, value)
+        api_val = self._cli_to_api(v)
+        if not api_val:
+            raise Exception("Invalid value field %s: %s" % (self.name, api_val))
+        func = obj.reflect(self.setter)
+        func(api_val)
+
+class TenantAttr(SingleAttr):
+    def __init__(self):
+        SingleAttr.__init__(self,
+                            name = 'tenant',
+                            value_type = UUID(),
+                            getter = 'get_tenant_id',
+                            setter = 'tenant_id',
+                            writeable = True,
+                            optional = True,
+                            show = False)
+
+class FlagSetFlag:
+    def __init__(self, literal, getter, setter = None):
+        self.literal = literal
+        self.getter = getter
+        self.setter = setter
+
+class FlagSet(SingleAttr):
+    def __init__(self, name,
+                 flags = [],
+                 writeable = True,
+                 show = True,
+                 optional = False):
+        SingleAttr.__init__(self, name, StringType(),
+                            getter = None,
+                            setter = None,
+                            writeable = writeable,
+                            show = show,
+                            optional = optional)
+        self.flags = flags
+
+    def fetch(self, obj):
+        for flag in self.flags:
+            func = obj.reflect(flag.getter)
+            v = func()
+            if v:
+                return flag.literal
+        return None
+
+    def set(self, obj, value):
+        found = False
+        for flag in self.flags:
+            if flag.setter is not None:
+                func = obj.reflect(flag.setter)
+                if flag.literal == value:
+                    found = True
+                    func(True)
+                else:
+                    func(False)
+        if not found:
+            raise Exception("%s is not a valid %s" % (value, self.name))
+
+class CidrPair(SingleAttr):
+    def __init__(self, name, value_type,
+                 addr_getter,
+                 mask_getter,
+                 addr_setter = None,
+                 mask_setter = None,
+                 writeable = True,
+                 show = True,
+                 optional = False,
+                 inv_getter = None,
+                 inv_setter = None):
+        SingleAttr.__init__(self, name, value_type,
+                            getter = None,
+                            setter = None,
+                            writeable = writeable,
+                            show = show,
+                            optional = optional,
+                            inv_getter = inv_getter,
+                            inv_setter = inv_setter)
+        self.addr_getter = addr_getter
+        self.addr_setter = addr_setter
+        self.mask_getter = mask_getter
+        self.mask_setter = mask_setter
+
+    def fetch(self, obj):
+        func = obj.reflect(self.addr_getter)
+        address = func()
+        func = obj.reflect(self.mask_getter)
+        mask = func()
+        if address is None:
+            return None
+
+        address = address if address else '0.0.0.0'
+        mask = mask if mask else '0'
+        if mask == 32:
+            return self.fetch_inv(obj, "%s" % (address))
+        else:
+            return self.fetch_inv(obj, "%s/%s" % (address, mask))
+
+    def set(self, obj, value):
+        v = self.set_inv(obj, value)
+        if not IPv4Subnet().is_valid(v):
+            raise Exception("Invalid network address: %s" % v)
+        values = v.split('/')
+        if len(values) == 1:
+            values.append(32)
+        func = obj.reflect(self.addr_setter)
+        func(values[0])
+        func = obj.reflect(self.mask_setter)
+        func(values[1])
+
+class L4PortRange(SingleAttr):
+    def __init__(self, name, value_type,
+                 start_getter,
+                 end_getter,
+                 start_setter = None,
+                 end_setter = None,
+                 writeable = True,
+                 show = True,
+                 optional = False,
+                 inv_getter = None,
+                 inv_setter = None):
+        SingleAttr.__init__(self, name, value_type,
+                            getter = None,
+                            setter = None,
+                            writeable = writeable,
+                            show = show,
+                            optional = optional,
+                            inv_getter = inv_getter,
+                            inv_setter = inv_setter)
+        self.start_getter = start_getter
+        self.start_setter = start_setter
+        self.end_getter = end_getter
+        self.end_setter = end_setter
+
+    def fetch(self, obj):
+        func = obj.reflect(self.start_getter)
+        start = func()
+        func = obj.reflect(self.end_getter)
+        end = func()
+        if start is None:
+            return None
+
+        v = start
+        if end is not None and end != start:
+            v = "%s:%s" % (start, end)
+        return self.fetch_inv(obj, v)
+
+    def set(self, obj, value):
+        v = self.set_inv(obj, value)
+        values = v.split(':')
+        if len(values) == 1:
+            values.append(values[0])
+
+        if len(values) != 2:
+            raise Exception("Invalid port range: %s" % v)
+        if not L4PortNumber().is_valid(values[0]):
+            raise Exception("Invalid port range: %s" % v)
+        if not L4PortNumber().is_valid(values[1]):
+            raise Exception("Invalid port range: %s" % v)
+        if int(values[1]) < int(values[0]):
+            raise Exception("Invalid port range: %s" % v)
+
+        func = obj.reflect(self.start_setter)
+        func(values[0])
+        func = obj.reflect(self.end_setter)
+        func(values[1])
+
+class Collection(Attr):
+    def __init__(self, name, element_type, list_method,
+                 list_with_tenant = False,
+                 getter = None,
+                 factory_method = None,
+                 show = True):
+        self.name = name
+        self.element_type = element_type
+        self.list_method = list_method
+        self.getter = getter
+        self.list_with_tenant = list_with_tenant
+        self.factory_method = factory_method
+        self.show = show
+
+################################################################################
+# Alias manager
+################################################################################
+
+class Namespace():
+    def __init__(self):
+        self._aliases = {}
+        self._reverse_aliases = {}
+        self._prefixes = {}
+
+    def empty(self):
+        return (len(self._aliases.keys()) == 0)
+
+    def names(self):
+        return self._aliases.iterkeys()
+
+    def make_name(self, prefix):
+        count = 0
+        if self._prefixes.has_key(prefix):
+            count = self._prefixes[prefix] + 1
+        self._prefixes[prefix] = count
+        return "%s%s" % (prefix, count)
+
+    def lookup(self, name):
+        if self._aliases.has_key(name):
+            return self._aliases[name]
+        else:
+            return None
+
+    def reverse_lookup(self, uuid):
+        if self._reverse_aliases.has_key(uuid):
+            return self._reverse_aliases[uuid]
+        else:
+            return None
+
+    def add(self, obj):
+        uuid = obj.fetch_field('id')
+        if self._reverse_aliases.has_key(uuid):
+            return self._reverse_aliases[uuid]
+
+        alias = self.make_name(obj.type_name())
+        self._aliases[alias] = uuid
+        self._reverse_aliases[uuid] = alias
+        return alias
+
+class AliasManager():
+    def __init__(self):
+        self._namespaces = {}
+        self._root_namespace = Namespace()
+
+    def _get_namespace(self, uuid):
+        if self._namespaces.has_key(uuid):
+            return self._namespaces[uuid]
+        else:
+            return Namespace()
+
+    # FIXME - aliases are hierarchical and composed with a ':' separator. For
+    # example, given a router with alias router0 that contains a port aliased
+    # to port0. 'port0' is scoped to router0, other port0's may exist in other
+    # router objects. Resolving a 'port0' can be done by passing router0 as
+    # parent. port0 may also be resolved by querying for 'router0:port0' with
+    # no parent object, however if the returned uuid is not available in the
+    # root app context, the caller will not know what to do with it. Thus,
+    # composed names cannot be used in the CLI yet, until this sort of traversal
+    # is supported. To refer to 'router0:port0' one has to write
+    # 'router router0 port port0' to let the parser know which path to take
+    # in the object tree: "1st, lookup in the list of routers, then in the list
+    # of ports of the found router".
+    #
+    # The solution is to add attribute specs (returned by attrs() in the object
+    # definition) to each component in the chain of aliases. So aliases need to
+    # store both uuid and attribute spec.
+    def lookup(self, name, parent=None):
+        chain = name.split(':')
+        namespace = self._root_namespace
+        resolved = None
+
+        if isinstance(parent, Midonet):
+            parent = None
+        if parent is not None:
+            if isinstance(parent, ObjectType):
+                parent = parent.fetch_field('id')
+            resolved_parent = self.lookup(parent)
+            if resolved_parent is not None:
+                parent = resolved_parent
+            namespace = self._get_namespace(parent)
+
+        for elem in chain:
+            resolved = namespace.lookup(elem)
+            if resolved is None:
+                return None
+            else:
+                namespace = self._get_namespace(resolved)
+
+        return resolved
+
+    def complete(self, name, parent=None):
+        namespace = self._root_namespace
+        resolved = None
+
+        if isinstance(parent, Midonet):
+            parent = None
+        if parent is not None:
+            if isinstance(parent, ObjectType):
+                parent = parent.fetch_field('id')
+            resolved_parent = self.lookup(parent)
+            if resolved_parent is not None:
+                parent = resolved_parent
+            namespace = self._get_namespace(parent)
+
+        # FIXME: ignoring composed aliases (which are not fully implemented yet)
+        completions = []
+        for alias in namespace.names():
+            if alias.startswith(name):
+                completions.append(alias)
+        return completions
+
+    def add(self, *obj):
+        namespace = self._root_namespace
+        objects = []
+        for obj in list(obj):
+            if obj.parent is not None:
+                objects.append(obj.parent)
+            objects.append(obj)
+
+        chain = []
+        while len(objects) > 0:
+            o = objects.pop(0)
+            if not o.has_field('id'):
+                return []
+            uuid = o.fetch_field('id')
+
+            if o.alias_from_root:
+                namespace = self._root_namespace
+            alias = namespace.reverse_lookup(uuid)
+            if alias is None:
+                alias = namespace.add(o)
+                self._namespaces[uuid] = Namespace()
+
+            namespace = self._namespaces[uuid]
+            chain.append(alias)
+
+        return chain
+
+class NoOpAliasManager():
+    def __init__(self):
+        pass
+
+    def lookup(self, name, parent=None):
+        return None
+
+    def complete(self, name, parent=None):
+        return []
+
+    def add(self, *obj):
+        return map(lambda o: o.fetch_field('id'), list(obj))
+
+################################################################################
+# Object types
+################################################################################
+
+class FieldType():
+    def __init__(self, name, attr_spec, value):
+        self.name = name
+        self.value = value
+        self._type = attr_spec.value_type
+        self._spec = attr_spec
+
+    def is_valid(self):
+        return self._type.is_valid(self.value)
+
+    def dereference(self):
+        if isinstance(self._type, ObjectRef):
+            ret = self._type.dereference(self.value)
+            return ret
+        else:
+            return self
+
+    def describe(self):
+        return "%s: %s" % (self.name, self.value)
+
+class ObjectType():
+    """ This is the base class to define CLI wrappers around REST API objects.
+        Mainly, it provides an `attrs` method that describes the structure of
+        the wrapped type and how they should be treated by the CLI. Most
+        subclasses should override `attrs`.
+
+        The rest of its methods work on the structural definition provided by
+        `attrs` to let Command implementations generically traverse and
+        manipulate the underlying REST API object."""
+
+    def __init__(self, obj):
+        self._aliases = {}
+        self._object = obj
+        self._attrs = {}
+        self._attr_list = []
+        self.alias_from_root = False
+        self.parent = None
+        self.put_attr(SingleAttr(name = 'id',
+                                 value_type = UUID(),
+                                 getter = 'get_id',
+                                 show = False,
+                                 writeable = False,
+                                 optional = True))
+
+    def object(self):
+        return self._object
+
+    def clear_attrs(self):
+        self._attrs = {}
+        self._attr_list = []
+
+    def put_attr(self, attr):
+        self._attrs[attr.name] = attr
+        self._attr_list.append(attr)
+
+    def type_name(self):
+        return "object"
+
+    def attrs(self):
+        return self._attrs
+
+    def fields(self):
+        fields = filter(lambda a: isinstance(a, SingleAttr), self._attr_list)
+        return map(lambda f: f.name, fields)
+
+    def types(self):
+        types = filter(lambda a: isinstance(a, Collection), self._attr_list)
+        return map(lambda t: t.name, types)
+
+    def has_type(self, type_name):
+        if self._attrs.has_key(type_name):
+            if isinstance(self._attrs[type_name], Collection):
+                return True
+        return False
+
+    def has_field(self, type_name):
+        if self._attrs.has_key(type_name):
+            if isinstance(self._attrs[type_name], SingleAttr):
+                return True
+        return False
+
+    def fetch_one_for_type(self, object_type, id_):
+        if not is_valid_uuid(id_):
+            return None
+
+        if not self.has_type(object_type):
+            raise Exception("%s: no such member %s" % (object_type, id_))
+
+        attr = self.attrs()[object_type]
+        if not attr.getter:
+            return None
+
+        func = app.reflect(attr.getter)
+        try:
+            obj = func(id_)
+        except:
+            return None
+        return attr.element_type(obj) if obj else None
+
+    def fetch_all_for_type(self, object_type):
+        if not self.has_type(object_type):
+            raise Exception("%s: no such member" % object_type)
+
+        attr = self.attrs()[object_type]
+        if not attr.list_method:
+            return []
+        func = self.reflect(attr.list_method)
+        if attr.list_with_tenant:
+            objects = func({'tenant_id':session.current_tenant()})
+        else:
+            objects = func()
+        return map(lambda elem: attr.element_type(elem), objects)
+
+    def reflect(self, member_name):
+        try:
+            memb = getattr(self._object, member_name)
+            if memb is None:
+                raise Exception
+            return memb
+        except:
+            raise Exception("bug in type definition: %s::%s" % (
+                self.__class__.__name__, member_name))
+
+    def fetch_field(self, field_name):
+        if not self.has_field(field_name):
+            raise Exception("%s: no such member" % field_name)
+
+        return self.attrs()[field_name].fetch(self)
+
+    def set_field(self, field_name, value):
+        if not self.has_field(field_name):
+            raise Exception("%s: no such member" % field_name)
+
+        return self.attrs()[field_name].set(self, value)
+
+    def fetch_and_wrap_field(self, field_name):
+        val = self.fetch_field(field_name)
+        if not val:
+            return None
+
+        spec = self.attrs()[field_name]
+        return FieldType(field_name, spec, val).dereference()
+
+    def _value_to_str(self, value):
+        if isinstance(value, ObjectType):
+            return ":".join(aliases.add(value))
+        else:
+            return value.value
+
+    def describe(self):
+        flist = filter(lambda f: self.attrs()[f].show, self.fields())
+        flist = filter(lambda f: self.fetch_field(f), flist)
+        values = map(lambda f: self.fetch_and_wrap_field(f), flist)
+        values = map(lambda v: self._value_to_str(v), values)
+        return " ".join(map(lambda (f, v): "%s %s" % (f, v), zip(flist, values)))
+
+class Route(ObjectType):
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.put_attr(SingleAttr(name = 'type',
+                                 value_type = StringType(),
+                                 getter = 'get_type',
+                                 setter = 'type'))
+        self.put_attr(CidrPair(name = 'src',
+                               value_type = StringType(),
+                               addr_getter = 'get_src_network_addr',
+                               mask_getter = 'get_src_network_length',
+                               addr_setter = 'src_network_addr',
+                               mask_setter = 'src_network_length',
+                               optional = True))
+        self.put_attr(CidrPair(name = 'dst',
+                               value_type = StringType(),
+                               addr_getter = 'get_dst_network_addr',
+                               mask_getter = 'get_dst_network_length',
+                               addr_setter = 'dst_network_addr',
+                               mask_setter = 'dst_network_length'))
+        self.put_attr(SingleAttr(name = 'gw',
+                                 value_type = IPv4Address(),
+                                 getter = 'get_next_hop_gateway',
+                                 setter = 'next_hop_gateway',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'port',
+                                 value_type = ObjectRef('port'),
+                                 getter = 'get_next_hop_port',
+                                 setter = 'next_hop_port',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'weight',
+                                 value_type = StringType(),
+                                 getter = 'get_weight',
+                                 setter = 'weight',
+                                 optional = True))
+
+    def type_name(self):
+        return "router"
+
+class PortGroup(ObjectType):
+    def type_name(self):
+        return "pgroup"
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.put_attr(TenantAttr())
+        self.put_attr(SingleAttr(name = 'name',
+                                 value_type = StringType(),
+                                 getter = 'get_name',
+                                 setter = 'name'))
+        self.put_attr(Collection(name = 'member',
+                                 element_type = PortGroupPort,
+                                 list_method = 'get_ports',
+                                 factory_method = 'add_port_group_port'))
+
+class PortGroupPort(ObjectType):
+    def type_name(self):
+        return "port-group-port"
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.clear_attrs()
+        self.put_attr(SingleAttr(name = 'port-group',
+                                 value_type = ObjectRef('port-group'),
+                                 getter = 'get_port_group_id',
+                                 optional = False))
+        self.put_attr(SingleAttr(name = 'port',
+                                 value_type = PortRef(),
+                                 getter = 'get_port_id',
+                                 setter = 'port_id',
+                                 optional = False))
+
+class Dhcp(ObjectType):
+    def type_name(self):
+        return "dhcp"
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.clear_attrs()
+        self.put_attr(SingleAttr(name = 'gw',
+                                 value_type = IPv4Address(),
+                                 getter = 'get_default_gateway',
+                                 setter = 'default_gateway'))
+        self.put_attr(CidrPair(name = 'subnet',
+                               value_type = StringType(),
+                               addr_getter = 'get_subnet_prefix',
+                               mask_getter = 'get_subnet_length',
+                               addr_setter = 'subnet_prefix',
+                               mask_setter = 'subnet_length'))
+        self.put_attr(SingleAttr(name = 'opt121-routes',
+                                 value_type = StringType(),
+                                 getter = 'get_opt121_routes',
+                                 setter = 'opt121_routes'))
+# FIXME(guillermo) dhcp subnets have no object id and therefore are not
+# reachable from the root app context. This makes it impossible to refer
+# to them (to add a host for example) except by filtering the result
+# of running get_dhcp_subnets on a bridge. Also, it prevents them from
+# having aliases. Not being able to get a hold of them makes it
+# impossible to create DhcpHost objects.
+        self.put_attr(Collection(name = 'host',
+                                 element_type = DhcpHost,
+                                 list_method = 'get_dhcp_hosts',
+                                 factory_method = 'add_dhcp_host'))
+
+class DhcpHost(ObjectType):
+    def type_name(self):
+        return "dhcp-host"
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.put_attr(SingleAttr(name = 'name',
+                                 value_type = StringType(),
+                                 getter = 'get_name',
+                                 setter = 'name'))
+        self.put_attr(SingleAttr(name = 'address',
+                                 value_type = IPv4Address(),
+                                 getter = 'get_ip_addr',
+                                 setter = 'ip_addr'))
+        self.put_attr(SingleAttr(name = 'mac',
+                                 value_type = MacAddress(),
+                                 getter = 'get_mac_addr',
+                                 setter = 'mac_addr'))
+
+class Bgp(ObjectType):
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.put_attr(SingleAttr(name = 'local-AS',
+                                 value_type = StringType(),
+                                 getter = 'get_local_as',
+                                 setter = 'local_as'))
+        self.put_attr(SingleAttr(name = 'peer-AS',
+                                 value_type = StringType(),
+                                 getter = 'get_peer_as',
+                                 setter = 'peer_as'))
+        self.put_attr(SingleAttr(name = 'peer',
+                                 value_type = IPv4Address(),
+                                 getter = 'get_peer_addr',
+                                 setter = 'peer_addr'))
+        self.put_attr(Collection(name = 'route',
+                                 element_type = AdRoute,
+                                 list_method = 'get_ad_routes',
+                                 getter = 'get_ad_route',
+                                 factory_method = 'add_ad_route'))
+
+    def type_name(self):
+        return "bgp"
+
+class AdRoute(ObjectType):
+    def type_name(self):
+        return "ad-route"
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.put_attr(CidrPair(name = 'net',
+                               value_type = StringType(),
+                               addr_getter = 'get_nw_prefix',
+                               mask_getter = 'get_prefix_length',
+                               addr_setter = 'nw_prefix',
+                               mask_setter = 'nw_prefix_length'))
+
+class Router(ObjectType):
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        # NOTE: factory method is a hack, the type attribute may later change
+        # the port type to exterior.
+        self.put_attr(TenantAttr())
+        self.put_attr(Collection(name = 'port',
+                                 element_type = RouterPort,
+                                 list_method = 'get_ports',
+                                 getter = 'get_port',
+                                 factory_method = 'add_interior_port'))
+        self.put_attr(Collection(name = 'route',
+                                 element_type = Route,
+                                 list_method = 'get_routes',
+                                 getter = 'get_route',
+                                 factory_method = 'add_route'))
+        # TODO - add peer ports. - they need aliases in the root namespace
+        # or with a different prefix. Right now there's no support for either.
+        self.put_attr(SingleAttr(name = 'name',
+                                 value_type = StringType(),
+                                 getter = 'get_name',
+                                 setter = 'name',
+                                 writeable = False,
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'infilter',
+                                 value_type = ObjectRef('chain'),
+                                 getter = 'get_inbound_filter_id'))
+        self.put_attr(SingleAttr(name = 'outfilter',
+                                 value_type = ObjectRef('chain'),
+                                 getter = 'get_outbound_filter_id'))
+
+    def type_name(self):
+        return "router"
+
+class Bridge(ObjectType):
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.put_attr(TenantAttr())
+        self.put_attr(Collection(name = 'port',
+                                 element_type = BridgePort,
+                                 list_method = 'get_ports',
+                                 getter = 'get_port',
+                                 factory_method = 'add_interior_port'))
+        self.put_attr(Collection(name = 'dhcp',
+                                 element_type = Dhcp,
+                                 list_method = 'get_dhcp_subnets',
+                                 factory_method = 'add_dhcp_subnet'))
+        self.put_attr(SingleAttr(name = 'name',
+                                 value_type = StringType(),
+                                 setter = 'name',
+                                 getter = 'get_name'))
+        self.put_attr(SingleAttr(name = 'infilter',
+                                 value_type = ObjectRef('chain'),
+                                 getter = 'get_inbound_filter_id',
+                                 setter = 'inbound_filter_id'))
+        self.put_attr(SingleAttr(name = 'outfilter',
+                                 value_type = ObjectRef('chain'),
+                                 getter = 'get_outbound_filter_id',
+                                 setter = 'outbound_filter_id'))
+
+    def type_name(self):
+        return "bridge"
+
+class Chain(ObjectType):
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.put_attr(TenantAttr())
+        self.put_attr(Collection(name = 'rule',
+                                 element_type = Rule,
+                                 list_method = 'get_rules',
+                                 getter = 'get_port',
+                                 factory_method = 'add_rule'))
+        self.put_attr(SingleAttr(name = 'name',
+                                 value_type = StringType(),
+                                 setter = 'name',
+                                 getter = 'get_name'))
+    def type_name(self):
+        return "chain"
+
+class Rule(ObjectType):
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.put_attr(SingleAttr(name = 'chain',
+                                 value_type = ObjectRef('chain'),
+                                 getter = 'get_chain_id',
+                                 setter = 'chain_id'))
+        self.put_attr(SingleAttr(name = 'type',
+                                 value_type = StringType(),
+                                 getter = 'get_type',
+                                 setter = 'type'))
+        self.put_attr(SingleAttr(name = 'action',
+                                 value_type = StringType(),
+                                 getter = 'get_flow_action',
+                                 setter = 'flow_action'))
+        self.put_attr(SingleAttr(name = 'hw-src',
+                                 value_type = MacAddress(),
+                                 getter = 'get_dl_src',
+                                 setter = 'dl_src',
+                                 inv_getter = 'is_inv_dl_src',
+                                 inv_setter = 'inv_dl_src',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'hw-dst',
+                                 value_type = MacAddress(),
+                                 getter = 'get_dl_dst',
+                                 setter = 'dl_dst',
+                                 inv_getter = 'is_inv_dl_dst',
+                                 inv_setter = 'inv_dl_dst',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'ethertype',
+                                 value_type = StringType(),
+                                 getter = 'get_dl_type',
+                                 setter = 'dl_type',
+                                 inv_getter = 'is_inv_dl_type',
+                                 inv_setter = 'inv_dl_type',
+                                 optional = True))
+        self.put_attr(CidrPair(name = 'src',
+                               value_type = StringType(),
+                               addr_getter = 'get_nw_src_address',
+                               mask_getter = 'get_nw_src_length',
+                               addr_setter = 'nw_src_address',
+                               mask_setter = 'nw_src_length',
+                               inv_getter = 'is_inv_nw_src',
+                               inv_setter = 'inv_nw_src',
+                               optional = True))
+        self.put_attr(CidrPair(name = 'dst',
+                               value_type = StringType(),
+                               addr_getter = 'get_nw_dst_address',
+                               mask_getter = 'get_nw_dst_length',
+                               addr_setter = 'nw_dst_address',
+                               mask_setter = 'nw_dst_length',
+                               inv_getter = 'is_inv_nw_dst',
+                               inv_setter = 'inv_nw_dst',
+                               optional = True))
+        self.put_attr(SingleAttr(name = 'proto',
+                                 value_type = StringType(),
+                                 getter = 'get_nw_proto',
+                                 setter = 'nw_proto',
+                                 inv_getter = 'is_inv_nw_proto',
+                                 inv_setter = 'inv_nw_proto',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'tos',
+                                 value_type = StringType(),
+                                 getter = 'get_nw_tos',
+                                 setter = 'nw_tos',
+                                 inv_getter = 'is_inv_nw_tos',
+                                 inv_setter = 'inv_nw_tos',
+                                 optional = True))
+        self.put_attr(L4PortRange(name = 'src-port',
+                                  value_type = StringType(),
+                                  start_getter = 'get_tp_src_start',
+                                  end_getter = 'get_tp_src_end',
+                                  start_setter = 'tp_src_start',
+                                  end_setter = 'tp_src_end',
+                                  inv_getter = 'is_inv_tp_src',
+                                  inv_setter = 'inv_tp_src',
+                                  optional = True))
+        self.put_attr(L4PortRange(name = 'dst-port',
+                                  value_type = StringType(),
+                                  start_getter = 'get_tp_dst_start',
+                                  end_getter = 'get_tp_dst_end',
+                                  start_setter = 'tp_dst_start',
+                                  end_setter = 'tp_dst_end',
+                                  inv_getter = 'is_inv_tp_dst',
+                                  inv_setter = 'inv_tp_dst',
+                                  optional = True))
+        self.put_attr(FlagSet(name = 'flow',
+                              flags = [ FlagSetFlag('fwd-flow',
+                                                    'is_match_forward_flow',
+                                                    'match_forward_flow'),
+                                        FlagSetFlag('return-flow',
+                                                    'is_match_return_flow',
+                                                    'match_return_flow') ],
+                              optional = True))
+
+        # TODO -- complete:
+        #   in_ports
+        #   out_ports
+        #   port_group
+        #   jump_chain_name
+        #   get_nat_targets
+        #   position (sort by)
+
+    def type_name(self):
+        return "rule"
+
+class BridgePort(ObjectType):
+    def type_name(self):
+        return "port"
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.put_attr(EnumAttr(name = 'type',
+                               mappings = {'ExteriorBridge': 'exterior',
+                                           'InteriorBridge': 'interior'},
+                               getter = 'get_type',
+                               setter = 'type',
+                               optional = False))
+        self.put_attr(SingleAttr(name = 'device',
+                                 value_type = ObjectRef('bridge'),
+                                 getter = 'get_device_id'))
+        self.put_attr(SingleAttr(name = 'infilter',
+                                 value_type = ObjectRef('chain'),
+                                 getter = 'get_inbound_filter_id'))
+        self.put_attr(SingleAttr(name = 'outfilter',
+                                 value_type = ObjectRef('chain'),
+                                 getter = 'get_outbound_filter_id'))
+        self.put_attr(SingleAttr(name = 'peer',
+                                 value_type = PortRef(),
+                                 getter = 'get_peer_id',
+                                 setter = 'link',
+                                 optional = True))
+
+class PortBinding(ObjectType):
+    def type_name(self):
+        return "binding"
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.clear_attrs()
+        self.put_attr(SingleAttr(name = 'host',
+                                 value_type = ObjectRef('host'),
+                                 getter = 'get_host_id',
+                                 optional = False))
+        self.put_attr(SingleAttr(name = 'interface',
+                                 value_type = StringType(),
+                                 getter = 'get_interface_name',
+                                 setter = 'interface_name',
+                                 optional = False))
+        self.put_attr(SingleAttr(name = 'port',
+                                 value_type = PortRef(),
+                                 getter = 'get_port_id',
+                                 setter = 'port_id',
+                                 optional = False))
+
+class Host(ObjectType):
+    def type_name(self):
+        return "host"
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.put_attr(SingleAttr(name = 'name', value_type = StringType(),
+                                 getter = 'get_name', writeable = False))
+        self.put_attr(SingleAttr(name = 'alive', value_type = StringType(),
+                                 getter = 'is_alive', writeable = False))
+        self.put_attr(SingleAttr(name = 'addresses', value_type = StringType(),
+                                 getter = 'get_addresses', writeable = False))
+        self.put_attr(Collection(name = 'interface',
+                                 element_type = Interface,
+                                 list_method = 'get_interfaces'))
+        self.put_attr(Collection(name = 'binding',
+                                 element_type = PortBinding,
+                                 list_method = 'get_ports',
+                                 factory_method = 'add_host_interface_port'))
+
+class Interface(ObjectType):
+    def type_name(self):
+        return "interface"
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.clear_attrs()
+        self.put_attr(SingleAttr(name = 'iface', value_type = StringType(),
+                                 getter = 'get_name', writeable = False))
+        self.put_attr(SingleAttr(name = 'host_id', value_type = ObjectRef('host'),
+                                 getter = 'get_host_id', writeable = False))
+        self.put_attr(SingleAttr(name = 'status', value_type = StringType(),
+                                 getter = 'get_status', writeable = False))
+        self.put_attr(SingleAttr(name = 'addresses', value_type = StringType(),
+                                 getter = 'get_addresses', writeable = False))
+        self.put_attr(SingleAttr(name = 'mac', value_type = StringType(),
+                                 getter = 'get_mac', writeable = False))
+        self.put_attr(SingleAttr(name = 'mtu', value_type = StringType(),
+                                 getter = 'get_mtu', writeable = False))
+        self.put_attr(SingleAttr(name = 'type', value_type = StringType(),
+                                 getter = 'get_type', writeable = False))
+        self.put_attr(SingleAttr(name = 'endpoint', value_type = StringType(),
+                                 getter = 'get_endpoint', writeable = False))
+
+class RouterPort(ObjectType):
+    def type_name(self):
+        return "port"
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.put_attr(EnumAttr(name = 'type',
+                               mappings = {'ExteriorRouter': 'exterior',
+                                           'InteriorRouter': 'interior'},
+                               getter = 'get_type',
+                               setter = 'type',
+                               optional = False))
+        self.put_attr(SingleAttr(name = 'device',
+                                 value_type = ObjectRef('router'),
+                                 getter = 'get_device_id'))
+        self.put_attr(SingleAttr(name = 'infilter',
+                                 value_type = ObjectRef('chain'),
+                                 getter = 'get_inbound_filter_id',
+                                 setter = 'inbound_filter_id'))
+        self.put_attr(SingleAttr(name = 'outfilter',
+                                 value_type = ObjectRef('chain'),
+                                 getter = 'get_outbound_filter_id',
+                                 setter = 'outbound_filter_id'))
+        self.put_attr(SingleAttr(name = 'mac',
+                                 value_type = MacAddress(),
+                                 getter = 'get_port_mac',
+                                 setter = 'port_mac',
+                                 optional = False))
+        self.put_attr(SingleAttr(name = 'address',
+                                 value_type = IPv4Address(),
+                                 getter = 'get_port_address',
+                                 setter = 'port_address'))
+        self.put_attr(CidrPair(name = 'net',
+                               value_type = StringType(),
+                               addr_getter = 'get_network_address',
+                               mask_getter = 'get_network_length',
+                               addr_setter = 'network_address',
+                               mask_setter = 'network_length'))
+        self.put_attr(SingleAttr(name = 'peer',
+                                 value_type = PortRef(),
+                                 getter = 'get_peer_id',
+                                 setter = 'link',
+                                 optional = True))
+        self.put_attr(Collection(name = 'bgp',
+                                 element_type = Bgp,
+                                 list_method = 'get_bgps',
+                                 getter = 'get_bgp',
+                                 factory_method = 'add_bgp'))
+
+class Midonet(ObjectType):
+    """ This is the root context for the CLI. At the beggining of matchin on a
+        command pattern the `MatchingContext` is initialized with an instance of
+        this object. Thus, its mission is to give access to top-level objects in
+        the REST API"""
+
+    def __init__(self, app):
+        ObjectType.__init__(self, app)
+        self.clear_attrs()
+        ObjectType.put_attr(self, Collection(name = 'router',
+                                             element_type = Router,
+                                             list_method = 'get_routers',
+                                             getter = 'get_router',
+                                             list_with_tenant = True,
+                                             factory_method = 'add_router'))
+        ObjectType.put_attr(self, Collection(name = 'bridge',
+                                             element_type = Bridge,
+                                             list_method = 'get_bridges',
+                                             getter = 'get_bridge',
+                                             list_with_tenant = True,
+                                             factory_method = 'add_bridge'))
+        ObjectType.put_attr(self, Collection(name = 'chain',
+                                             element_type = Chain,
+                                             list_method = 'get_chains',
+                                             getter = 'get_chain',
+                                             list_with_tenant = True,
+                                             factory_method = 'add_chain'))
+        ObjectType.put_attr(self, Collection(name = 'host',
+                                             element_type = Host,
+                                             list_method = 'get_hosts',
+                                             getter = 'get_host'))
+        ObjectType.put_attr(self, Collection(name = 'port-group',
+                                             element_type = PortGroup,
+                                             list_method = 'get_port_groups',
+                                             getter = 'get_port_group',
+                                             list_with_tenant = True,
+                                             factory_method = 'add_port_group'))
+
+################################################################################
+# Grammar tokens
+################################################################################
+
+class ParsingSubmatch():
+    def __init__(self, context):
+        self._context = context
+
+    def unparsed_args(self):
+        return len(self._context.args())
+
+    def best_match(self, that):
+        if self.unparsed_args() < that.unparsed_args():
+            return self
+        else:
+            return that
+
+    def describe(self):
+        if len(self._context.args()) > 0:
+            return "Syntax error at: ...%s" % " ".join(self._context.args())
+        else:
+            return "Missing arguments, incomplete command"
+
+class MatchingContext():
+    """ The MatchingContext accumulates results as tokens in a command pattern
+        are matched. It is immutable so partial matches can be undone by the
+        engine to move on to the next candidate pattern.
+
+        Matching CommandTokens return a newly modified context (using the `copy`
+        method), they may choose to modify zero (the token has no effect) or
+        more of the following pieces of data:
+
+            obj:    Modifies the current context object in which subsequent
+                    tokens may do lookups (for fields or members for example)
+
+            args:   Modifies the list of words that remain to be parsed in the
+                    current command. Most of the time CommandTokens will remove
+                    items from the beginning of this sequence to consume input.
+
+            parsed: Contains the tokens/items that will be passed to the Command
+                    object if this chain of tokens results in a successful,
+                    complete match. Most of the time, tokens will either add
+                    themselves here or objects that they resolved.
+    """
+
+    def __init__(self, obj, args, parsed = []):
+        self._object = obj
+        self._args = args
+        self._parsed = list(parsed)
+
+    def object(self):
+        return self._object
+
+    def args(self):
+        return list(self._args)
+
+    def parsed_tokens(self):
+        return list(self._parsed)
+
+    def copy(self, obj = None, args = None, new_tokens = []):
+        o = obj if obj is not None else self._object
+        a = args if args is not None else self._args
+        p = list(self._parsed)
+        p.extend(new_tokens)
+        return MatchingContext(o, tuple(a), p)
+
+class CommandToken():
+    def __init__(self):
+        pass
+
+    def matches(self, context):
+        return ParsingSubmatch(context)
+
+    def complete(self, context):
+        return []
+
+class SingleValue(CommandToken):
+    """Matches one word of a given type"""
+
+    def __init__(self, value_type = StringType()):
+        self.value = None
+        self._value_type = value_type
+
+    def matches(self, context):
+        args = context.args()
+        if len(args) == 0:
+            return ParsingSubmatch(context)
+        if self._value_type.is_valid(args[0]):
+            self.value = args.pop(0)
+            return context.copy(args = args, new_tokens = [self])
+        else:
+            return ParsingSubmatch(context)
+
+    def complete(self, context):
+        return []
+
+class Verb(CommandToken):
+    """Matches a literal word, usually representing a verb or command"""
+
+    def __init__(self, name, partial_match = True, min_match = None):
+        self._name = name
+        self._partial = partial_match
+        self._min = min_match
+
+    def matches(self, context):
+        args = context.args()
+        if len(args) == 0:
+            return ParsingSubmatch(context)
+        v = args[0]
+        if (v == self._name) or (self._partial and self._name.startswith(v)):
+            if self._min is None or v.startswith(self._min):
+                args.pop(0)
+                return context.copy(args = args, new_tokens = [self])
+        return ParsingSubmatch(context)
+
+    def complete(self, context):
+        args = context.args()
+        if len(args) == 1 and self._name.startswith(args[0]):
+            return [self._name]
+        else:
+            return []
+
+class OnceOrMore(CommandToken):
+    def __init__(self, token):
+        self._token = token
+
+    def matches(self, context):
+        res = self._token.matches(context)
+        while isinstance(res, MatchingContext):
+            submatch = self._token.matches(res)
+            if isinstance(submatch, MatchingContext):
+                res = submatch
+            else:
+                break
+        if res is None:
+            return ParsingSubmatch(context)
+        else:
+            return res
+
+    def complete(self, context):
+        lastMatch = context
+        while True:
+            res = self._token.matches(lastMatch)
+            if isinstance(res, MatchingContext):
+                if len(res.args()) == 0:
+                    return self._token.complete(lastMatch)
+                lastMatch = res
+            else:
+                return self._token.complete(lastMatch)
+
+class ZeroOrMore(CommandToken):
+    def __init__(self, token):
+        self._token = token
+
+    def matches(self, context):
+        while True:
+            submatch = self._token.matches(context)
+            if isinstance(submatch, MatchingContext):
+                context = submatch
+            else:
+                return context
+
+    def complete(self, context):
+        while True:
+            submatch = self._token.matches(context)
+            if isinstance(submatch, MatchingContext):
+                if len(submatch.args()) == 0:
+                    return self._token.complete(context)
+                context = submatch
+            else:
+                return self._token.complete(context)
+        return []
+
+class ZeroOrOne(CommandToken):
+    def __init__(self, token):
+        self._token = token
+
+    def matches(self, context):
+        res = self._token.matches(context)
+        return res if isinstance(res, MatchingContext) else context
+
+    def complete(self, context):
+        return self._token.complete(context)
+
+class Or(CommandToken):
+    def __init__(self, *tokens):
+        self._tokens = list(tokens)
+
+    def matches(self, context):
+        submatch = ParsingSubmatch(context)
+        for token in self._tokens:
+            res = token.matches(context)
+            if res is None:
+                continue
+            elif isinstance(res, MatchingContext):
+                return res
+            elif isinstance(res, ParsingSubmatch):
+                submatch = submatch.best_match(res)
+            else:
+                raise Exception("parser bug")
+        return submatch
+
+    def complete(self, context):
+        completions = []
+        for token in self._tokens:
+            completions += token.complete(context)
+        return completions
+
+class CollectionByType(CommandToken):
+    """Matches an collection of objects contained in another object.
+       Matches on one word: the collection name (e.g. 'router')"""
+
+    def matches(self, context):
+        args = context.args()
+        if (len(args) < 1):
+            return None
+
+        object_type = args.pop(0)
+        if context.object().has_type(object_type):
+            collection = context.object().attrs()[object_type]
+            return context.copy(None, args, [collection])
+        else:
+            return ParsingSubmatch(context)
+
+    def complete(self, context):
+        args = context.args()
+        if (len(args) != 1):
+            return []
+
+        completions = []
+        object_type = args.pop(0)
+        for t in context.object().types():
+            if t.startswith(object_type):
+                completions.append(t)
+        return completions
+
+class RootCtxToken(CommandToken):
+    """ Always matches, consuming zero input arguments and inserting the current
+        context into the parsed args set. Meant to be used to allow commands to
+        operate directly on the root context."""
+
+    def matches(self, context):
+        return context.copy(None, None, [context.object()])
+
+class NewObjectFieldAssignment(CommandToken):
+    def matches(self, context):
+        args = context.args()
+        if (len(args) < 2):
+            return ParsingSubmatch(context)
+
+        col = None
+        for tok in context.parsed_tokens():
+            if isinstance(tok, Collection):
+                col = tok
+        if not col:
+            return ParsingSubmatch(context)
+
+        stub = col.element_type(None)
+        obj = context.object()
+        fname = args.pop(0)
+        if stub.has_field(fname):
+            fspec = stub.attrs()[fname]
+            if isinstance(fspec.value_type, ObjectRef):
+                refmatch = OnceOrMore(ObjectById()).matches(context.copy(app, args))
+                if isinstance(refmatch, MatchingContext):
+                    fval = refmatch.object()
+                    field = FieldType(fname, fspec, fval.fetch_field('id'))
+                    return context.copy(obj, refmatch.args(), [field])
+                else:
+                    fval = args.pop(0)
+                    fromalias = aliases.lookup(fval)
+                    if fromalias:
+                        field = FieldType(fname, fspec, fromalias)
+                        return context.copy(obj, args, [field])
+                    else:
+                        return ParsingSubmatch(context)
+            else:
+                fval = args.pop(0)
+                field = FieldType(fname, fspec, fval)
+                return context.copy(obj, args, [field])
+        return ParsingSubmatch(context)
+
+    def complete(self, context):
+        args = context.args()
+        if len(args) < 1 or len(args) > 2:
+            return []
+
+        col = None
+        for tok in context.parsed_tokens():
+            if isinstance(tok, Collection):
+                col = tok
+        if not col:
+            return []
+        stub = col.element_type(None)
+
+        if len(args) == 1:
+            return FieldByName().complete(context.copy(obj = stub))
+
+        fname = args.pop(0)
+        fval = args.pop(0)
+        if not stub.has_field(fname):
+            return []
+
+        fspec = stub.attrs()[fname]
+        if isinstance(fspec, ObjectRef):
+            return aliases.complete(fval)
+        else:
+            return []
+
+class FieldAssignment(CommandToken):
+    def matches(self, context):
+        args = context.args()
+        if (len(args) < 2):
+            return ParsingSubmatch(context)
+
+        obj = context.object()
+        if not obj:
+            return ParsingSubmatch(context)
+
+        fname = args.pop(0)
+        fval = args.pop(0)
+        if obj.has_field(fname):
+            # TODO - object refs, reuse code from NewObjectFieldAssignment
+            fspec = obj.attrs()[fname]
+            field = FieldType(fname, fspec, fval)
+            return context.copy(obj, args, [field])
+        return ParsingSubmatch(context)
+
+    def complete(self, context):
+        args = context.args()
+        if len(args) < 1 or len(args) > 2:
+            return []
+
+        obj = context.object()
+        if not obj:
+            return []
+
+        if len(args) == 1:
+            return FieldByName().complete(context)
+
+        fname = args.pop(0)
+        fval = args.pop(0)
+        if not obj.has_field(fname):
+            return []
+
+        fspec = obj.attrs()[fname]
+        if isinstance(fspec, ObjectRef):
+            return aliases.complete(fval)
+        else:
+            return []
+
+class ObjectById(CommandToken):
+    """Matches an object within a collection identified by its UUID or CLI
+       alias. Matches on two words: collection name (e.g. 'router') plus the
+       id/alias itself. The lookup is done in the current matching context."""
+
+    def matches(self, context):
+        args = context.args()
+        if (len(args) < 1):
+            return ParsingSubmatch(context)
+
+        object_type = args.pop(0)
+        if not context.object().has_type(object_type):
+            return ParsingSubmatch(context)
+
+        if (len(args) < 1):
+            return ParsingSubmatch(context.copy(args = args))
+        object_id = args.pop(0)
+
+        aliased_id = aliases.lookup(object_id, context.object())
+        if aliased_id is not None:
+            object_id = aliased_id
+
+        subobject = context.object().fetch_one_for_type(object_type, object_id)
+        if subobject:
+            return context.copy(subobject, args, [subobject])
+
+        non_parsed = context.args()
+        non_parsed.pop(0)
+        return ParsingSubmatch(context.copy(args = non_parsed))
+
+    def complete(self, context):
+        args = context.args()
+        if len(args) < 1 or len(args) > 2:
+            return []
+
+        if (len(args) == 1):
+            return CollectionByType().complete(context)
+
+        object_type = args.pop(0)
+        if not context.object().has_type(object_type):
+            return []
+
+        object_id = args.pop(0)
+        return aliases.complete(object_id, context.object())
+
+class FieldByName(CommandToken):
+    """Matches a field in the object found in the current matching context"""
+
+    def matches(self, context):
+        args = context.args()
+        if (len(args) == 0):
+            return ParsingSubmatch(context)
+        fname = args.pop(0)
+        if context.object().has_field(fname):
+            fspec = context.object().attrs()[fname]
+            value = context.object().fetch_field(fname)
+            if value is None:
+                return context.copy(context.object(), args, [""])
+            parsed = FieldType(fname, fspec, value).dereference()
+            if parsed is None:
+                raise Exception("reference to a dead object: %s" % value)
+            obj = parsed if isinstance(parsed, ObjectType) else context.object()
+            return context.copy(obj, args, [parsed])
+        return ParsingSubmatch(context)
+
+    def complete(self, context):
+        args = context.args()
+        if (len(args) == 0):
+            return []
+
+        completions = []
+        arg = args.pop(0)
+        for f in context.object().fields():
+            if f.startswith(arg):
+                completions.append(f)
+        return completions
+
+class ObjectRefField(CommandToken):
+    """Matches a field of type ObjectRef"""
+
+    def matches(self, context):
+        args = context.args()
+        if (len(args) == 0):
+            return ParsingSubmatch(context)
+
+        fname = args.pop(0)
+        if not context.object().has_field(fname):
+            return ParsingSubmatch(context)
+
+        fspec = context.object().attrs()[fname]
+        if not isinstance(fspec.value_type, ObjectRef):
+            return ParsingSubmatch(context)
+
+        value = context.object().fetch_field(fname)
+        if value is None or value == "":
+            return ParsingSubmatch(context)
+
+        parsed = FieldType(fname, fspec, value).dereference()
+        if parsed is None or not isinstance(parsed, ObjectType):
+            return ParsingSubmatch(context)
+
+        return context.copy(parsed, args, [parsed])
+
+class ObjectSelector(Or):
+    def __init__(self):
+        Or.__init__(self, ObjectRefField(), ObjectById())
+
+################################################################################
+# Commands
+################################################################################
+
+class Command():
+    """ Base abstract class for CLI Commands """
+    def __init__(self):
+        pass
+
+    def name(self):
+        pass
+
+    def help(self):
+        pass
+
+    def patterns(self):
+        """Returns a list of CommandToken objects representing acceptable
+           syntaxes for this command. The engine will select this command when
+           the returned token list is an exact match for the command being
+           parsed"""
+        raise Exception("Unimplemented command")
+
+    def do(self, tokens):
+        """Executes this command. The engine will call this method after a
+           successful match. `tokens` is the sequence of matched tokens. Note,
+           however, that these will be a mix of CommandToken instances and API
+           wrapper objects (see ObjectType) matched by a token.
+
+           Usually Verb tokens are passed as is while other tokens produce API
+           objects that the Verb should act on.
+
+           For example, given the pattern:
+
+               [ObjectById(), Verb('show'), ZeroOrMore(ObjectById())]
+
+           The following command would be a match:
+
+               midonet> router foo show port bar
+
+           ...and produce these tokens: Router, Verb, Port. Where Router would
+           be an ObjectType subclass wrapping a router API object, Verb should
+           be Verb('show') (a CommandToken) and Port would be an ObjectType
+           subclass wrapping the API object that represents port 'bar' in router
+           'foo'.
+           """
+        raise Exception("Unimplemented command")
+
+class Describe(Command):
+    def patterns(self):
+        describe = Verb('describe', min_match = 'desc')
+        obj_selector = Or(OnceOrMore(ObjectById()), RootCtxToken())
+
+        return [ [obj_selector, describe ],
+                 [describe, obj_selector ]]
+
+    def name(self):
+        return 'describe'
+
+    def help(self):
+        print """describe - Show the names of members of an object
+
+    Usage: desc[ribe] [<OBJECT> {<CHILD>}]
+           <OBJECT> {<CHILD>} desc[ribe]
+    Examples:
+           describe
+           describe router router0
+           router router0 port port2 describe"""
+
+    def do(self, tokens):
+        assert(len(tokens) >= 1)
+        object_chain = []
+        for o in tokens:
+            if (isinstance(o, ObjectType)):
+                object_chain.append(o)
+            elif isinstance(o, FieldType):
+                print "%s" % o.describe()
+                return
+
+        ref = object_chain.pop()
+        collections = list(ref.types())
+        fields = list(ref.fields())
+        print "Object collections:"
+        cli.stdout.write("    ")
+        if len(collections) > 0:
+            cli.columnize(collections, 76)
+        else:
+            print "<NONE>"
+        print "Fields:"
+        cli.stdout.write("    ")
+        if len(fields) > 0:
+            cli.columnize(fields, 76)
+        else:
+            print "<NONE>"
+
+class Create(Command):
+    def patterns(self):
+        create = Or(Verb('create', partial_match = False),
+                    Verb('add', partial_match = False))
+        return [ [ create,
+                   ZeroOrMore(ObjectById()),
+                   CollectionByType(),
+                   ZeroOrMore(NewObjectFieldAssignment()) ],
+                 [ ZeroOrMore(ObjectById()),
+                   create,
+                   CollectionByType(),
+                   ZeroOrMore(NewObjectFieldAssignment()) ],
+                 [ ZeroOrMore(ObjectById()),
+                   CollectionByType(),
+                   create,
+                   ZeroOrMore(NewObjectFieldAssignment()) ] ]
+
+    def help(self):
+        print """create - Create a new object
+
+    Usage: create|add [<OBJECT> {<CHILD>}] <TYPE> {<FIELD> <VALUE>}
+           [<OBJECT> {<CHILD>}] create|add <TYPE> {<FIELD> <VALUE>}
+           [<OBJECT> {<CHILD>}] <TYPE> create|add {<FIELD> <VALUE>}
+
+    Examples:
+           create router name 'new router'
+           router router0 add port type interior address 1.1.1.1 net 1.1.1.0/24
+           """
+
+    def name(self):
+        return 'create'
+
+    def do(self, tokens):
+        assert(len(tokens) >= 2)
+        obj = app
+        fields = []
+        collection = None
+        for tok in tokens:
+            if isinstance(tok, ObjectType):
+                obj = tok
+            elif isinstance(tok, FieldType):
+                fields.append(tok)
+            elif isinstance(tok, Collection):
+                collection = tok
+
+        if not collection.factory_method:
+            raise Exception("Creating elements of this type is not possible")
+        factory = obj.reflect(collection.factory_method)
+        new_object = factory()
+        wrapper = collection.element_type(new_object)
+        if wrapper.has_field('tenant'):
+            wrapper.set_field('tenant', session.current_tenant())
+        for f in fields:
+            wrapper.set_field(f.name, f.value)
+        new_object.create()
+
+class Set(Command):
+    def patterns(self):
+        return [ [ Verb('set', partial_match = False),
+                   OnceOrMore(ObjectById()),
+                   OnceOrMore(FieldAssignment()) ],
+                 [ OnceOrMore(ObjectById()),
+                   Verb('set', partial_match = False),
+                   OnceOrMore(FieldAssignment()) ] ]
+
+    def help(self):
+        print """set - Update values in an existing object
+
+    Usage: set <OBJECT> {<CHILD>} <FIELD> <VALUE> {<FIELD> <VALUE>}
+           <OBJECT> {<CHILD>} set <FIELD> <VALUE> {<FIELD> <VALUE>}
+
+    Examples:
+           set router router name 'new name for router'
+           router router0 port port0 set address 1.1.1.1 net 1.1.1.0/24
+           """
+
+    def name(self):
+        return 'set'
+
+    def do(self, tokens):
+        assert(len(tokens) >= 3)
+        obj = None
+        fields = []
+        for tok in tokens:
+            if isinstance(tok, ObjectType):
+                obj = tok
+            elif isinstance(tok, FieldType):
+                fields.append(tok)
+        assert(obj is not None)
+
+        for f in fields:
+            if not f.is_valid():
+                raise Exception("Invalid %s value: %s" % (f.name, f.value))
+            o = f.dereference()
+            v = f.value
+            if isinstance(o, ObjectType):
+                v = o.fetch_field('id')
+            obj.set_field(f.name, v)
+        obj.object().update()
+
+class Delete(Command):
+    def patterns(self):
+        return [ [ Verb('delete', min_match = 'del'),
+                   OnceOrMore(ObjectById()) ],
+                 [ OnceOrMore(ObjectById()),
+                   Verb('delete', min_match = 'del'),
+                   ZeroOrMore(ObjectById()) ] ]
+
+    def help(self):
+        print """delete - Delete an object
+
+    Usage: delete <OBJECT> {<CHILD>}
+           <OBJECT> {<CHILD>} delete {<CHILD>}
+
+    Examples:
+           delete router router0 name 'new name for router'
+           router router0 port port0 delete
+           router router0 delete port port0
+           """
+
+    def name(self):
+        return 'delete'
+
+    def do(self, tokens):
+        assert(len(tokens) >= 2)
+        obj = None
+        for tok in tokens:
+            if isinstance(tok, ObjectType):
+                obj = tok
+        assert(obj is not None)
+        obj.object().delete()
+
+class Show(Command):
+    def patterns(self):
+        return [ [ ObjectById(),
+                   Verb('show'),
+                   ZeroOrMore(ObjectById()),
+                   ZeroOrOne(FieldByName()) ],
+                 [ ZeroOrOne(Verb('show')),
+                   OnceOrMore(ObjectById()),
+                   ZeroOrOne(FieldByName()) ],
+                 [ OnceOrMore(ObjectById()),
+                   ZeroOrOne(FieldByName()),
+                   Verb('show') ],
+                 [ OnceOrMore(ObjectById()),
+                   Verb('show'),
+                   ZeroOrOne(FieldByName()) ]]
+
+    def name(self):
+        return 'show'
+
+    def help(self):
+        print """show - Show an object or field
+
+    Usage: s[how] <OBJECT> {<CHILD>} [<FIELD>]
+           <OBJECT> s[how] {<CHILD>} [<FIELD>]
+           <OBJECT> {<CHILD>} s[how] [<FIELD>]
+           <OBJECT> {<CHILD>} [<FIELD>] s[how]
+           <OBJECT> {<CHILD>} [<FIELD>]
+
+    Examples:
+           show router router0
+           sh router router0 port port2
+           router router0 port port2 show infilter"""
+
+    def do(self, tokens):
+        assert(len(tokens) >= 1)
+        object_chain = []
+        for o in tokens:
+            if (isinstance(o, ObjectType)):
+                object_chain.append(o)
+            elif isinstance(o, FieldType):
+                print "%s" % o.describe()
+                return
+
+        alias_chain = aliases.add(*object_chain)
+        ref = object_chain.pop()
+        alias = alias_chain.pop()
+        print "%s %s %s" % (ref.type_name(), alias, ref.describe())
+
+class PushTenant(Command):
+    def patterns(self):
+        return [ [Verb('pusht', partial_match = False), SingleValue(UUID())] ]
+
+    def name(self):
+        return 'pusht'
+
+    def help(self):
+        print """pusht - Adds a tenant id to the top of the tenant id stack
+
+    Usage: pusht <TENANT_ID>
+    Examples:
+           pusht <TENANT_ID_A>
+           list router
+           popt"""
+
+    def do(self, tokens):
+        for tok in tokens:
+            if isinstance(tok, Verb):
+                continue
+            elif isinstance(tok, SingleValue):
+                session.push_tenant(tok.value)
+                session.print_current_tenant()
+
+class PopTenant(Command):
+    def patterns(self):
+        return [ [Verb('popt', partial_match = False) ] ]
+
+    def name(self):
+        return 'popt'
+
+    def help(self):
+        print """popt - Removes a tenant for the top of the tenant stack
+
+    Usage: popt
+    Examples:
+           pusht <TENANT_ID_A>
+           list router
+           popt"""
+
+    def do(self, tokens):
+        session.pop_tenant()
+        session.print_current_tenant()
+
+class Debug(Command):
+    def patterns(self):
+        return [ [Verb('debug', partial_match = False),
+                  Verb('on', partial_match = False)],
+                 [Verb('debug', partial_match = False),
+                  Verb('off', partial_match = False)] ]
+
+    def name(self):
+        return 'debug'
+
+    def help(self):
+        print """debug - Toggle debug mode
+
+    Usage: debug on|off"""
+
+    def do(self, tokens):
+        for tok in tokens:
+            if isinstance(tok, Verb):
+                if tok._name == 'on':
+                    logging.getLogger().setLevel(logging.DEBUG)
+                    print "turned on debug mode"
+                elif tok._name == 'off':
+                    logging.getLogger().setLevel(logging.CRITICAL)
+                    print "turned off debug mode"
+
+class List(Command):
+    def patterns(self):
+        obj_selector = Or(OnceOrMore(ObjectById()), RootCtxToken())
+
+        return [ [obj_selector, Verb('list'), CollectionByType()],
+                 [Verb('list'), obj_selector, CollectionByType()],
+                 [obj_selector, CollectionByType(), Verb('list')] ]
+
+    def name(self):
+        return 'list'
+
+    def help(self):
+        print """list - List the children of an object of a given type
+
+    Usage: l[ist] [<OBJECT> {<CHILD>}] <COLlECTION_NAME>
+           <OBJECT> l[ist] {<CHILD>} <COLlECTION_NAME>
+           [<OBJECT> {<CHILD>}] <COLlECTION_NAME> l[ist]
+    Examples:
+           list router
+           router router0 list port
+           router router0 route list"""
+
+    def do(self, tokens):
+        ref = None
+        collection = None
+        chain = []
+        for tok in tokens:
+            if isinstance(tok, Verb):
+                continue
+            elif isinstance(tok, Collection):
+                collection = tok
+            elif isinstance(tok, ObjectType):
+                ref = tok
+                if not isinstance(tok, Midonet):
+                    chain.append(tok)
+        assert(ref is not None and collection is not None)
+
+        for o in ref.fetch_all_for_type(collection.name):
+            if o.has_field('id'):
+                ch = list(chain) + [o]
+                alias = aliases.add(*ch).pop()
+                print "%s %s %s" % (o.type_name(), alias, o.describe())
+            else:
+                print o.describe()
+
+################################################################################
+# Command loop
+################################################################################
+
+class MidonetCLI(cmd.Cmd):
+    prompt = 'midonet> '
+
+    def __init__(self, root):
+        readline.set_completer_delims("")
+        readline.set_completion_display_matches_hook(self.display_completions)
+        cmd.Cmd.__init__(self)
+        self._root = root
+        self._ops = [Show(), List(), Describe(), Create(), Delete(), Set(),
+                     PushTenant(), PopTenant(), Debug()]
+        for op in self._ops:
+            if op.name() is not None:
+                setattr(self, "help_%s" % op.name(), op.help)
+
+    def do_help(self, arg):
+        if arg:
+            cmd.Cmd.do_help(self, arg)
+        else:
+            commands = map(lambda c: c.name(), self._ops)
+            commands.append('exit')
+            commands.append('quit')
+            print "Type 'help COMMAND' for detailed help."
+            print ""
+            print "Available commands:"
+            self.stdout.write("\n    ")
+            self.columnize(commands, 76)
+
+    def help_exit(self):
+        print "quit - end the current session and exit"
+
+    def help_quit(self):
+        print "exit - end the current session and exit"
+
+    def emptyline(self):
+        pass
+
+    def do_EOF(self, line):
+        print ""
+        return True
+
+    def do_exit(self, line):
+        return True
+
+    def do_quit(self, line):
+        return True
+
+    def match_command(self, context, pattern):
+        last_submatch = ParsingSubmatch(context)
+        for token in pattern:
+            context = token.matches(context)
+            if context is None:
+                return last_submatch
+            elif isinstance(context, ParsingSubmatch):
+                return context
+            elif isinstance(context, MatchingContext):
+                last_submatch = ParsingSubmatch(context)
+            else:
+                raise Exception("parser bug")
+
+        if len(context.args()) == 0:
+            return context
+        else:
+            return last_submatch
+
+    def default(self, line):
+        try:
+            args = shsplit(line)
+        except:
+            print "Syntax error: unmatched quote"
+            return False
+        context = MatchingContext(self._root, args)
+
+        try:
+            error = ParsingSubmatch(context)
+            for op in self._ops:
+                for pattern in op.patterns():
+                    result = self.match_command(context, pattern)
+                    if isinstance(result, MatchingContext):
+                        op.do(result.parsed_tokens())
+                        return False
+                    elif isinstance(result, ParsingSubmatch):
+                        error = error.best_match(result)
+            print error.describe()
+        except Exception as e:
+            print "Internal error: %s" % e
+
+        return False
+
+    def complete_command(self, context, pattern):
+        previous = None
+        for token in pattern:
+            if len(context.args()) == 1:
+                return token.complete(context)
+
+            res = token.matches(context)
+            if isinstance(res, MatchingContext):
+                if len(res.args()) == 0:
+                    return token.complete(context)
+                previous = context
+                context = res
+            else:
+                return token.complete(context)
+
+        if isinstance(context, MatchingContext) and previous is not None:
+            if len(context.args()) == 0:
+                return pattern[len(pattern)-1].complete(previous)
+        else:
+            return []
+
+    def _uniq(self, seq):
+        res = []
+        for s in seq:
+            if s not in res:
+                res.append(s)
+        return res
+
+    def complete(self, line, state):
+        if state == 0:
+            self._cached_completions = self._complete(line, state)
+        completions = self._cached_completions
+
+        if len(completions) <= state:
+            return None
+        else:
+            args = shsplit(line)
+            if line.endswith(" ") or len(args) == 0:
+                args.append("")
+            args.pop()
+            args.append(completions[state])
+            completed = " ".join(args)
+            if len(completions) == 1:
+                return completed + " "
+            else:
+                return completed
+
+    def _complete(self, line, state):
+        completions = []
+        try:
+            args = shsplit(line)
+        except:
+            return None
+        if line.endswith(" ") or len(args) == 0:
+            args.append("")
+        context = MatchingContext(self._root, args)
+        for op in self._ops:
+            for pattern in op.patterns():
+                completions += self.complete_command(context, pattern)
+
+        return self._uniq(completions)
+
+    def display_completions(self, subst, matches, longest_len):
+        words = map(lambda m: shsplit(m).pop(), matches)
+        self.stdout.write("\n")
+        self.columnize(words)
+        self.stdout.write(self.prompt + subst)
+
+################################################################################
+# Globals
+################################################################################
+
+# Alias manager, accessible in all contexts: token matching, command execution
+aliases = None
+
+# Root context, object lookup and object tree traversal start here
+app = None
+
+cli = None
+
+session = None
 
 if __name__ == '__main__':
-    sys.exit(main())
+    try:
+        session = Session()
+        session.load()
+        root = session.connect()
+        aliases = AliasManager() if session.enable_alias_manager else NoOpAliasManager()
+        app = Midonet(root)
+        cli = MidonetCLI(app)
+        if session.do_eval:
+            cli.onecmd(session.command)
+        else:
+            cli.cmdloop()
+    except Exception as e:
+        sys.stderr.write(e.message + "\n")
+        sys.exit(1)

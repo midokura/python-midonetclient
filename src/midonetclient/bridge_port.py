@@ -64,6 +64,10 @@ class BridgePort(resource_base.ResourceBase):
         self.dto['vifId'] = id_
         return self
 
+    def type(self, type_):
+        self.dto['type'] = type_
+        return self
+
     def link(self, peer_uuid):
         self.dto['peerId'] = peer_uuid
         headers = {'Content-Type':

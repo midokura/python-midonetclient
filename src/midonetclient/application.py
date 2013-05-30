@@ -117,8 +117,7 @@ class Application(ResourceBase):
         return self._delete_resource_by_id(self.get_bgp_template(), id_)
 
     def get_bgp(self, id_):
-        return self._get_resource_by_id(Bgp, self.dto['bgps'],
-                                        self.get_bgp_template(), id_)
+        return self._get_resource_by_id(Bgp, None, self.get_bgp_template(), id_)
 
     def delete_bridge(self, id_):
         return self._delete_resource_by_id(self.get_bridge_template(), id_)
