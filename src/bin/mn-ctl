@@ -28,9 +28,6 @@ from shlex import split as shsplit
 from midonetclient.api import MidonetApi
 
 # TODO:
-#   + ease scriptability:
-#       + print uuid by itself on a single line as output of show and create
-#         commands
 #   + Figure out how to support the natTargets field.
 
 ################################################################################
@@ -782,7 +779,12 @@ class NoOpAliasManager():
         return []
 
     def add(self, *obj):
-        return map(lambda o: o.fetch_field('id'), list(obj))
+        chain = list(obj)
+        o = chain[-1]
+        if o.has_field('id'):
+            return [o.fetch_field('id')]
+        else:
+            return []
 
 ################################################################################
 # Object types
@@ -820,7 +822,7 @@ class FieldType():
             return self
 
     def describe(self):
-        return "%s: %s" % (self.name, self.value)
+        return self.value
 
 class ObjectType():
     """ This is the base class to define CLI wrappers around REST API objects.
@@ -2301,11 +2303,13 @@ class Create(Command):
     def do(self, tokens):
         assert(len(tokens) >= 2)
         obj = app
+        alias_chain = []
         fields = []
         collection = None
         for tok in tokens:
             if isinstance(tok, ObjectType):
                 obj = tok
+                alias_chain.append(tok)
             elif isinstance(tok, FieldType):
                 fields.append(tok)
             elif isinstance(tok, Collection):
@@ -2323,7 +2327,13 @@ class Create(Command):
             wrapper.set_field('tenant', session.current_tenant())
         for f in fields:
             wrapper.set_field(f.name, f.value)
-        new_object.create()
+        wrapper = collection.element_type(new_object.create())
+        alias_chain.append(wrapper)
+        if wrapper.has_field('id'):
+            alias_chain = aliases.add(*alias_chain)
+            print ":".join(alias_chain)
+        else:
+            print wrapper.describe()
 
 class Set(Command):
     def patterns(self):
