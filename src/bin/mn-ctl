@@ -2353,6 +2353,7 @@ class Describe(Command):
 
     Usage: desc[ribe] [<OBJECT> {<CHILD>}]
            <OBJECT> {<CHILD>} desc[ribe]
+
     Examples:
            describe
            describe router router0
@@ -2602,6 +2603,7 @@ class PushTenant(Command):
         print """pusht - Adds a tenant id to the top of the tenant id stack
 
     Usage: pusht <TENANT_ID>
+
     Examples:
            pusht <TENANT_ID_A>
            list router
@@ -2626,6 +2628,7 @@ class PopTenant(Command):
         print """popt - Removes a tenant for the top of the tenant stack
 
     Usage: popt
+
     Examples:
            pusht <TENANT_ID_A>
            list router
@@ -2682,6 +2685,7 @@ class List(Command):
     Usage: l[ist] [<OBJECT> {<CHILD>}] <COLlECTION_NAME>
            <OBJECT> l[ist] {<CHILD>} <COLlECTION_NAME>
            [<OBJECT> {<CHILD>}] <COLlECTION_NAME> l[ist]
+
     Examples:
            list router
            router router0 list port
