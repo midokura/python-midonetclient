@@ -27,9 +27,6 @@ from shlex import split as shsplit
 
 from midonetclient.api import MidonetApi
 
-# TODO:
-#   + Figure out how to support the natTargets field.
-
 ################################################################################
 # Utility functions
 ################################################################################
@@ -437,8 +434,11 @@ class ListAttr(SingleAttr):
             return values
 
     def fetch(self, obj):
-        func = obj.reflect(self.getter)
-        return self.fetch_inv(obj, self._api_to_cli(func()))
+        try:
+            func = obj.reflect(self.getter)
+            return self.fetch_inv(obj, self._api_to_cli(func()))
+        except KeyError as e:
+            return None
 
     def set(self, obj, value):
         v = self.set_inv(obj, value)
@@ -481,8 +481,12 @@ class FlagSet(SingleAttr):
 
     def fetch(self, obj):
         for flag in self.flags:
-            func = obj.reflect(flag.getter)
-            v = func()
+            v = None
+            try:
+                func = obj.reflect(flag.getter)
+                v = func()
+            except KeyError as e:
+                pass
             if v:
                 return flag.literal
         return None
@@ -525,10 +529,14 @@ class CidrPair(SingleAttr):
         self.mask_setter = mask_setter
 
     def fetch(self, obj):
-        func = obj.reflect(self.addr_getter)
-        address = func()
-        func = obj.reflect(self.mask_getter)
-        mask = func()
+        address = None
+        try:
+            func = obj.reflect(self.addr_getter)
+            address = func()
+            func = obj.reflect(self.mask_getter)
+            mask = func()
+        except KeyError as e:
+            pass
         if address is None:
             return None
 
@@ -550,6 +558,109 @@ class CidrPair(SingleAttr):
         func(values[0])
         func = obj.reflect(self.mask_setter)
         func(values[1])
+
+class NatTarget(SingleAttr):
+    def __init__(self, name,
+                 getter,
+                 setter = None,
+                 writeable = True,
+                 show = True,
+                 optional = True,
+                 inv_getter = None,
+                 inv_setter = None):
+        SingleAttr.__init__(self, name, StringType(),
+                            getter = getter,
+                            setter = setter,
+                            writeable = writeable,
+                            show = show,
+                            optional = optional,
+                            inv_getter = inv_getter,
+                            inv_setter = inv_setter)
+
+    def _api_to_cli(self, value):
+        if not value:
+            return None
+        if not isinstance(value, list):
+            raise Exception("Bug: expected a list, received '%s'" % (value))
+
+        targets = []
+        for target in value:
+            if target.has_key('addressFrom') and target['addressFrom']:
+                tstr = target['addressFrom']
+
+            if target.has_key('addressTo') and target['addressTo']:
+                if target['addressFrom'] != target['addressTo']:
+                    tstr = "%s-%s" % (tstr, target['addressTo'])
+
+            if target.has_key('portFrom') and target['portFrom']:
+                portFrom = int(target['portFrom'])
+                portTo = 0
+                if target.has_key('portTo') and target['portTo']:
+                    portTo = int(target['portTo'])
+
+                if portFrom and portTo:
+                    if portFrom != portTo:
+                        tstr = "%s:%s-%s" % (tstr, portFrom, portTo)
+                    else:
+                        tstr = "%s:%s" % (tstr, portFrom)
+                elif portFrom:
+                    tstr = "%s:%s" % (tstr, portFrom)
+                elif portTo:
+                    tstr = "%s:0-%s" % (tstr, portTo)
+            targets.append(tstr)
+        return ",".join(targets)
+
+    def _cli_to_api(self, value):
+        values = map(lambda s: s.strip(), value.split(','))
+        targets = []
+        for v in values:
+            target = {}
+            addr_port = map(lambda s: s.strip(), v.split(':'))
+            if len(addr_port) > 2 or len(addr_port) < 1:
+                raise Exception("Invalid NAT target: %s" % (v))
+            elif len(addr_port) == 1:
+                addr_port.append("0-0")
+
+            addrs, ports = map(lambda s: s.split('-'), addr_port)
+
+            if len(addrs) < 1 or len(addrs) > 2:
+                raise Exception("Invalid NAT target: %s" % (v))
+            if len(ports) < 1 or len(ports) > 2:
+                raise Exception("Invalid NAT target: %s" % (v))
+
+            if len(addrs) == 1:
+                addrs.append(addrs[0])
+            if len(ports) == 1:
+                ports.append(ports[0])
+
+            for a in addrs:
+                if not IPv4Address().is_valid(a):
+                    raise Exception("Invalid NAT target: %s" % (v))
+            for p in ports:
+                n = int(p)
+                if n < 0 or n > 65535:
+                    raise Exception("Invalid NAT target: %s" % (v))
+            target['addressFrom'] = addrs[0]
+            target['addressTo'] = addrs[1]
+            target['portFrom'] = int(ports[0])
+            target['portTo'] = int(ports[1])
+            targets.append(target)
+        return targets
+
+    def fetch(self, obj):
+        try:
+            func = obj.reflect(self.getter)
+            return self.fetch_inv(obj, self._api_to_cli(func()))
+        except KeyError as e:
+            return None
+
+    def set(self, obj, value):
+        v = self.set_inv(obj, value)
+        api_val = self._cli_to_api(v)
+        if api_val is None:
+            raise Exception("Invalid value field %s: %s" % (self.name, value))
+        func = obj.reflect(self.setter)
+        func(api_val)
 
 class L4PortRange(SingleAttr):
     def __init__(self, name, value_type,
@@ -576,10 +687,14 @@ class L4PortRange(SingleAttr):
         self.end_setter = end_setter
 
     def fetch(self, obj):
-        func = obj.reflect(self.start_getter)
-        start = func()
-        func = obj.reflect(self.end_getter)
-        end = func()
+        start = None
+        try:
+            func = obj.reflect(self.start_getter)
+            start = func()
+            func = obj.reflect(self.end_getter)
+            end = func()
+        except KeyError as e:
+            pass
         if start is None:
             return None
 
@@ -1268,25 +1383,6 @@ class Rule(ObjectType):
                                  value_type = StringType(),
                                  getter = 'get_position',
                                  setter = 'position'))
-        self.put_attr(EnumAttr(name = 'type',
-                               mappings = {'accept': 'accept',
-                                           'continue': 'continue',
-                                           'drop': 'drop',
-                                           'jump': 'jump',
-                                           'reject': 'reject',
-                                           'return': 'return',
-                                           'dnat': 'dnat',
-                                           'snat': 'snat',
-                                           'rev_dnat': 'rev_dnat',
-                                           'rev_snat': 'rev_snat'},
-                               getter = 'get_type',
-                               setter = 'type'))
-        self.put_attr(EnumAttr(name = 'action',
-                               mappings = {'accept': 'accept',
-                                           'continue': 'continue',
-                                           'return': 'return'},
-                               getter = 'get_flow_action',
-                               setter = 'flow_action'))
         self.put_attr(SingleAttr(name = 'hw-src',
                                  value_type = MacAddress(),
                                  getter = 'get_dl_src',
@@ -1387,11 +1483,34 @@ class Rule(ObjectType):
                                  inv_getter = 'is_inv_out_ports',
                                  inv_setter = 'inv_out_ports',
                                  optional = True))
+        self.put_attr(EnumAttr(name = 'type',
+                               mappings = {'accept': 'accept',
+                                           'continue': 'continue',
+                                           'drop': 'drop',
+                                           'jump': 'jump',
+                                           'reject': 'reject',
+                                           'return': 'return',
+                                           'dnat': 'dnat',
+                                           'snat': 'snat',
+                                           'rev_dnat': 'rev_dnat',
+                                           'rev_snat': 'rev_snat'},
+                               getter = 'get_type',
+                               setter = 'type'))
+        self.put_attr(EnumAttr(name = 'action',
+                               mappings = {'accept': 'accept',
+                                           'continue': 'continue',
+                                           'return': 'return'},
+                               getter = 'get_flow_action',
+                               setter = 'flow_action'))
         self.put_attr(SingleAttr(name = 'jump-to',
                                  value_type = ObjectRef('chain'),
                                  getter = 'get_jump_chain_id',
                                  setter = 'jump_chain_id',
                                  optional = True))
+        self.put_attr(NatTarget(name = 'target',
+                                getter = 'get_nat_targets',
+                                setter = 'nat_targets',
+                                optional = True))
 
     def type_name(self):
         return "rule"
