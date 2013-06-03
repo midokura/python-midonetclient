@@ -73,6 +73,9 @@ class Application(ResourceBase):
     def get_rule_template(self):
         return self.dto['ruleTemplate']
 
+    def get_tunnel_zone_template(self):
+        return self.dto['tunnelZoneTemplate']
+
     def get_routers(self, query):
         headers = {'Accept':
                    vendor_media_type.APPLICATION_ROUTER_COLLECTION_JSON}
@@ -100,6 +103,10 @@ class Application(ResourceBase):
                    vendor_media_type.APPLICATION_TUNNEL_ZONE_COLLECTION_JSON}
         return self.get_children(self.dto['tunnelZones'], query, headers,
                                  TunnelZone)
+
+    def get_tunnel_zone(self, id_):
+        return self._get_resource_by_id(TunnelZone, self.dto['tunnelZones'],
+                                        self.get_tunnel_zone_template(), id_)
 
     def get_hosts(self, query):
         headers = {'Accept':
@@ -183,6 +190,9 @@ class Application(ResourceBase):
 
     def add_chain(self):
         return Chain(self.dto['chains'], {}, self.auth)
+
+    def add_tunnel_zone(self):
+        return TunnelZone(self.dto['tunnelZones'], {}, self.auth)
 
     def add_gre_tunnel_zone(self):
         return TunnelZone(

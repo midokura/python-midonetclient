@@ -78,6 +78,10 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.get_tunnel_zones(query)
 
+    def get_tunnel_zone(self, id_):
+        self._ensure_application()
+        return self.app.get_tunnel_zone(id_)
+
     def get_hosts(self, query=None):
         if query is None:
             query = {}
@@ -155,6 +159,10 @@ class MidonetApi(object):
     def add_chain(self):
         self._ensure_application()
         return self.app.add_chain()
+
+    def add_tunnel_zone(self):
+        self._ensure_application()
+        return self.app.add_tunnel_zone()
 
     def add_gre_tunnel_zone(self):
         self._ensure_application()
