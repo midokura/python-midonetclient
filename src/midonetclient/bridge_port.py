@@ -49,6 +49,9 @@ class BridgePort(resource_base.ResourceBase):
     def get_vif_id(self):
         return self.dto['vifId']
 
+    def get_vlan_id(self):
+        return self.dto['vlanId']
+
     def get_peer_id(self):
         return self.dto['peerId']
 
@@ -62,6 +65,10 @@ class BridgePort(resource_base.ResourceBase):
 
     def vif_id(self, id_):
         self.dto['vifId'] = id_
+        return self
+
+    def vlan_id(self, id_):
+        self.dto['vlanId'] = id_
         return self
 
     def type(self, type_):
