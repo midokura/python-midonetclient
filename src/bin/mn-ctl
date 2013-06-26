@@ -44,6 +44,7 @@ class Session():
         self.api_url = None
         self.username = None
         self.password = None
+        self.project_id = None
         self.tenant_id = None
         self.tenant_stack = []
         self.enable_alias_manager = True
@@ -82,6 +83,8 @@ class Session():
             self.username = cfg.get('cli', 'username')
         if cfg.has_option('cli', 'password'):
             self.password = cfg.get('cli', 'password')
+        if cfg.has_option('cli', 'project_id'):
+            self.project_id = cfg.get('cli', 'project_id');
         if cfg.has_option('cli', 'tenant'):
             self.tenant_id = cfg.get('cli', 'tenant')
 
@@ -91,6 +94,8 @@ class Session():
             self.api_url = os.environ['MIDO_API_URL']
         if os.environ.has_key('MIDO_USER'):
             self.username = os.environ['MIDO_USER']
+        if os.environ.has_key('MIDO_PROJECT_ID'):
+            self.project_id = os.environ['MIDO_PROJECT_ID']
         if os.environ.has_key('MIDO_TENANT'):
             self.tenant_id = os.environ['MIDO_TENANT']
 
@@ -104,6 +109,8 @@ class Session():
                             help="Midonet API server URL", metavar="URL")
         parser.add_option("-u", "--user", dest="username",
                             help="Username", metavar="USERNAME")
+        parser.add_option("-i", "--project-id", dest="project_id",
+                          help="Midonet Project ID", metavar="PROJECT_ID")
         parser.add_option("--tenant", dest="tenant",
                             help="Tenant id", metavar="UUID")
         parser.add_option("-e", "--eval", dest="do_eval", action="store_true",
@@ -129,6 +136,8 @@ class Session():
             self.api_url = options.api_url
         if options.username is not None:
             self.username = options.username
+        if options.project_id is not None:
+            self.project_id = options.project_id
         if options.tenant is not None:
             self.tenant_id = options.tenant
         if not sys.__stdin__.isatty() or options.do_eval:
@@ -147,6 +156,8 @@ class Session():
             raise Exception("Missing: Midonet API URL")
         if self.do_auth and self.username is None:
             raise Exception("Missing: username")
+        if self.do_auth and self.project_id is None:
+            raise Exception("Missing: Midonet Project ID")
         if self.tenant_id is None:
             raise Exception("Missing: tenant id")
         if self.do_auth and self.password is None:
@@ -157,7 +168,7 @@ class Session():
         auth = None
         logging.basicConfig()
         logging.getLogger().setLevel(logging.CRITICAL)
-        return MidonetApi(self.api_url, self.username, self.password)
+        return MidonetApi(self.api_url, self.username, self.password, self.project_id)
 
 
 
