@@ -463,7 +463,7 @@ class TenantAttr(SingleAttr):
     def __init__(self):
         SingleAttr.__init__(self,
                             name = 'tenant',
-                            value_type = UUID(),
+                            value_type = StringType(),
                             getter = 'get_tenant_id',
                             setter = 'tenant_id',
                             writeable = True,
