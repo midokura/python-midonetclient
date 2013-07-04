@@ -1,3 +1,15 @@
+python-midonetclient (1.2.0) precise; urgency=low
+
+  * RC for v1.2.0 
+
+ -- ryu <ryu@ryu-iMac>  Thu, 04 Jul 2013 18:49:43 +0900
+
+python-midonetclient (1.1.0) precise; urgency=low
+
+  * RC for v1.1.0 
+
+ -- ryu <ryu@midokura.com>  Thu, 04 Jul 2013 18:48:50 +0900
+
 python-midonetclient (0.9.9) precise; urgency=low
 
   * RC for v1.0.0
