@@ -17,7 +17,7 @@
 #
 # @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
-
+# @author: Artem Dmytrenko <art@midokura.com>, Midokura
 
 from midonetclient import vendor_media_type
 from midonetclient.ad_route import AdRoute
@@ -33,7 +33,7 @@ from midonetclient.router import Router
 from midonetclient.router_port import RouterPort
 from midonetclient.rule import Rule
 from midonetclient.tunnel_zone import TunnelZone
-
+from midonetclient.trace_condition import TraceCondition
 
 class Application(ResourceBase):
 
@@ -75,6 +75,9 @@ class Application(ResourceBase):
 
     def get_tunnel_zone_template(self):
         return self.dto['tunnelZoneTemplate']
+
+    def get_trace_condition_template(self):
+        return self.dto['traceConditionTemplate']
 
     def get_routers(self, query):
         headers = {'Accept':
@@ -206,6 +209,22 @@ class Application(ResourceBase):
             vendor_media_type.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON,
             vendor_media_type.\
                 APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON)
+
+    # Trace condition operations
+    def add_trace_condition(self):
+        return TraceCondition(self.dto['traceConditions'], {}, self.auth)
+
+    def get_trace_conditions(self, query):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_TRACE_CONDITION_COLLECTION_JSON}
+        return self.get_children(self.dto['traceConditions'], query, headers, TraceCondition)
+
+    def get_trace_condition(self, id_):
+        return self._get_resource_by_id(TraceCondition, self.dto['traceConditions'],
+                                        self.get_trace_condition_template(), id_)
+
+    def delete_trace_condition(self, id_):
+        return self._delete_resource_by_id(self.get_trace_condition_template(), id_)
 
     def _create_uri_from_template(self, template, token, value):
         return template.replace(token, value)

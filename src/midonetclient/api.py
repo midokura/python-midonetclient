@@ -17,6 +17,7 @@
 #
 # @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
+# @author: Artem Dmytrenko <art@midokura.com>, Midokura
 
 import logging
 
@@ -171,6 +172,23 @@ class MidonetApi(object):
     def add_capwap_tunnel_zone(self):
         self._ensure_application()
         return self.app.add_capwap_tunnel_zone()
+
+    # Trace condition operations
+    def add_trace_condition(self):
+        self._ensure_application()
+        return self.app.add_trace_condition()
+
+    def get_trace_conditions(self, query=None):
+        self._ensure_application()
+        return self.app.get_trace_conditions(query)
+
+    def get_trace_condition(self, id_):
+        self._ensure_application()
+        return self.app.get_trace_condition(id_)
+
+    def delete_trace_condition(self, id_):
+        self._ensure_application()
+        return self.app.delete_trace_condition(id_)
 
     def _ensure_application(self):
         if self.app is None:
@@ -421,3 +439,15 @@ if __name__ == '__main__':
 
     chain1.delete()
     chain2.delete()
+
+    # Trace conditions
+    tCond1 = add_trace_condition().nw_src_address('5.5.5.5').create()
+    tCond2 = add_trace_condition().dl_type('2').nw_proto('1').create()
+
+    for tCond in get_trace_conditions():
+        print 'trace condition ----'
+        print tCond.get_id()
+
+    tCond1.delete()
+    tCond2.delete()
+
