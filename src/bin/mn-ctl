@@ -1682,7 +1682,7 @@ class TraceCondition(Condition):
         Condition.__init__(self, obj)
 
     def type_name(self):
-        return "trace-condition"
+        return "tcond"
 
 class Midonet(ObjectType):
     """ This is the root context for the CLI. At the beggining of matchin on a
