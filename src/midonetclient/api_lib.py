@@ -70,7 +70,7 @@ def do_request(uri, method, body=None, query=None, headers=None):
     LOG.debug("do_request: body=%s" % body)
     LOG.debug("do_request: headers=%s" % headers)
 
-    if query is not None:
+    if query:
         uri += '?' + urllib.urlencode(query)
     data = json.dumps(body) if body is not None else '{}'
     headers = headers or dict()
