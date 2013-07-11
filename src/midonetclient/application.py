@@ -216,7 +216,7 @@ class Application(ResourceBase):
 
     def get_trace_conditions(self, query):
         headers = {'Accept':
-                   vendor_media_type.APPLICATION_TRACE_CONDITION_COLLECTION_JSON}
+                   vendor_media_type.APPLICATION_CONDITION_COLLECTION_JSON}
         return self.get_children(self.dto['traceConditions'], query, headers, TraceCondition)
 
     def get_trace_condition(self, id_):

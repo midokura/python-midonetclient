@@ -24,7 +24,7 @@ from midonetclient.resource_base import ResourceBase
 
 class TraceCondition(ResourceBase):
 
-    media_type = vendor_media_type.APPLICATION_TRACE_CONDITION_JSON
+    media_type = vendor_media_type.APPLICATION_CONDITION_JSON
 
     def __init__(self, uri, dto, auth):
         super(TraceCondition, self).__init__(uri, dto, auth)
