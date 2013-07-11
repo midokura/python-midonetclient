@@ -103,3 +103,6 @@ APPLICATION_HOST_INTERFACE_PORT_JSON = \
     "application/vnd.org.midonet.HostInterfacePort-v1+json"
 APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.HostInterfacePort-v1+json"
+APPLICATION_TRACE_CONDITION_JSON = "application/vnd.org.midonet.TraceCondition-v1+json"
+APPLICATION_TRACE_CONDITION_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.TraceCondition-v1+json"

@@ -1382,18 +1382,9 @@ class Chain(ObjectType):
     def type_name(self):
         return "chain"
 
-class Rule(ObjectType):
+class Condition(ObjectType):
     def __init__(self, obj):
         ObjectType.__init__(self, obj)
-        self.put_attr(SingleAttr(name = 'chain',
-                                 value_type = ObjectRef('chain'),
-                                 getter = 'get_chain_id',
-                                 setter = 'chain_id',
-                                 show = False))
-        self.put_attr(SingleAttr(name = 'pos',
-                                 value_type = StringType(),
-                                 getter = 'get_position',
-                                 setter = 'position'))
         self.put_attr(SingleAttr(name = 'hw-src',
                                  value_type = MacAddress(),
                                  getter = 'get_dl_src',
@@ -1494,6 +1485,19 @@ class Rule(ObjectType):
                                  inv_getter = 'is_inv_out_ports',
                                  inv_setter = 'inv_out_ports',
                                  optional = True))
+
+class Rule(Condition):
+    def __init__(self, obj):
+        Condition.__init__(self, obj)
+        self.put_attr(SingleAttr(name = 'chain',
+                                 value_type = ObjectRef('chain'),
+                                 getter = 'get_chain_id',
+                                 setter = 'chain_id',
+                                 show = False))
+        self.put_attr(SingleAttr(name = 'pos',
+                                 value_type = StringType(),
+                                 getter = 'get_position',
+                                 setter = 'position'))
         self.put_attr(EnumAttr(name = 'type',
                                mappings = {'accept': 'accept',
                                            'continue': 'continue',
@@ -1673,6 +1677,13 @@ class RouterPort(ObjectType):
                                  getter = 'get_bgp',
                                  factory_method = 'add_bgp'))
 
+class TraceCondition(Condition):
+    def __init__(self, obj):
+        Condition.__init__(self, obj)
+
+    def type_name(self):
+        return "tcond"
+
 class Midonet(ObjectType):
     """ This is the root context for the CLI. At the beggining of matchin on a
         command pattern the `MatchingContext` is initialized with an instance of
@@ -1716,6 +1727,12 @@ class Midonet(ObjectType):
                                              getter = 'get_tunnel_zone',
                                              list_with_tenant = True,
                                              factory_method = 'add_tunnel_zone'))
+        ObjectType.put_attr(self, Collection(name = 'trace-condition',
+                                             element_type = TraceCondition,
+                                             list_method = 'get_trace_conditions',
+                                             getter = 'get_trace_condition',
+                                             list_with_tenant = False,
+                                             factory_method = 'add_trace_condition'))
 
 ################################################################################
 # Grammar tokens
