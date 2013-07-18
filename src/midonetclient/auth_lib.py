@@ -103,4 +103,5 @@ class Auth:
         except exc.HTTPUnauthorized:
             # Try one more time after logging in
             self.set_header_token(headers, force=True)
-            return api_lib.do_request(uri, method, body=body, headers=headers)
+            return api_lib.do_request(uri, method, body=body, query=query,
+                                      headers=headers)
