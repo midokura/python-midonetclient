@@ -1,3 +1,7 @@
+python-midonetclient (1.1.0~rc2) precise; urgency=low
+
+  * RC-2 for v1.1.0 
+
 python-midonetclient (1.1.0~rc1) precise; urgency=low
 
   * RC-1 for v1.1.0 
