@@ -132,11 +132,11 @@ class Rule(ResourceBase):
     def get_position(self):
         return self.dto['position']
 
-    def get_tp_src_range(self):
-        return self.dto['tpSrcRange']
+    def get_tp_src(self):
+        return self.dto['tpSrc']
 
-    def get_tp_dst_range(self):
-        return self.dto['tpDstRange']
+    def get_tp_dst(self):
+        return self.dto['tpDst']
 
     def get_properties(self):
         return self.dto['properties']
@@ -148,8 +148,8 @@ class Rule(ResourceBase):
         self.dto['invPortGroup'] = inv_port_group
         return self
 
-    def tp_src_range(self, tp_src_range):
-        self.dto['tpSrcRange'] = tp_src_range
+    def tp_src(self, tp_src):
+        self.dto['tpSrc'] = tp_src
         return self
 
     def dl_src(self, dl_src):
@@ -272,8 +272,8 @@ class Rule(ResourceBase):
         self.dto['condInvert'] = cond_invert
         return self
 
-    def tp_dst_range(self, tp_dst_range):
-        self.dto['tpDstRange'] = tp_dst_range
+    def tp_dst(self, tp_dst):
+        self.dto['tpDst'] = tp_dst
         return self
 
     def type(self, type):
