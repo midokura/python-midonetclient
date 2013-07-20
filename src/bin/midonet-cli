@@ -1804,6 +1804,22 @@ class CommandToken():
     def __init__(self):
         pass
 
+    def __call__(self, op):
+        if op == "*":
+            return ZeroOrMore(self)
+        elif op == "+":
+            return OnceOrMore(self)
+        elif op == "?":
+            return ZeroOrOne(self)
+        else:
+            raise Exception("bug in command pattern definition")
+
+    def __or__(self, other_tok):
+        return Or(self, other_tok)
+
+    def __add__(self, other_tok):
+        return Concat(self, other_tok)
+
     def matches(self, context):
         return ParsingSubmatch(context)
 
@@ -1830,6 +1846,9 @@ class SingleValue(CommandToken):
     def complete(self, context):
         return []
 
+    def __str__(self):
+        return "%s" % (self._value_type.__class__)
+
 class Verb(CommandToken):
     """Matches a literal word, usually representing a verb or command"""
 
@@ -1855,6 +1874,39 @@ class Verb(CommandToken):
             return [self._name]
         else:
             return []
+
+    def __str__(self):
+        return "%s" % (self._name)
+
+class Concat(CommandToken):
+    def __init__(self, token_a, token_b):
+        self._a = token_a
+        self._b = token_b
+
+    def matches(self, context):
+        res = self._a.matches(context)
+        if isinstance(res, MatchingContext):
+            return self._b.matches(res)
+        elif res is None:
+            return ParsingSubmatch(context)
+        else:
+            return res
+
+    def complete(self, context):
+        res = self._a.matches(context)
+        if isinstance(res, MatchingContext):
+            if len(res.args()) == 0:
+                return self._a.complete(context)
+            else:
+                ret = []
+                ret.extend(self._a.complete(context))
+                ret.extend(self._b.complete(res))
+                return ret
+        else:
+            return self._a.complete(context)
+
+    def __str__(self):
+        return "(%s + %s)" % (self._a, self._b)
 
 class OnceOrMore(CommandToken):
     def __init__(self, token):
@@ -1884,6 +1936,9 @@ class OnceOrMore(CommandToken):
             else:
                 return self._token.complete(lastMatch)
 
+    def __str__(self):
+        return "%s+" % (self._token)
+
 class ZeroOrMore(CommandToken):
     def __init__(self, token):
         self._token = token
@@ -1907,6 +1962,9 @@ class ZeroOrMore(CommandToken):
                 return self._token.complete(context)
         return []
 
+    def __str__(self):
+        return "%s*" % (self._token)
+
 class ZeroOrOne(CommandToken):
     def __init__(self, token):
         self._token = token
@@ -1917,6 +1975,9 @@ class ZeroOrOne(CommandToken):
 
     def complete(self, context):
         return self._token.complete(context)
+
+    def __str__(self):
+        return "%s?" % (self._token)
 
 class Seq(CommandToken):
     def __init__(self, tokens):
@@ -1957,6 +2018,9 @@ class Or(CommandToken):
             completions += token.complete(context)
         return completions
 
+    def __str__(self):
+        return "(%s)" % reduce(lambda a, b:"%s | %s" % (a, b), self._tokens)
+
 class CollectionByType(CommandToken):
     """Matches an collection of objects contained in another object.
        Matches on one word: the collection name (e.g. 'router')"""
@@ -1984,6 +2048,9 @@ class CollectionByType(CommandToken):
             if t.startswith(object_type):
                 completions.append(t)
         return completions
+
+    def __str__(self):
+        return "COLLECTION"
 
 class ObjectFromCollection(CommandToken):
     """Matches an collection of objects contained in another object.
@@ -2026,6 +2093,9 @@ class ObjectFromCollection(CommandToken):
         else:
             return ListFilter().complete(context)
 
+    def __str__(self):
+        return "OBJECT"
+
 class RootCtxToken(CommandToken):
     """ Always matches, consuming zero input arguments and inserting the current
         context into the parsed args set. Meant to be used to allow commands to
@@ -2033,6 +2103,9 @@ class RootCtxToken(CommandToken):
 
     def matches(self, context):
         return context.copy(None, None, [context.object()])
+
+    def __str__(self):
+        return "ROOT_CONTEXT"
 
 class NewObjectFieldAssignment(CommandToken):
     def matches(self, context):
@@ -2261,6 +2334,9 @@ class ObjectById(CommandToken):
         object_id = args.pop(0)
         return aliases.complete(object_id, context.object())
 
+    def __str__(self):
+        return "OBJECT"
+
 class FieldByName(CommandToken):
     """Matches a field in the object found in the current matching context"""
 
@@ -2293,6 +2369,9 @@ class FieldByName(CommandToken):
                 completions.append(f)
         return completions
 
+    def __str__(self):
+        return "FIELD_NAME"
+
 class ObjectRefField(CommandToken):
     """Matches a field of type ObjectRef"""
 
@@ -2318,6 +2397,9 @@ class ObjectRefField(CommandToken):
             return ParsingSubmatch(context)
 
         return context.copy(parsed, args, [parsed])
+
+    def __str__(self):
+        return "OBJECT_REF_FIELD"
 
 class ObjectSelector(Or):
     def __init__(self):
@@ -2373,10 +2455,11 @@ class Command():
 class Describe(Command):
     def patterns(self):
         describe = Verb('describe', min_match = 'desc')
-        obj_selector = Or(OnceOrMore(ObjectById()), RootCtxToken())
+        obj_selector = ObjectById()("+") | RootCtxToken()
 
-        return [ [obj_selector, describe ],
-                 [describe, obj_selector ]]
+        patterns = obj_selector + describe + CollectionByType()("?")
+        patterns |= describe + obj_selector + CollectionByType()("?")
+        return patterns
 
     def name(self):
         return 'describe'
@@ -2401,6 +2484,8 @@ class Describe(Command):
             elif isinstance(o, FieldType):
                 print "%s" % o.describe()
                 return
+            elif isinstance(o, Collection):
+                object_chain.append(o.element_type(None))
 
         ref = object_chain.pop()
         collections = list(ref.types())
@@ -2420,23 +2505,17 @@ class Describe(Command):
 
 class Create(Command):
     def patterns(self):
-        create = Or(Verb('create', partial_match = False),
-                    Verb('add', partial_match = False))
-        return [ [ create,
-                   ZeroOrMore(ObjectById()),
-                   ZeroOrOne(ObjectFromCollection()),
-                   CollectionByType(),
-                   ZeroOrMore(NewObjectFieldAssignment()) ],
-                 [ ZeroOrMore(ObjectById()),
-                   ZeroOrOne(ObjectFromCollection()),
-                   create,
-                   CollectionByType(),
-                   ZeroOrMore(NewObjectFieldAssignment()) ],
-                 [ ZeroOrMore(ObjectById()),
-                   ZeroOrOne(ObjectFromCollection()),
-                   CollectionByType(),
-                   create,
-                   ZeroOrMore(NewObjectFieldAssignment()) ] ]
+        create = Verb('create', partial_match = False)
+        create |= Verb('add', partial_match = False)
+        obj = ObjectById()
+        obj_in_col = ObjectFromCollection()
+        col_type = CollectionByType()
+        assignment = NewObjectFieldAssignment()
+
+        patterns = create + obj("*") + obj_in_col("?") + col_type + assignment("*")
+        patterns |= obj("*") + obj_in_col("?") + create + col_type + assignment("*")
+        patterns |= obj("*") + obj_in_col("?") + col_type + create + assignment("*")
+        return patterns
 
     def help(self):
         print """create - Create a new object
@@ -2490,12 +2569,11 @@ class Create(Command):
 
 class Set(Command):
     def patterns(self):
-        return [ [ Verb('set', partial_match = False),
-                   OnceOrMore(ObjectById()),
-                   OnceOrMore(FieldAssignment()) ],
-                 [ OnceOrMore(ObjectById()),
-                   Verb('set', partial_match = False),
-                   OnceOrMore(FieldAssignment()) ] ]
+        verb = Verb('set', partial_match = False)
+
+        patterns = verb + ObjectById()("+") + FieldAssignment()("+")
+        patterns |= ObjectById()("+") + verb + FieldAssignment()("+")
+        return patterns
 
     def help(self):
         print """set - Update values in an existing object
@@ -2534,17 +2612,14 @@ class Set(Command):
 
 class Delete(Command):
     def patterns(self):
-        return [ [ Verb('delete', min_match = 'del'),
-                   OnceOrMore(ObjectById()),
-                   ZeroOrMore(ObjectFromCollection()) ],
-                 [ OnceOrMore(ObjectById()),
-                   Verb('delete', min_match = 'del'),
-                   ZeroOrMore(ObjectById()),
-                   ZeroOrMore(ObjectFromCollection()) ],
-                 [ OnceOrMore(ObjectById()),
-                   ZeroOrMore(ObjectFromCollection()),
-                   Verb('delete', min_match = 'del'),
-                   ZeroOrMore(ObjectFromCollection()) ] ]
+        delete = Verb('delete', min_match = 'del')
+        obj_from_col = ObjectFromCollection()
+        obj = ObjectById()
+
+        patterns = delete + obj("+") + obj_from_col("*")
+        patterns |= obj("+") + delete + obj("*") + obj_from_col("*")
+        patterns |= obj("+") + obj_from_col("*") + delete + obj_from_col("*")
+        return patterns
 
     def help(self):
         print """delete - Delete an object
@@ -2572,23 +2647,16 @@ class Delete(Command):
 
 class Show(Command):
     def patterns(self):
-        return [ [ OnceOrMore(ObjectById()),
-                   Verb('show'),
-                   ZeroOrOne(ObjectFromCollection()),
-                   ZeroOrOne(FieldByName()) ],
-                 [ Verb('show'),
-                   OnceOrMore(ObjectById()),
-                   ZeroOrOne(ObjectFromCollection()),
-                   ZeroOrOne(FieldByName()) ],
-                 [ OnceOrMore(ObjectById()),
-                   ZeroOrOne(ObjectFromCollection()),
-                   ZeroOrOne(FieldByName()),
-                   Verb('show') ],
-                 [ OnceOrMore(ObjectById()),
-                   ZeroOrOne(ObjectFromCollection()),
-                   Verb('show'),
-                   ZeroOrOne(ObjectFromCollection()),
-                   ZeroOrOne(FieldByName()) ]]
+        show = Verb('show')
+        obj = ObjectById()
+        obj_in_col = ObjectFromCollection()
+        field = FieldByName()
+
+        patterns = obj("+") + show + obj_in_col("?") + field("?")
+        patterns |= show + obj("+") + obj_in_col("?") + field("?")
+        patterns |= obj("+") + obj_in_col("?") + field("?") + show
+        patterns |= obj("+") + obj_in_col("?") + show + obj_in_col("?") + field("?")
+        return patterns
 
     def name(self):
         return 'show'
@@ -2627,7 +2695,7 @@ class Show(Command):
 
 class PushTenant(Command):
     def patterns(self):
-        return [ [Verb('pusht', partial_match = False), SingleValue(UUID())] ]
+        return Verb('pusht', partial_match = False) + SingleValue(StringType())
 
     def name(self):
         return 'pusht'
@@ -2652,7 +2720,7 @@ class PushTenant(Command):
 
 class PopTenant(Command):
     def patterns(self):
-        return [ [Verb('popt', partial_match = False) ] ]
+        return Verb('popt', partial_match = False)
 
     def name(self):
         return 'popt'
@@ -2673,10 +2741,11 @@ class PopTenant(Command):
 
 class Debug(Command):
     def patterns(self):
-        return [ [Verb('debug', partial_match = False),
-                  Verb('on', partial_match = False)],
-                 [Verb('debug', partial_match = False),
-                  Verb('off', partial_match = False)] ]
+        verb = Verb('debug', partial_match = False)
+        on = Verb('on', partial_match = False)
+        off = Verb('off', partial_match = False)
+
+        return verb + (on | off)
 
     def name(self):
         return 'debug'
@@ -2700,14 +2769,16 @@ class Debug(Command):
 
 class List(Command):
     def patterns(self):
-        selector = Or(OnceOrMore(ObjectById()), RootCtxToken())
+        obj = ObjectById()("+") | RootCtxToken()
         verb = Verb('list')
-        list_filter = ZeroOrOne(ListFilter())
+        collection = ObjectFromCollection()("?")
+        col_type = CollectionByType()
 
-        return [ [selector, ZeroOrOne(ObjectFromCollection()), verb, CollectionByType(), list_filter],
-                 [selector, verb, ZeroOrOne(ObjectFromCollection()), CollectionByType(), list_filter],
-                 [verb, selector, ZeroOrOne(ObjectFromCollection()), CollectionByType(), list_filter],
-                 [selector, ZeroOrOne(ObjectFromCollection()), CollectionByType(), verb, list_filter] ]
+        patterns = obj + collection + verb + col_type + ListFilter()("?")
+        patterns |= obj + verb + collection + col_type + ListFilter()("?")
+        patterns |= verb + obj + collection + col_type + ListFilter()("?")
+        patterns |= obj + collection + col_type + verb + ListFilter()("?")
+        return patterns
 
     def name(self):
         return 'list'
@@ -2762,8 +2833,8 @@ class MidonetCLI(cmd.Cmd):
         readline.set_completion_display_matches_hook(self.display_completions)
         cmd.Cmd.__init__(self)
         self._root = root
-        self._ops = [Show(), List(), Describe(), Create(), Delete(), Set(),
-                     PushTenant(), PopTenant(), Debug()]
+        self._ops = [Show(), List(), Create(), Delete(), Set(),
+                     Describe(), Debug(), PushTenant(), PopTenant()]
         for op in self._ops:
             if op.name() is not None:
                 setattr(self, "help_%s" % op.name(), op.help)
@@ -2802,21 +2873,19 @@ class MidonetCLI(cmd.Cmd):
 
     def match_command(self, context, pattern):
         last_submatch = ParsingSubmatch(context)
-        for token in pattern:
-            context = token.matches(context)
-            if context is None:
-                return last_submatch
-            elif isinstance(context, ParsingSubmatch):
-                return context
-            elif isinstance(context, MatchingContext):
-                last_submatch = ParsingSubmatch(context)
-            else:
-                raise Exception("parser bug")
 
-        if len(context.args()) == 0:
-            return context
+        res = pattern.matches(context)
+        if res is None:
+            return ParsingSubmatch(context)
+        elif isinstance(res, ParsingSubmatch):
+            return res
+        elif isinstance(res, MatchingContext):
+            if len(res.args()) == 0:
+                return res
+            else:
+                return ParsingSubmatch(res)
         else:
-            return last_submatch
+            raise Exception("parser bug")
 
     def default(self, line):
         try:
@@ -2829,13 +2898,12 @@ class MidonetCLI(cmd.Cmd):
         try:
             error = ParsingSubmatch(context)
             for op in self._ops:
-                for pattern in op.patterns():
-                    result = self.match_command(context, pattern)
-                    if isinstance(result, MatchingContext):
-                        op.do(result.parsed_tokens())
-                        return False
-                    elif isinstance(result, ParsingSubmatch):
-                        error = error.best_match(result)
+                result = self.match_command(context, op.patterns())
+                if isinstance(result, MatchingContext):
+                    op.do(result.parsed_tokens())
+                    return False
+                elif isinstance(result, ParsingSubmatch):
+                    error = error.best_match(result)
             print error.describe()
         except Exception as e:
             import traceback
@@ -2844,35 +2912,6 @@ class MidonetCLI(cmd.Cmd):
             print "Internal error: %s" % e
 
         return False
-
-    def complete_command(self, context, pattern):
-        previous = None
-        accumulated = []
-        for token in pattern:
-            args_left = len(context.args())
-            if args_left == 1:
-                return token.complete(context)
-
-            res = token.matches(context)
-            if isinstance(res, MatchingContext):
-                if len(res.args()) == 0:
-                    accumulated.extend(token.complete(context))
-                    return accumulated
-                if len(res.args()) == args_left:
-                    accumulated.extend(token.complete(context))
-                previous = context
-                context = res
-            else:
-                accumulated.extend(token.complete(context))
-                return accumulated
-
-        if isinstance(context, MatchingContext) and previous is not None:
-            if len(context.args()) == 0:
-                return pattern[-1].complete(previous)
-            else:
-                return []
-        else:
-            return []
 
     def _uniq(self, seq):
         res = []
@@ -2915,8 +2954,7 @@ class MidonetCLI(cmd.Cmd):
             args.append("")
         context = MatchingContext(self._root, args)
         for op in self._ops:
-            for pattern in op.patterns():
-                completions += self.complete_command(context, pattern)
+            completions += op.patterns().complete(context)
 
         return self._uniq(completions)
 
