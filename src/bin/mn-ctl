@@ -1107,10 +1107,12 @@ class ObjectType():
 class Route(ObjectType):
     def __init__(self, obj):
         ObjectType.__init__(self, obj)
-        self.put_attr(SingleAttr(name = 'type',
-                                 value_type = StringType(),
-                                 getter = 'get_type',
-                                 setter = 'type'))
+        self.put_attr(EnumAttr(name = 'type',
+                               mappings = {'Normal': 'normal',
+                                           'BlackHole': 'blackhole',
+                                           'Reject': 'reject'},
+                               getter = 'get_type',
+                               setter = 'type'))
         self.put_attr(CidrPair(name = 'src',
                                value_type = StringType(),
                                addr_getter = 'get_src_network_addr',
@@ -1130,7 +1132,7 @@ class Route(ObjectType):
                                  setter = 'next_hop_gateway',
                                  optional = True))
         self.put_attr(SingleAttr(name = 'port',
-                                 value_type = ObjectRef('port'),
+                                 value_type = PortRef(),
                                  getter = 'get_next_hop_port',
                                  setter = 'next_hop_port',
                                  optional = True))
@@ -1141,7 +1143,7 @@ class Route(ObjectType):
                                  optional = True))
 
     def type_name(self):
-        return "router"
+        return "route"
 
 class TunnelZone(ObjectType):
     def type_name(self):
