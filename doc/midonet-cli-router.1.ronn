@@ -5,10 +5,10 @@ midonet-cli-router(1) -- Router objects in midonet-cli
 
 midonet> router list<br>
 midonet> router create name demo<br>
-midonet> router router0 add port type exterior address 1.2.3.4 net 1.2.3.0/24<br>
+midonet> router router0 add port type exterior address 192.0.2.1 net 192.0.2.0/24<br>
 midonet> router router0 list port<br>
-midonet> router router0 port port0 add bgp peer 1.2.3.5 local-AS 1 peer-AS 2<br>
-midonet> router router0 port port0 bgp bgp0 add route 192.168.1.0/24
+midonet> router router0 port port0 add bgp peer 192.0.2.2 local-AS 1 peer-AS 2<br>
+midonet> router router0 port port0 bgp bgp0 add route 203.0.113.0/24
 
 ## DESCRIPTION
 
