@@ -37,9 +37,9 @@ class MidonetApi(object):
         self.auth = auth_lib.Auth(base_uri + '/login', username, password,
                                   project_id)
 
-    def get_tenants(self):
+    def get_tenants(self, query):
         self._ensure_application()
-        return self.app.get_tenants()
+        return self.app.get_tenants(query)
 
     def delete_router(self, id_):
         self._ensure_application()

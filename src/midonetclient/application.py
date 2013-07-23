@@ -80,10 +80,10 @@ class Application(ResourceBase):
     def get_trace_condition_template(self):
         return self.dto['traceConditionTemplate']
 
-    def get_tenants(self):
+    def get_tenants(self, query):
         headers = {'Accept':
                    vendor_media_type.APPLICATION_TENANT_COLLECTION_JSON}
-        return self.get_children(self.dto['tenants'], None, headers, Tenant)
+        return self.get_children(self.dto['tenants'], query, headers, Tenant)
 
     def get_routers(self, query):
         headers = {'Accept':
