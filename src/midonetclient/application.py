@@ -32,6 +32,7 @@ from midonetclient.route import Route
 from midonetclient.router import Router
 from midonetclient.router_port import RouterPort
 from midonetclient.rule import Rule
+from midonetclient.tenant import Tenant
 from midonetclient.tunnel_zone import TunnelZone
 from midonetclient.trace_condition import TraceCondition
 
@@ -78,6 +79,11 @@ class Application(ResourceBase):
 
     def get_trace_condition_template(self):
         return self.dto['traceConditionTemplate']
+
+    def get_tenants(self):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_TENANT_COLLECTION_JSON}
+        return self.get_children(self.dto['tenants'], None, headers, Tenant)
 
     def get_routers(self, query):
         headers = {'Accept':

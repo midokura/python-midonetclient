@@ -37,6 +37,10 @@ class MidonetApi(object):
         self.auth = auth_lib.Auth(base_uri + '/login', username, password,
                                   project_id)
 
+    def get_tenants(self):
+        self._ensure_application()
+        return self.app.get_tenants()
+
     def delete_router(self, id_):
         self._ensure_application()
         return self.app.delete_router(id_)
@@ -440,6 +444,12 @@ if __name__ == '__main__':
     chain1.delete()
     chain2.delete()
 
+    # Tenants
+    print '-------- Tenants ------'
+    for t in api.get_tenants():
+        print 'id: ',  t.get_id()
+        print 'name: ', t.get_name()
+
     # Trace conditions
     tCond1 = add_trace_condition().nw_src_address('5.5.5.5').create()
     tCond2 = add_trace_condition().dl_type('2').nw_proto('1').create()
@@ -450,4 +460,3 @@ if __name__ == '__main__':
 
     tCond1.delete()
     tCond2.delete()
-
