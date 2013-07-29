@@ -1,0 +1,68 @@
+midonet-cli-bridge(1) -- Bridge objects in midonet-cli
+======================================================
+
+## SYNOPSIS
+
+midonet> bridge list<br>
+midonet> bridge create name demo<br>
+midonet> bridge bridge0 add port type exterior<br>
+midonet> bridge bridge0 list port<br>
+midonet> bridge bridge0 add dhcp gw 203.0.113.1 subnet 203.0.113.0/24<br>
+midonet> bridge bridge0 dhcp subnet 203.0.113.0/24 add host name HostName \ <br>
+         mac 01:02:03:04:05:06<br>
+
+## DESCRIPTION
+
+Bridges are MidoNet's L2 forwarding elements.
+
+## ATTRIBUTES
+
+A bridge has these attributes:
+
+  * name <STRING>
+  * infilter <CHAIN>
+  * outfilter <CHAIN>
+
+It contains these subcollections of elements:
+
+  * port (see `BRIDGE PORTS` below)
+  * dhcp (see `DHCP SUBNETS` below)
+
+## DHCP SUBNETS
+
+Attributes:
+
+  * gw <IP_ADDRESS>
+  * subnet <CIDR>
+  * opt121-routes <CIDR[,CIDR...]>
+
+It contains these subcollections of elements:
+
+  * host (see `DHCP HOSTS` below)
+
+## DHCP HOSTS
+
+Attributes:
+
+  * name <STRING>
+  * address <IP_ADDRESS>
+  * mac <MAC_ADDRESS>
+
+## BRIDGE PORTS
+
+Attributes:
+
+  * type <interior|exterior>
+  * device <BRIDGE>
+  * infilter <CHAIN>
+  * outfilter <CHAIN>
+  * vlan <VLAN_ID>
+  * peer <PORT> (interior ports only)
+
+## COPYRIGHT
+
+midonet-cli is Copyright (C) 2013 Midokura PTE LTD.
+
+## SEE ALSO
+
+midonet-cli(1), midonet-cli-chain(1), midonet-cli-host(1)
