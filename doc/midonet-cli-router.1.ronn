@@ -24,7 +24,7 @@ A router has these attributes:
 
 It contains these subcollections of elements:
 
-  * port (see `ROUTER PORTS below`)
+  * port (see `ROUTER PORTS` below)
   * route (see `ROUTES` below)
 
 ## ROUTES
@@ -79,4 +79,4 @@ midonet-cli is Copyright (C) 2013 Midokura PTE LTD.
 
 ## SEE ALSO
 
-midonet-cli(1), midonet-cli-chain(1)
+midonet-cli(1), midonet-cli-chain(1), midonet-cli-host(1)
