@@ -3,8 +3,13 @@ midonet-cli(1) -- MidoNet command line interface
 
 ## SYNOPSIS
 
-`midonet-cli`<br>
 `midonet-cli` `--eval` <command>
+`midonet-cli`<br>
+midonet> list bridge<br>
+midonet> create bridge name demo<br>
+midonet> bridge bridge0 add port type exterior<br>
+midonet> delete bridge bridge0 port port0<br>
+midonet> exit
 
 ## DESCRIPTION
 
@@ -18,8 +23,54 @@ credentials to authenticate before the REST API. These credentials and other
 settings such as the REST API's URL can be set via a config file, environment 
 variables or command line options, in increasing order of precedence.
 
-Details about the available commands and MidoNet virtual topology objects are
-documented in their respective manpages (listed in `SEE ALSO` below).
+MidoNet's virtual topology is organized in a tree-like hierarchy that can be
+browsed and modified. Details about each type of object are documented in their
+respective manpages (listed in [SEE ALSO][] below), the objects accessible at
+the root of the tree are listed in [TOP LEVEL OBJECTS][]. Likewise, [COMMANDS][]
+briefly lists all the available commands that work on those objects.
+
+## TOP LEVEL OBJECTS
+
+At the root of MidoNet's virtual topology, live the following object
+collections:
+
+  * `router` (see midonet-cli-router(1))
+  * `bridge` (see midonet-cli-bridge(1))
+  * `chain` (see midonet-cli-chain(1))
+  * `host` (see midonet-cli-host(1))
+  * `port-group` (see midonet-cli-port-group(1))
+  * `tunnel-zone` (see midonet-cli-tunnel-zone(1))
+  * `trace-condition` (see midonet-cli-(1))
+
+## COMMANDS
+
+  * `describe` [<OBJECT>] [<TYPE>]:
+  Show the names of members of an object or object type.
+
+  * `list` [<OBJECT>] <TYPE>:
+  Lists all the objects in a collection.
+
+  * `show` <OBJECT> [<FIELD>]:
+  Prints the contents of an object or of one of its members.
+
+  * `create`|`add` [<OBJECT>] <TYPE> {<FIELD> <VALUE>}:
+  Creates a new object under a parent object, or at the root, assigning values
+  to some of its members.
+
+  * `set` <OBJECT> {<FIELD> <VALUE>}:
+  Updates values for members of an existing object.
+
+  * `delete` <OBJECT>:
+  Deletes an existing object.
+
+  * `pusht` <TENANT>:
+  Changes the currently active tenant id.
+
+  * `popt`:
+  Sets the currently active tenant id to the previous one.
+
+  * `debug` `on`|`off`:
+  Toggles debug mode.
 
 ## OBJECT ALIASES
 
@@ -34,32 +85,28 @@ For example, listing the routers in a virtual topology will create an alias for
 each of them, they can be used later interchangeably anywhere a UUID would be
 needed:
 
-Listing the routers in the system:
+  * Listing the routers in the system:
+    midonet> router list<br>
+    router router0 name demo<br>
+    router router1 name MidonetProviderRouter
 
-midonet> router list<br>
-router router0 name demo<br>
-router router1 name MidonetProviderRouter
+  * Showing the UUID of one of the routers:
+    midonet> router router1 show id<br>
+    74b32ca0-cc7f-4d17-8547-efa5f1fada54
 
-Showing the UUID of one of the routers:
+  * Listing the ports in a router:
+    midonet> router router1 list port<br>
+    port port0 type exterior device router1 mac 02:d6:2b:08:85:6f \ <br>
+            address 192.0.2.1 net 192.0.2.0/24<br>
+    port port1 type interior device router1 mac 02:78:16:e6:00:8a \ <br>
+            address 203.0.113.1 net 203.0.113.0/24 peer bridge0:port0
 
-midonet> router router1 show id<br>
-74b32ca0-cc7f-4d17-8547-efa5f1fada54
-
-Listing the ports in a router:
-
-midonet> router router1 list port<br>
-port port0 type exterior device router1 mac 02:d6:2b:08:85:6f \ <br>
-        address 192.0.2.1 net 192.0.2.0/24<br>
-port port1 type interior device router1 mac 02:78:16:e6:00:8a \ <br>
-        address 203.0.113.1 net 203.0.113.0/24 peer bridge0:port0
-
-The same command, using the UUID instead of the router alias:
-
-midonet> router 74b32ca0-cc7f-4d17-8547-efa5f1fada54 list port<br>
-port port0 type exterior device router1 mac 02:d6:2b:08:85:6f \ <br>
-        address 192.0.2.1 net 1.0.2.0/24<br>
-port port1 type interior device router1 mac 02:78:16:e6:00:8a \ <br>
-        address 203.0.113.1 net 203.0.113.0/24 peer bridge0:port0
+  * The same command, using the UUID instead of the router alias:
+    midonet> router 74b32ca0-cc7f-4d17-8547-efa5f1fada54 list port<br>
+    port port0 type exterior device router1 mac 02:d6:2b:08:85:6f \ <br>
+            address 192.0.2.1 net 1.0.2.0/24<br>
+    port port1 type interior device router1 mac 02:78:16:e6:00:8a \ <br>
+            address 203.0.113.1 net 203.0.113.0/24 peer bridge0:port0
 
 Aliases for children are scoped to their parent object. In this case, a port's
 alias is scoped within its parent router, thus there could be a <router0:port0>
