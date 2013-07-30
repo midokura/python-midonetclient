@@ -7,7 +7,17 @@
 # This special exception was added by Craig Small in version 0.37 of dh-make.
 
 # Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
+# export DH_VERBOSE=1
 
 %:
 	dh $@ --parallel --with autotools-dev,python-support
+
+override_dh_auto_build:
+	ronn < doc/midonet-cli.1.ronn > doc/midonet-cli.1
+	ronn < doc/midonet-cli-router.1.ronn > doc/midonet-cli-router.1
+	ronn < doc/midonet-cli-bridge.1.ronn > doc/midonet-cli-bridge.1
+	ronn < doc/midonet-cli-chain.1.ronn > doc/midonet-cli-chain.1
+	ronn < doc/midonet-cli-host.1.ronn > doc/midonet-cli-host.1
+	ronn < doc/midonet-cli-tunnel-zone.1.ronn > doc/midonet-cli-tunnel-zone.1
+	ronn < doc/midonet-cli-port-group.1.ronn > doc/midonet-cli-port-group.1
+	ronn < doc/midonet-cli-trace-condition.1.ronn > doc/midonet-cli-trace-condition.1
