@@ -137,16 +137,16 @@ Miscellaneous options:
 ## ENVIRONMENT
 
   * `MIDO_API_URL`:
-    The URL for the MidoNet's REST API (see `FILES` above).
+    The URL for the MidoNet's REST API (see [FILES][] above).
 
   * `MIDO_USER`:
-    REST API user name (see `FILES` above).
+    REST API user name (see [FILES][] above).
 
   * `MIDO_PROJECT_ID`:
-    The OpenStack project id (see `FILES` above).
+    The OpenStack project id (see [FILES][] above).
 
   * `MIDO_TENANT`:
-    Tenant name (see `FILES` above).
+    Tenant name (see [FILES][] above).
 
 ## EXAMPLES
 

@@ -3,10 +3,10 @@ midonet-cli-host(1) -- Host objects in midonet-cli
 
 ## SYNOPSIS
 
-midonet> host list<br>
-midonet> host host0 list interface<br>
-midonet> host host0 list binding<br>
-midonet> host host0 add binding interface eth0 port router0:port0
+    midonet> host list
+    midonet> host host0 list interface
+    midonet> host host0 list binding
+    midonet> host host0 add binding interface eth0 port router0:port0
 
 ## DESCRIPTION
 
@@ -19,33 +19,33 @@ ports.
 
 A host has these attributes:
 
-  * name <STRING>
-  * alive <BOOLEAN>
-  * addreses <IP_ADDRESS[,IP_ADRESS...]>
+  * `name` <STRING>
+  * `alive` <BOOLEAN>
+  * `addreses` <IP_ADDRESS[,IP_ADRESS...]>
 
 It contains these subcollections of elements:
 
-  * interface (see `NETWORK INTERFACES` below)
-  * binding (see `INTERFACE TO VIRTUAL PORT BINDINGS` below)
+  * `interface` (see [NETWORK INTERFACES] below)
+  * `binding` (see [INTERFACE TO VIRTUAL PORT BINDINGS] below)
 
 ## NETWORK INTERFACES
 
 Attributes:
 
-  * iface <STRING>
-  * status <STATUS>
-  * addresses <IP_ADDRESS[,IP_ADDRESS...]>
-  * mac <MAC_ADDRESS>
-  * mtu <INTEGER>
-  * type <STRING>
-  * endpoint <STRING>
+  * `iface` <STRING>
+  * `status` <STATUS>
+  * `addresses` <IP_ADDRESS[,IP_ADDRESS...]>
+  * `mac` <MAC_ADDRESS>
+  * `mtu` <INTEGER>
+  * `type` <STRING>
+  * `endpoint` <STRING>
 
 ## INTERFACE TO VIRTUAL PORT BINDINGS
 
 Attributes:
 
-  * interface <STRING>
-  * port <PORT>
+  * `interface` <STRING>
+  * `port` <PORT>
 
 ## COPYRIGHT
 
