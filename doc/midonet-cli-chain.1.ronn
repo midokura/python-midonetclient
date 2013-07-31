@@ -32,20 +32,20 @@ Attributes:
     The rule position in the chain.
 
   * `type` <TYPE>:
-    The rule <TYPE>, mostly used to distinguish between regular filtering rules
-    and different types of nat rules. The recognized <TYPE> values are:
-    <accept>, <continue>, <drop>, <jump>, <reject>, <return>, <dnat>, <snat>,
-    <rev_dnat>, <rev_snat>.
+    The rule <TYPE>; this is mostly used to distinguish between regular
+    filtering rules and different types of NAT rules. The recognized <TYPE>
+    values are: `accept`, `continue`, `drop`, `jump`, `reject`, `return`,
+    `dnat`, `snat`, `rev_dnat`, `rev_snat`.
 
   * `action` `accept`|`continue`|`return`:
-    The rule action, meaningful for nat rules only.
+    The rule action, meaningful for NAT rules only.
 
   * `jump-to` <CHAIN>:
     The chain to jump to if this is a jump rule.
 
   * `target` <IP_ADDRESS[-IP_ADDRESS][:INTEGER[-INTEGER]]>:
-    The nat target if this is a `dnat` or `snat` rule. At least one IP address
-    must be given, optionally the nat target may also contain a second address
+    The NAT target if this is a `dnat` or `snat` rule. At least one IP address
+    must be given, optionally the NAT target may also contain a second address
     to form an address range and L4 port number or range of ports.
 
 These attributes perform matches on the packet:

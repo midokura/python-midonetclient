@@ -12,8 +12,8 @@ midonet-cli-tunnel-zone(1) -- Host objects in midonet-cli
 Tunnel zones define groups of hosts that share the same zone in the underlay,
 enabling them to forward MidoNet traffic among themselves. In other words,
 traffic ingressing MidoNet can only egress through hosts that belong to the
-same tunnel zone as the ingress host, otherwise they are because no exit path
-exists.
+same tunnel zone as the ingress host, otherwise the traffic is dropped
+because no exit path exists.
 
 ## ATTRIBUTES
 

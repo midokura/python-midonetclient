@@ -45,7 +45,7 @@ collections:
 ## COMMANDS
 
   * `describe` [<OBJECT>] [<TYPE>]:
-  Show the names of members of an object or object type.
+  Shows the names of members of an object or object type.
 
   * `list` [<OBJECT>] <TYPE>:
   Lists all the objects in a collection.
@@ -54,7 +54,7 @@ collections:
   Prints the contents of an object or of one of its members.
 
   * `create`|`add` [<OBJECT>] <TYPE> {<FIELD> <VALUE>}:
-  Creates a new object under a parent object, or at the root, assigning values
+  Creates a new object under a parent object, or at the root, and assigns values
   to some of its members.
 
   * `set` <OBJECT> {<FIELD> <VALUE>}:
@@ -64,10 +64,10 @@ collections:
   Deletes an existing object.
 
   * `pusht` <TENANT>:
-  Changes the currently active tenant id.
+  Changes the currently active tenant ID.
 
   * `popt`:
-  Sets the currently active tenant id to the previous one.
+  Sets the currently active tenant ID to the previous one.
 
   * `debug` `on`|`off`:
   Toggles debug mode.
@@ -104,7 +104,7 @@ needed:
   * The same command, using the UUID instead of the router alias:
     midonet> router 74b32ca0-cc7f-4d17-8547-efa5f1fada54 list port<br>
     port port0 type exterior device router1 mac 02:d6:2b:08:85:6f \ <br>
-    address 192.0.2.1 net 1.0.2.0/24<br>
+    address 192.0.2.1 net 192.0.2.0/24<br>
     port port1 type interior device router1 mac 02:78:16:e6:00:8a \ <br>
     address 203.0.113.1 net 203.0.113.0/24 peer bridge0:port0
 
@@ -190,7 +190,7 @@ Miscellaneous options:
     REST API user name (see [FILES][] above).
 
   * `MIDO_PROJECT_ID`:
-    The OpenStack project id (see [FILES][] above).
+    The OpenStack project ID (see [FILES][] above).
 
   * `MIDO_TENANT`:
     Tenant name (see [FILES][] above).
