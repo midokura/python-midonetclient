@@ -79,15 +79,16 @@ These attributes perform matches on the packet:
 
   * `flow` `fwd-flow`|`return-flow>:
     This flag will match the connection tracking status of the packet. If the
-    packet is starting a new connection `fwd-flow` will match it, if the packet
-    belongs to a connection already known to MidoNet, `return-flow` will match
-    it.
+    packet is starting a new connection,`fwd-flow` will match. Alternatively,
+    if the packet belongs to a connection already known to MidoNet,
+    `return-flow` will match.
 
   * `port-group` [!]<PORT_GROUP>:
     Match a port group (see midonet-cli-port-group(1)).
 
   * `in-ports` [!]<PORT[,PORT...]>:
-    Matches the port through which the packet ingressed the virtual device
+    Matches the virtual port (see midonet-cli-router(1) and
+    midonet-cli-bridge(1)) through which the packet ingressed the virtual device
     that is currently processing the packet.
 
   * `out-ports` [!]<PORT[,PORT...]>:
