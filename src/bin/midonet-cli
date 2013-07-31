@@ -1338,6 +1338,21 @@ class Router(ObjectType):
     def type_name(self):
         return "router"
 
+class Tenant(ObjectType):
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+
+        # Since alias provides no value for tenants, clear the id attribute
+        # and rename the actual id field of the tenant model so that its
+        # actual id is printed out instead of alias.
+        self.clear_attrs()
+        self.put_attr(SingleAttr(name = 'tenant_id',
+                                 value_type = StringType(),
+                                 getter = 'get_id',
+                                 setter = 'id'))
+    def type_name(self):
+        return "tenant"
+
 class Bridge(ObjectType):
     def __init__(self, obj):
         ObjectType.__init__(self, obj)
@@ -1735,6 +1750,10 @@ class Midonet(ObjectType):
                                              getter = 'get_trace_condition',
                                              list_with_tenant = False,
                                              factory_method = 'add_trace_condition'))
+        ObjectType.put_attr(self, Collection(name = 'tenant',
+                                             element_type = Tenant,
+                                             list_method = 'get_tenants'))
+
 
 ################################################################################
 # Grammar tokens

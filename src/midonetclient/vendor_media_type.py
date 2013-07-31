@@ -21,6 +21,8 @@
 
 APPLICATION_JSON = "application/vnd.org.midonet.Application-v1+json"
 APPLICATION_ERROR_JSON = "application/vnd.org.midonet.Error-v1+json"
+APPLICATION_TENANT_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.Tenant-v1+json"
 APPLICATION_ROUTER_JSON = "application/vnd.org.midonet.Router-v1+json"
 APPLICATION_ROUTER_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Router-v1+json"
