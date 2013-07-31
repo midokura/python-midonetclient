@@ -194,6 +194,18 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.delete_trace_condition(id_)
 
+    def get_trace_ids(self, query=None):
+        self._ensure_application()
+        return self.app.get_trace_ids(query)
+
+    def get_trace_messages(self, id_):
+        self._ensure_application()
+        return self.app.get_trace_messages(id_)
+
+    def delete_trace_messages(self, id_):
+        self._ensure_application()
+        return self.app.delete_trace_messages(id_)
+
     def _ensure_application(self):
         if self.app is None:
             self.app = Application(None, {'uri': self.base_uri}, self.auth)
