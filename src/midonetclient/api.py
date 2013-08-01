@@ -149,6 +149,10 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.get_rule(id_)
 
+    def get_tenant(self, id_):
+        self._ensure_application()
+        return self.app.get_tenant(id_)
+
     def add_router(self):
         self._ensure_application()
         return self.app.add_router()
@@ -249,14 +253,14 @@ if __name__ == '__main__':
     api.get_routers({'tenant_id': 'non-existent'})
     api.get_router(router1.get_id())
 
-    router2 = api.add_router().name('router-2').tenant_id(tenant_id)\
-                  .outbound_filter_id(random_uuid).create()
+    router2 = api.add_router().name('router-2').tenant_id(
+        tenant_id).outbound_filter_id(random_uuid).create()
 
     router1.name('router1-changed').update()
 
     api.get_router(router1.get_id())
 
-    for r in  api.get_routers({'tenant_id': tenant_id}):
+    for r in api.get_routers({'tenant_id': tenant_id}):
         print '--------', r.get_name()
         print 'id: ', r.get_id()
         print 'inboundFilterId: ', r.get_inbound_filter_id()
@@ -264,11 +268,34 @@ if __name__ == '__main__':
 
     api.get_router(router1.get_id())
 
+    print '-------- Tenants ------'
+    tenants = api.get_tenants(query={})
+    for t in tenants:
+        print 'id: ',  t.get_id()
+        print 'name: ', t.get_name()
+
+        print '----- Tenant by ID ------'
+        t = api.get_tenant(t.get_id())
+        print 'id: ',  t.get_id()
+        print 'name: ', t.get_name()
+
+    # Tenant routers
+    print '-------- Tenant Routers ------'
+    for t in tenants:
+        for r in t.get_routers():
+            print 'id: ',  r.get_id()
+
     # Routers/Ports
 
     # port group1
     pg1 = api.add_port_group().tenant_id(tenant_id).name('pg-1').create()
     pg2 = api.add_port_group().tenant_id(tenant_id).name('pg-2').create()
+
+    # Tenant port groups
+    print '-------- Tenant port groups ------'
+    for t in tenants:
+        for p in t.get_port_groups():
+            print 'id: ',  p.get_id()
 
     rp1 = router1.add_exterior_port()\
                  .port_address('2.2.2.2')\
@@ -315,7 +342,7 @@ if __name__ == '__main__':
                              .nw_prefix_length(24)\
                              .create()
 
-    for ar in  bgp1.get_ad_routes():
+    for ar in bgp1.get_ad_routes():
         print 'advertised route--------'
         print '\t', ar.get_id()
         print '\t', ar.get_nw_prefix()
@@ -330,13 +357,19 @@ if __name__ == '__main__':
     bridge2 = api.add_bridge().name('bridge-2').tenant_id(
         tenant_id).inbound_filter_id(random_uuid).create()
 
-    for b in  api.get_bridges({'tenant_id': tenant_id}):
+    for b in api.get_bridges({'tenant_id': tenant_id}):
         print '--------', b.get_name()
         print 'id: ', b.get_id()
         print 'inboundFilterId: ', b.get_inbound_filter_id()
         print 'outboundFilterId: ', b.get_outbound_filter_id()
 
     print api.get_bridge(bridge1.get_id())
+
+    # Tenant bridges
+    print '-------- Tenant Bridges ------'
+    for t in tenants:
+        for b in t.get_bridges():
+            print 'id: ',  b.get_id()
 
     # Bridges/Ports
     bp1 = bridge1.add_exterior_port().inbound_filter_id(random_uuid).create()
@@ -362,8 +395,8 @@ if __name__ == '__main__':
     dhcp1 = bridge1.add_dhcp_subnet().default_gateway('10.10.10.1')\
                    .subnet_prefix('10.10.10.0').subnet_length(24).create()
 
-    dhcp2 = bridge1.add_dhcp_subnet().default_gateway('11.11.11.1')\
-                    .subnet_prefix('11.11.11.0').subnet_length(24).create()
+    dhcp2 = bridge1.add_dhcp_subnet().default_gateway(
+        '11.11.11.1').subnet_prefix('11.11.11.0').subnet_length(24).create()
 
     dhcp1.add_dhcp_host().name('host-1').ip_addr('10.10.10.2')\
                          .mac_addr('00:00:00:aa:bb:cc').create()
@@ -419,6 +452,12 @@ if __name__ == '__main__':
         print '------- chain: ', c.get_name()
         print c.get_id()
 
+    # Tenant chains
+    print '-------- Tenant Chains -----'
+    for t in tenants:
+        for c in t.get_chains():
+            print 'id: ',  c.get_id()
+
     rule1 = chain1.add_rule().type('accept').create()
     rule2 = chain1.add_rule().type('reject').create()
 
@@ -426,11 +465,10 @@ if __name__ == '__main__':
                     'addressTo': '192.168.100.10',
                     'portFrom': 80,
                     'portTo': 80},
-                  {'addressFrom': '192.168.100.20',
+                   {'addressFrom': '192.168.100.20',
                     'addressTo': '192.168.100.30',
                     'portFrom': 80,
-                    'portTo': 80},
-                  ]
+                    'portTo': 80}]
 
     rule3 = chain1.add_rule().type('dnat').nw_dst_address('1.1.1.1')\
                              .nw_dst_length(32)\
@@ -443,12 +481,6 @@ if __name__ == '__main__':
 
     chain1.delete()
     chain2.delete()
-
-    # Tenants
-    print '-------- Tenants ------'
-    for t in api.get_tenants():
-        print 'id: ',  t.get_id()
-        print 'name: ', t.get_name()
 
     # Trace conditions
     tCond1 = add_trace_condition().nw_src_address('5.5.5.5').create()

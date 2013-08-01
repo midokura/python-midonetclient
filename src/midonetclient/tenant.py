@@ -19,12 +19,16 @@
 
 
 from midonetclient import vendor_media_type
+from midonetclient.bridge import Bridge
+from midonetclient.chain import Chain
+from midonetclient.port_group import PortGroup
 from midonetclient.resource_base import ResourceBase
+from midonetclient.router import Router
 
 
 class Tenant(ResourceBase):
 
-    media_type = vendor_media_type.APPLICATION_TENANT_COLLECTION_JSON
+    media_type = vendor_media_type.APPLICATION_TENANT_JSON
 
     def __init__(self, uri, dto, auth):
         super(Tenant, self).__init__(uri, dto, auth)
@@ -42,3 +46,24 @@ class Tenant(ResourceBase):
     def name(self, name):
         self.dto['name'] = name
         return self
+
+    def get_bridges(self, query=None):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_BRIDGE_COLLECTION_JSON}
+        return self.get_children(self.dto['bridges'], query, headers, Bridge)
+
+    def get_chains(self, query=None):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_CHAIN_COLLECTION_JSON}
+        return self.get_children(self.dto['chains'], query, headers, Chain)
+
+    def get_port_groups(self, query=None):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_PORTGROUP_COLLECTION_JSON}
+        return self.get_children(self.dto['portGroups'], query, headers,
+                                 PortGroup)
+
+    def get_routers(self, query=None):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_ROUTER_COLLECTION_JSON}
+        return self.get_children(self.dto['routers'], query, headers, Router)

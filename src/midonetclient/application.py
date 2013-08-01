@@ -36,6 +36,7 @@ from midonetclient.tenant import Tenant
 from midonetclient.tunnel_zone import TunnelZone
 from midonetclient.trace_condition import TraceCondition
 
+
 class Application(ResourceBase):
 
     media_type = vendor_media_type.APPLICATION_JSON
@@ -73,6 +74,9 @@ class Application(ResourceBase):
 
     def get_rule_template(self):
         return self.dto['ruleTemplate']
+
+    def get_tenant_template(self):
+        return self.dto['tenantTemplate']
 
     def get_tunnel_zone_template(self):
         return self.dto['tunnelZoneTemplate']
@@ -133,7 +137,8 @@ class Application(ResourceBase):
         return self._delete_resource_by_id(self.get_bgp_template(), id_)
 
     def get_bgp(self, id_):
-        return self._get_resource_by_id(Bgp, None, self.get_bgp_template(), id_)
+        return self._get_resource_by_id(Bgp, None, self.get_bgp_template(),
+                                        id_)
 
     def delete_bridge(self, id_):
         return self._delete_resource_by_id(self.get_bridge_template(), id_)
@@ -188,6 +193,10 @@ class Application(ResourceBase):
         return self._get_resource_by_id(Rule, None, self.get_rule_template(),
                                         id_)
 
+    def get_tenant(self, id_):
+        return self._get_resource_by_id(Tenant, self.dto['tenants'],
+                                        self.get_tenant_template(), id_)
+
     def add_router(self):
         return Router(self.dto['routers'], {}, self.auth)
 
@@ -213,8 +222,8 @@ class Application(ResourceBase):
         return TunnelZone(
             self.dto['tunnelZones'], {'type': 'capwap'}, self.auth,
             vendor_media_type.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON,
-            vendor_media_type.\
-                APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON)
+            vendor_media_type.
+            APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON)
 
     # Trace condition operations
     def add_trace_condition(self):
@@ -223,14 +232,18 @@ class Application(ResourceBase):
     def get_trace_conditions(self, query):
         headers = {'Accept':
                    vendor_media_type.APPLICATION_CONDITION_COLLECTION_JSON}
-        return self.get_children(self.dto['traceConditions'], query, headers, TraceCondition)
+        return self.get_children(self.dto['traceConditions'], query, headers,
+                                 TraceCondition)
 
     def get_trace_condition(self, id_):
-        return self._get_resource_by_id(TraceCondition, self.dto['traceConditions'],
-                                        self.get_trace_condition_template(), id_)
+        return self._get_resource_by_id(TraceCondition,
+                                        self.dto['traceConditions'],
+                                        self.get_trace_condition_template(),
+                                        id_)
 
     def delete_trace_condition(self, id_):
-        return self._delete_resource_by_id(self.get_trace_condition_template(), id_)
+        return self._delete_resource_by_id(self.get_trace_condition_template(),
+                                           id_)
 
     def _create_uri_from_template(self, template, token, value):
         return template.replace(token, value)
@@ -239,7 +252,8 @@ class Application(ResourceBase):
         uri = self._create_uri_from_template(template,
                                              self.ID_TOKEN,
                                              id_)
-        res, dto = self.auth.do_request(uri, 'GET',
+        res, dto = self.auth.do_request(
+            uri, 'GET',
             headers={'Accept': vendor_media_type.APPLICATION_PORT_JSON})
 
         if dto['type'].endswith('Router'):
