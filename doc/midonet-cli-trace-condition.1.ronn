@@ -1,0 +1,26 @@
+midonet-cli-trace-condition(1) -- Packet tracing objects in midonet-cli
+=======================================================================
+
+## SYNOPSIS
+
+    midonet> trace-condition list
+    midonet> trace-condition create in-ports router0:port0
+
+## DESCRIPTION
+
+Trace conditions control MidoNet's packet tracing. A trace condition is a rule
+that uses the same types of matches found in chain rules (midonet-cli-chain(1)).
+When MidoNet processes a packet that matches a trace condition it will trace the
+packet's path through the virtual topology.
+
+## ATTRIBUTES
+
+See a rule's match attributes in midonet-cli-chain(1).
+
+## COPYRIGHT
+
+midonet-cli is Copyright (C) 2013 Midokura PTE LTD.
+
+## SEE ALSO
+
+midonet-cli(1), midonet-cli-chain(1)
