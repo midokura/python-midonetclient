@@ -674,65 +674,63 @@ class NatTarget(SingleAttr):
         func(api_val)
 
 class L4PortRange(SingleAttr):
-    def __init__(self, name, value_type,
-                 start_getter,
-                 end_getter,
-                 start_setter = None,
-                 end_setter = None,
+    def __init__(self, name,
+                 getter,
+                 setter = None,
                  writeable = True,
                  show = True,
                  optional = False,
                  inv_getter = None,
                  inv_setter = None):
-        SingleAttr.__init__(self, name, value_type,
-                            getter = None,
-                            setter = None,
+        SingleAttr.__init__(self, name, StringType(),
+                            getter = getter,
+                            setter = setter,
                             writeable = writeable,
                             show = show,
                             optional = optional,
                             inv_getter = inv_getter,
                             inv_setter = inv_setter)
-        self.start_getter = start_getter
-        self.start_setter = start_setter
-        self.end_getter = end_getter
-        self.end_setter = end_setter
+
+    def _api_to_cli(self, value):
+        if not value:
+            return None
+        if not isinstance(value, dict):
+            raise Exception("Bug: expected a dict, received '%s'" % (value))
+
+        if value.has_key('start') and value['start']:
+            pstr = value['start']
+            if value.has_key('end') and value['end']:
+                if value['end'] != value['start']:
+                    pstr = "%s-%s" % (pstr, value['end'])
+            return pstr
+        return None
+
+    def _cli_to_api(self, value):
+        prange = {}
+        ports = map(lambda s: s.strip(), value.split('-'))
+        if len(ports) > 2 or len(ports) < 1:
+            raise Exception("Invalid port range: %s" % (value))
+
+        prange['start'] = ports[0]
+        prange['end'] = ports[0]
+        if len(ports) == 2:
+            prange['end'] = ports[1]
+        return prange
 
     def fetch(self, obj):
-        start = None
         try:
-            func = obj.reflect(self.start_getter)
-            start = func()
-            func = obj.reflect(self.end_getter)
-            end = func()
+            func = obj.reflect(self.getter)
+            return self.fetch_inv(obj, self._api_to_cli(func()))
         except KeyError as e:
-            pass
-        if start is None:
             return None
-
-        v = start
-        if end is not None and end != start:
-            v = "%s:%s" % (start, end)
-        return self.fetch_inv(obj, v)
 
     def set(self, obj, value):
         v = self.set_inv(obj, value)
-        values = v.split(':')
-        if len(values) == 1:
-            values.append(values[0])
-
-        if len(values) != 2:
-            raise Exception("Invalid port range: %s" % v)
-        if not L4PortNumber().is_valid(values[0]):
-            raise Exception("Invalid port range: %s" % v)
-        if not L4PortNumber().is_valid(values[1]):
-            raise Exception("Invalid port range: %s" % v)
-        if int(values[1]) < int(values[0]):
-            raise Exception("Invalid port range: %s" % v)
-
-        func = obj.reflect(self.start_setter)
-        func(values[0])
-        func = obj.reflect(self.end_setter)
-        func(values[1])
+        api_val = self._cli_to_api(v)
+        if api_val is None:
+            raise Exception("Invalid value field %s: %s" % (self.name, value))
+        func = obj.reflect(self.setter)
+        func(api_val)
 
 class Collection(Attr):
     def __init__(self, name, element_type, list_method,
@@ -1450,20 +1448,14 @@ class Rule(ObjectType):
                                  inv_setter = 'inv_nw_tos',
                                  optional = True))
         self.put_attr(L4PortRange(name = 'src-port',
-                                  value_type = StringType(),
-                                  start_getter = 'get_tp_src_start',
-                                  end_getter = 'get_tp_src_end',
-                                  start_setter = 'tp_src_start',
-                                  end_setter = 'tp_src_end',
+                                  getter = 'get_tp_src',
+                                  setter = 'tp_src',
                                   inv_getter = 'is_inv_tp_src',
                                   inv_setter = 'inv_tp_src',
                                   optional = True))
         self.put_attr(L4PortRange(name = 'dst-port',
-                                  value_type = StringType(),
-                                  start_getter = 'get_tp_dst_start',
-                                  end_getter = 'get_tp_dst_end',
-                                  start_setter = 'tp_dst_start',
-                                  end_setter = 'tp_dst_end',
+                                  getter = 'get_tp_dst',
+                                  setter = 'tp_dst',
                                   inv_getter = 'is_inv_tp_dst',
                                   inv_setter = 'inv_tp_dst',
                                   optional = True))
