@@ -31,10 +31,10 @@ LOG = logging.getLogger(__name__)
 class MidonetApi(object):
 
     def __init__(self, base_uri, username, password, project_id=None):
-        self.base_uri = base_uri
+        self.base_uri = base_uri.rstrip('/')
         self.project_id = project_id
         self.app = None
-        self.auth = auth_lib.Auth(base_uri + '/login', username, password,
+        self.auth = auth_lib.Auth(self.base_uri + '/login', username, password,
                                   project_id)
 
     def get_tenants(self, query):
