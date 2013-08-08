@@ -1,7 +1,7 @@
-Name:       python-midonet-client
+Name:       python-midonetclient
 Epoch:      1
-Version:    1.0.99_rc5
-Release:    0 
+Version:    1.1.0
+Release:    1.0
 Summary:    Python client for MidoNet REST API.
 Group:      Development/Languages
 License:    Test
@@ -25,6 +25,7 @@ cp -r src/midonetclient/ $RPM_BUILD_ROOT/%{python_sitelib}/
 %{python_sitelib}/midonetclient
 
 %changelog
+* Thu Aug 8 2013 Guillermo Ontanon <guillermo@midokura.com> - 1.1.0-1.0
 * Mon Aug 5 2013 Guillermo Ontanon <guillermo@midokura.com> - 1.0.99-rc5
 * Thu Jul 18 2013 Takaaki Suzuki <suzuki@midokura.com> - 1.0.99-rc3
 - Initial package
