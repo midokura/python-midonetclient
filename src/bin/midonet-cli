@@ -2840,6 +2840,7 @@ class List(Command):
 
 class MidonetCLI(cmd.Cmd):
     prompt = 'midonet> '
+    lastCommandSucceeded = True
 
     def __init__(self, root):
         readline.set_completer_delims("")
@@ -2901,6 +2902,7 @@ class MidonetCLI(cmd.Cmd):
             raise Exception("parser bug")
 
     def default(self, line):
+        self.lastCommandSucceeded = False
         try:
             args = shsplit(line)
         except:
@@ -2914,6 +2916,7 @@ class MidonetCLI(cmd.Cmd):
                 result = self.match_command(context, op.patterns())
                 if isinstance(result, MatchingContext):
                     op.do(result.parsed_tokens())
+                    self.lastCommandSucceeded = True
                     return False
                 elif isinstance(result, ParsingSubmatch):
                     error = error.best_match(result)
@@ -3003,6 +3006,7 @@ if __name__ == '__main__':
             cli.onecmd(session.command)
         else:
             cli.cmdloop()
+        sys.exit(0 if cli.lastCommandSucceeded else 1)
     except Exception as e:
         sys.stderr.write(e.message + "\n")
-        sys.exit(1)
+        sys.exit(2)
