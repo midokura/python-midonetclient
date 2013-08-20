@@ -101,7 +101,7 @@ class Bridge(ResourceBase):
             if ds.get_subnet_prefix() == prefix and \
                     ds.get_subnet_length() == int(length):
                 return ds
-        raise LookupError('subnet=%r not found' % subnet_str)
+        return None
 
     def add_port(self):
         return Port(self.dto['ports'],
