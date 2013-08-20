@@ -79,7 +79,7 @@ class Auth:
         Login the user if the global _token variable is not set.
         '''
         global _token
-        if _token == None or force:
+        if _token is None or force:
             self.login()
         return _token
 

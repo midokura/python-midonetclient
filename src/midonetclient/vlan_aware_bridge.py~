@@ -21,10 +21,10 @@
 
 from midonetclient import port_type
 from midonetclient import vendor_media_type
-from midonetclient.port import Port
+from midonetclient.bridge_port import BridgePort
 from midonetclient.dhcp_subnet import DhcpSubnet
-from midonetclient.port import Port
 from midonetclient.resource_base import ResourceBase
+from midonetclient.router_port import RouterPort
 
 
 class Bridge(ResourceBase):
@@ -66,28 +66,34 @@ class Bridge(ResourceBase):
         return self
 
     def get_ports(self, query=None):
-        if query is None:
+        if query == None:
             query = {}
         headers = {'Accept':
-                   vendor_media_type.APPLICATION_PORT_V2_COLLECTION_JSON}
-        return self.get_children(self.dto['ports'], query, headers, Port)
+                       vendor_media_type.APPLICATION_PORT_COLLECTION_JSON}
+        return self.get_children(self.dto['ports'], query, headers, BridgePort)
 
     def get_peer_ports(self, query=None):
-        if query is None:
+        if query == None:
             query = {}
         headers = {'Accept':
-                   vendor_media_type.APPLICATION_PORT_V2_COLLECTION_JSON}
+                       vendor_media_type.APPLICATION_PORT_COLLECTION_JSON}
         res, peer_ports = self.auth.do_request(self.dto['peerPorts'], 'GET',
                                                headers=headers, query=query)
+
         res = []
         for pp in peer_ports:
-            res.append(Port(self.dto['ports'], pp, self.auth))
+            if pp['type'] == port_type.INTERIOR_ROUTER:
+                res.append(RouterPort(self.dto['ports'], pp, self.auth))
+            elif pp['type'] == port_type.INTERIOR_BRIDGE:
+                res.append(BridgePort(self.dto['ports'], pp, self.auth))
         return res
 
     def get_dhcp_subnets(self):
         query = {}
-        headers = {'Accept':
-                   vendor_media_type.APPLICATION_DHCP_SUBNET_COLLECTION_JSON}
+        headers = {
+            'Accept':
+                vendor_media_type.APPLICATION_DHCP_SUBNET_COLLECTION_JSON
+            }
         return self.get_children(self.dto['dhcpSubnets'], query, headers,
                                  DhcpSubnet)
 
@@ -103,9 +109,13 @@ class Bridge(ResourceBase):
                 return ds
         raise LookupError('subnet=%r not found' % subnet_str)
 
-    def add_port(self):
-        return Port(self.dto['ports'],
-                    {'type': port_type.BRIDGE}, self.auth)
+    def add_interior_port(self):
+        return BridgePort(self.dto['ports'],
+                          {'type': port_type.INTERIOR_BRIDGE}, self.auth)
+
+    def add_exterior_port(self):
+        return BridgePort(self.dto['ports'],
+                          {'type': port_type.EXTERIOR_BRIDGE}, self.auth)
 
     def add_dhcp_subnet(self):
         return DhcpSubnet(self.dto['dhcpSubnets'], {}, self.auth)

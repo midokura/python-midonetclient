@@ -17,18 +17,18 @@
 #
 # @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
-# @author: Artem Dmytrenko <art@midokura.com>, Midokura
+
 
 from midonetclient import vendor_media_type
 from midonetclient.resource_base import ResourceBase
 
 
-class TraceCondition(ResourceBase):
+class Rule(ResourceBase):
 
-    media_type = vendor_media_type.APPLICATION_CONDITION_JSON
+    media_type = vendor_media_type.APPLICATION_RULE_JSON
 
     def __init__(self, uri, dto, auth):
-        super(TraceCondition, self).__init__(uri, dto, auth)
+        super(Rule, self).__init__(uri, dto, auth)
 
     def is_cond_invert(self):
         return self.dto['condInvert']
@@ -75,6 +75,9 @@ class TraceCondition(ResourceBase):
     def is_match_return_flow(self):
         return self.dto['matchReturnFlow']
 
+    def get_chain_id(self):
+        return self.dto['chainId']
+
     def get_dl_dst(self):
         return self.dto['dlDst']
 
@@ -84,11 +87,23 @@ class TraceCondition(ResourceBase):
     def get_dl_type(self):
         return self.dto['dlType']
 
+    def get_flow_action(self):
+        return self.dto['flowAction']
+
     def get_id(self):
         return self.dto['id']
 
     def get_in_ports(self):
         return self.dto['inPorts']
+
+    def get_jump_chain_name(self):
+        return self.dto['jumpChainName']
+
+    def get_jump_chain_id(self):
+        return self.dto['jumpChainId']
+
+    def get_nat_targets(self):
+        return self.dto['natTargets']
 
     def get_nw_dst_address(self):
         return self.dto['nwDstAddress']
@@ -114,24 +129,27 @@ class TraceCondition(ResourceBase):
     def get_port_group(self):
         return self.dto['portGroup']
 
-    def get_tp_src_start(self):
-        return self.dto['tpSrcStart']
+    def get_position(self):
+        return self.dto['position']
 
-    def get_tp_dst_start(self):
-        return self.dto['tpDstStart']
+    def get_tp_src_range(self):
+        return self.dto['tpSrcRange']
 
-    def get_tp_src_end(self):
-        return self.dto['tpSrcEnd']
+    def get_tp_dst_range(self):
+        return self.dto['tpDstRange']
 
-    def get_tp_dst_end(self):
-        return self.dto['tpDstEnd']
+    def get_properties(self):
+        return self.dto['properties']
+
+    def get_type(self):
+        return self.dto['type']
 
     def inv_port_group(self, inv_port_group):
         self.dto['invPortGroup'] = inv_port_group
         return self
 
-    def tp_src_start(self, tp_src_start):
-        self.dto['tpSrcStart'] = tp_src_start
+    def tp_src_range(self, tp_src_range):
+        self.dto['tpSrcRange'] = tp_src_range
         return self
 
     def dl_src(self, dl_src):
@@ -148,10 +166,6 @@ class TraceCondition(ResourceBase):
 
     def match_forward_flow(self, match_forward_flow):
         self.dto['matchForwardFlow'] = match_forward_flow
-        return self
-
-    def tp_src_end(self, tp_src_end):
-        self.dto['tpSrcEnd'] = tp_src_end
         return self
 
     def inv_tp_src(self, inv_tp_src):
@@ -178,6 +192,10 @@ class TraceCondition(ResourceBase):
         self.dto['invOutPorts'] = inv_out_ports
         return self
 
+    def position(self, position):
+        self.dto['position'] = position
+        return self
+
     def dl_type(self, dl_type):
         self.dto['dlType'] = dl_type
         return self
@@ -198,12 +216,24 @@ class TraceCondition(ResourceBase):
         self.dto['invInPorts'] = inv_in_ports
         return self
 
+    def jump_chain_name(self, jump_chain_name):
+        self.dto['jumpChainName'] = jump_chain_name
+        return self
+
+    def jump_chain_id(self, jump_chain_id):
+        self.dto['jumpChainId'] = jump_chain_id
+        return self
+
     def inv_dl_type(self, inv_dl_type):
         self.dto['invDlType'] = inv_dl_type
         return self
 
     def inv_tp_dst(self, inv_tp_dst):
         self.dto['invTpDst'] = inv_tp_dst
+        return self
+
+    def chain_id(self, chain_id):
+        self.dto['chainId'] = chain_id
         return self
 
     def nw_tos(self, nw_tos):
@@ -234,18 +264,30 @@ class TraceCondition(ResourceBase):
         self.dto['invNwProto'] = inv_nw_proto
         return self
 
+    def properties(self, properties):
+        self.dto['properties'] = properties
+        return self
+
     def cond_invert(self, cond_invert):
         self.dto['condInvert'] = cond_invert
         return self
 
-    def tp_dst_end(self, tp_dst_end):
-        self.dto['tpDstEnd'] = tp_dst_end
+    def tp_dst_range(self, tp_dst_range):
+        self.dto['tpDstRange'] = tp_dst_range
+        return self
+
+    def type(self, type):
+        self.dto['type'] = type
         return self
 
     def inv_dl_src(self, inv_dl_src):
         self.dto['invDlSrc'] = inv_dl_src
         return self
 
-    def tp_dst_start(self, tp_dst_start):
-        self.dto['tpDstStart'] = tp_dst_start
+    def flow_action(self, flow_action):
+        self.dto['flowAction'] = flow_action
+        return self
+
+    def nat_targets(self, nat_targets):
+        self.dto['natTargets'] = nat_targets
         return self

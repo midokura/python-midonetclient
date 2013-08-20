@@ -17,27 +17,22 @@
 #
 # @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
-# @author: Artem Dmytrenko <art@midokura.com>, Midokura
+
 
 from midonetclient import vendor_media_type
 from midonetclient.ad_route import AdRoute
 from midonetclient.bgp import Bgp
 from midonetclient.bridge import Bridge
+from midonetclient.bridge_port import BridgePort
 from midonetclient.chain import Chain
 from midonetclient.host import Host
-from midonetclient.port import Port
 from midonetclient.port_group import PortGroup
 from midonetclient.resource_base import ResourceBase
 from midonetclient.route import Route
 from midonetclient.router import Router
+from midonetclient.router_port import RouterPort
 from midonetclient.rule import Rule
-from midonetclient.tenant import Tenant
 from midonetclient.tunnel_zone import TunnelZone
-from midonetclient.trace_condition import TraceCondition
-from midonetclient.trace import Trace
-from midonetclient.write_version import WriteVersion
-from midonetclient.system_state import SystemState
-from midonetclient.host_version import HostVersion
 
 
 class Application(ResourceBase):
@@ -78,32 +73,6 @@ class Application(ResourceBase):
     def get_rule_template(self):
         return self.dto['ruleTemplate']
 
-    def get_tenant_template(self):
-        return self.dto['tenantTemplate']
-
-    def get_tunnel_zone_template(self):
-        return self.dto['tunnelZoneTemplate']
-
-    def get_trace_condition_template(self):
-        return self.dto['traceConditionTemplate']
-
-    def get_write_version_uri(self):
-        return self.dto['writeVersion']
-
-    def get_system_state_uri(self ):
-        return self.dto['systemState']
-
-    def get_host_versions_uri(self ):
-        return self.dto['hostVersions']
-
-    def get_tenants(self, query):
-        headers = {'Accept':
-                   vendor_media_type.APPLICATION_TENANT_COLLECTION_JSON}
-        return self.get_children(self.dto['tenants'], query, headers, Tenant)
-
-    def get_trace_template(self):
-        return self.dto['traceTemplate']
-
     def get_routers(self, query):
         headers = {'Accept':
                    vendor_media_type.APPLICATION_ROUTER_COLLECTION_JSON}
@@ -132,10 +101,6 @@ class Application(ResourceBase):
         return self.get_children(self.dto['tunnelZones'], query, headers,
                                  TunnelZone)
 
-    def get_tunnel_zone(self, id_):
-        return self._get_resource_by_id(TunnelZone, self.dto['tunnelZones'],
-                                        self.get_tunnel_zone_template(), id_)
-
     def get_hosts(self, query):
         headers = {'Accept':
                    vendor_media_type.APPLICATION_HOST_COLLECTION_JSON}
@@ -152,8 +117,8 @@ class Application(ResourceBase):
         return self._delete_resource_by_id(self.get_bgp_template(), id_)
 
     def get_bgp(self, id_):
-        return self._get_resource_by_id(Bgp, None, self.get_bgp_template(),
-                                        id_)
+        return self._get_resource_by_id(Bgp, self.dto['bgps'],
+                                        self.get_bgp_template(), id_)
 
     def delete_bridge(self, id_):
         return self._delete_resource_by_id(self.get_bridge_template(), id_)
@@ -184,8 +149,8 @@ class Application(ResourceBase):
         return self._delete_resource_by_id(self.get_port_template(), id_)
 
     def get_port(self, id_):
-        return self._get_resource_by_id(Port, None,
-                                        self.get_port_template(), id_)
+        return self._get_port_resource_by_id(None, self.get_port_template(),
+                                             id_)
 
     def delete_route(self, id_):
         return self._delete_resource_by_id(self.get_route_template(), id_)
@@ -208,10 +173,6 @@ class Application(ResourceBase):
         return self._get_resource_by_id(Rule, None, self.get_rule_template(),
                                         id_)
 
-    def get_tenant(self, id_):
-        return self._get_resource_by_id(Tenant, self.dto['tenants'],
-                                        self.get_tenant_template(), id_)
-
     def add_router(self):
         return Router(self.dto['routers'], {}, self.auth)
 
@@ -224,9 +185,6 @@ class Application(ResourceBase):
     def add_chain(self):
         return Chain(self.dto['chains'], {}, self.auth)
 
-    def add_tunnel_zone(self):
-        return TunnelZone(self.dto['tunnelZones'], {}, self.auth)
-
     def add_gre_tunnel_zone(self):
         return TunnelZone(
             self.dto['tunnelZones'], {'type': 'gre'}, self.auth,
@@ -237,64 +195,32 @@ class Application(ResourceBase):
         return TunnelZone(
             self.dto['tunnelZones'], {'type': 'capwap'}, self.auth,
             vendor_media_type.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON,
-            vendor_media_type.
-            APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON)
-
-    # Trace condition operations
-    def add_trace_condition(self):
-        return TraceCondition(self.dto['traceConditions'], {}, self.auth)
-
-    def get_trace_conditions(self, query):
-        headers = {'Accept':
-                   vendor_media_type.APPLICATION_CONDITION_COLLECTION_JSON}
-        return self.get_children(self.dto['traceConditions'], query, headers,
-                                 TraceCondition)
-
-    def get_trace_condition(self, id_):
-        return self._get_resource_by_id(TraceCondition,
-                                        self.dto['traceConditions'],
-                                        self.get_trace_condition_template(),
-                                        id_)
-
-    def delete_trace_condition(self, id_):
-        return self._delete_resource_by_id(self.get_trace_condition_template(),
-                                           id_)
-
-    def get_trace_ids(self, query):
-        headers = {'Accept':
-                    vendor_media_type.APPLICATION_TRACE_COLLECTION_JSON}
-        return self.get_children(self.dto['traces'], query, headers, Trace)
-
-    def get_trace_messages(self, id_):
-        return self._get_resource_by_id(Trace, None,
-                                    self.get_trace_template(), id_)
-
-    def delete_trace_messages(self, id_):
-        return self._delete_resource_by_id(self.get_trace_template(), id_)
-
-    def get_write_version(self):
-        return self._get_resource(WriteVersion, None,
-                                    self.get_write_version_uri())
-
-    def get_system_state(self):
-        return self._get_resource(SystemState, None,
-                                    self.get_system_state_uri())
-
-    def get_host_versions(self, query):
-        headers = {'Accept':
-                   vendor_media_type.APPLICATION_HOST_VERSION_JSON}
-        return self.get_children(self.dto['hostVersions'], \
-                                 query, headers, HostVersion)
+            vendor_media_type.\
+                APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON)
 
     def _create_uri_from_template(self, template, token, value):
         return template.replace(token, value)
+
+    def _get_port_resource_by_id(self, create_uri, template, id_):
+        uri = self._create_uri_from_template(template,
+                                             self.ID_TOKEN,
+                                             id_)
+        res, dto = self.auth.do_request(uri, 'GET',
+            headers={'Accept': vendor_media_type.APPLICATION_PORT_JSON})
+
+        if dto['type'].endswith('Router'):
+            return RouterPort(None, dto, self.auth)
+        elif dto['type'].endswith('Bridge'):
+            return BridgePort(None, dto, self.auth)
 
     def _get_resource_by_id(self, clazz, create_uri,
                             template, id_):
         uri = self._create_uri_from_template(template,
                                              self.ID_TOKEN,
                                              id_)
-        return self._get_resource(clazz, create_uri, uri)
+        return clazz(create_uri, {'uri': uri}, self.auth).get(
+            headers={'Content-Type': clazz.media_type,
+                     'Accept': clazz.media_type})
 
     def _delete_resource_by_id(self, template, id_):
         uri = self._create_uri_from_template(template,

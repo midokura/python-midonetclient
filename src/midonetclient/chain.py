@@ -48,7 +48,7 @@ class Chain(ResourceBase):
     def get_rules(self):
         query = {}
         headers = {'Accept':
-                       vendor_media_type.APPLICATION_RULE_COLLECTION_JSON}
+                   vendor_media_type.APPLICATION_RULE_COLLECTION_JSON}
 
         return self.get_children(self.dto['rules'], query, headers,
                                  Rule)

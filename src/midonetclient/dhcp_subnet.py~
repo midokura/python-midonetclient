@@ -18,10 +18,9 @@
 # @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
-
-from midonetclient import vendor_media_type
-from midonetclient.dhcp_host import DhcpHost
-from midonetclient.resource_base import ResourceBase
+from resource_base import ResourceBase
+from dhcp_host import DhcpHost
+import vendor_media_type
 
 
 class DhcpSubnet(ResourceBase):
@@ -34,31 +33,14 @@ class DhcpSubnet(ResourceBase):
     def get_default_gateway(self):
         return self.dto['defaultGateway']
 
-    def get_server_addr(self):
-        return self.dto['serverAddr']
-
-    def get_dns_server_addrs(self):
-        return self.dto['dnsServerAddrs']
-
     def get_subnet_prefix(self):
         return self.dto['subnetPrefix']
 
     def get_subnet_length(self):
         return self.dto['subnetLength']
 
-    def get_opt121_routes(self):
-        return self.dto['opt121Routes']
-
     def default_gateway(self, gw):
         self.dto['defaultGateway'] = gw
-        return self
-
-    def server_addr(self, addr):
-        self.dto['serverAddr'] = addr
-        return self
-
-    def dns_server_addrs(self, addrs):
-        self.dto['dnsServerAddrs'] = addrs
         return self
 
     def subnet_prefix(self, prefix):
@@ -69,14 +51,10 @@ class DhcpSubnet(ResourceBase):
         self.dto['subnetLength'] = length
         return self
 
-    def opt121_routes(self, routes):
-        self.dto['opt121Routes'] = routes
-        return self
-
     def get_dhcp_hosts(self):
         query = {}
         headers = {'Accept':
-                   vendor_media_type.APPLICATION_DHCP_HOST_COLLECTION_JSON}
+                       vendor_media_type.APPLICATION_DHCP_HOST_COLLECTION_JSON}
         return self.get_children(self.dto['hosts'], query, headers,
                                  DhcpHost)
 

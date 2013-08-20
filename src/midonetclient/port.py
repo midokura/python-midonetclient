@@ -20,17 +20,17 @@
 
 
 from midonetclient import port_type
+from midonetclient import resource_base
 from midonetclient import vendor_media_type
-from midonetclient.bgp import Bgp
-from midonetclient.resource_base import ResourceBase
+from midonetclient import bgp
 
 
-class RouterPort(ResourceBase):
+class Port(resource_base.ResourceBase):
 
-    media_type = vendor_media_type.APPLICATION_PORT_JSON
+    media_type = vendor_media_type.APPLICATION_PORT_V2_JSON
 
     def __init__(self, uri, dto, auth):
-        super(RouterPort, self).__init__(uri, dto, auth)
+        super(Port, self).__init__(uri, dto, auth)
 
     def get_id(self):
         return self.dto['id']
@@ -47,6 +47,21 @@ class RouterPort(ResourceBase):
     def get_outbound_filter_id(self):
         return self.dto['outboundFilterId']
 
+    def get_vif_id(self):
+        return self.dto['vifId']
+
+    def get_host_id(self):
+        return self.dto['hostId']
+
+    def get_interface_name(self):
+        return self.dto['interfaceName']
+
+    def get_vlan_id(self):
+        return self.dto['vlanId']
+
+    def get_peer_id(self):
+        return self.dto['peerId']
+
     def get_network_address(self):
         return self.dto['networkAddress']
 
@@ -59,8 +74,27 @@ class RouterPort(ResourceBase):
     def get_port_mac(self):
         return self.dto['portMac']
 
-    def get_peer_id(self):
-        return self.dto['peerId']
+    def get_bgps(self):
+        query = {}
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_BGP_COLLECTION_JSON}
+        return self.get_children(self.dto['bgps'], query, headers, bgp.Bgp)
+
+    def inbound_filter_id(self, id_):
+        self.dto['inboundFilterId'] = id_
+        return self
+
+    def outbound_filter_id(self, id_):
+        self.dto['outboundFilterId'] = id_
+        return self
+
+    def vif_id(self, id_):
+        self.dto['vifId'] = id_
+        return self
+
+    def vlan_id(self, id_):
+        self.dto['vlanId'] = id_
+        return self
 
     def port_address(self, port_address):
         self.dto['portAddress'] = port_address
@@ -74,59 +108,26 @@ class RouterPort(ResourceBase):
         self.dto['networkLength'] = network_length
         return self
 
-    # Deprecated
-    def local_network_address(self, local_network_address):
-        assert self.get_type() == port_type.EXTERIOR_ROUTER
-        self.dto['localNetworkAddress'] = local_network_address
-        return self
-
-    # Deprecated
-    def local_network_length(self, local_network_length):
-        assert self.get_type() == port_type.EXTERIOR_ROUTER
-        self.dto['localNetworkLength'] = local_network_length
-        return self
-
-    def inbound_filter_id(self, id_):
-        self.dto['inboundFilterId'] = id_
-        return self
-
-    def outbound_filter_id(self, id_):
-        self.dto['outboundFilterId'] = id_
-        return self
-
     def type(self, type_):
         self.dto['type'] = type_
         return self
 
-    def get_bgps(self):
-        query = {}
-        headers = {'Accept':
-                       vendor_media_type.APPLICATION_BGP_COLLECTION_JSON}
-        return self.get_children(self.dto['bgps'], query, headers, Bgp)
-
-    #TODO
-    def get_vpns(self):
-        pass
-
     def add_bgp(self):
-        return Bgp(self.dto['bgps'], {}, self.auth)
-
-    #TODO
-    def add_vpn(self):
-        pass
+        return bgp.Bgp(self.dto['bgps'], {}, self.auth)
 
     def link(self, peer_uuid):
         self.dto['peerId'] = peer_uuid
         headers = {'Content-Type':
-                    vendor_media_type.APPLICATION_PORT_LINK_JSON}
-        self.auth.do_request(self.dto['link'], 'POST', body=self.dto,
+                   vendor_media_type.APPLICATION_PORT_LINK_JSON}
+        self.auth.do_request(self.dto['link'], 'POST', self.dto,
                              headers=headers)
+
         self.get()
         return self
 
     def unlink(self):
         headers = {'Content-Type':
-                    vendor_media_type.APPLICATION_PORT_LINK_JSON}
+                   vendor_media_type.APPLICATION_PORT_LINK_JSON}
         self.auth.do_request(self.dto['link'], 'DELETE')
         self.get()
         return self

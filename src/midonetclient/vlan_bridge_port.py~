@@ -15,8 +15,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
-# @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
+# @author: Rossella Sblendido <rossella@midokura.com>, Midokura
 
 
 from midonetclient import port_type
@@ -24,12 +23,12 @@ from midonetclient import resource_base
 from midonetclient import vendor_media_type
 
 
-class BridgePort(resource_base.ResourceBase):
+class VlanBridgePort(resource_base.ResourceBase):
 
     media_type = vendor_media_type.APPLICATION_PORT_JSON
 
     def __init__(self, uri, dto, auth):
-        super(BridgePort, self).__init__(uri, dto, auth)
+        super(VlanBridgePort, self).__init__(uri, dto, auth)
 
     def get_id(self):
         return self.dto['id']
@@ -49,45 +48,10 @@ class BridgePort(resource_base.ResourceBase):
     def get_vif_id(self):
         return self.dto['vifId']
 
-    def get_vlan_id(self):
-        return self.dto['vlanId']
-
     def get_peer_id(self):
         return self.dto['peerId']
-
-    def inbound_filter_id(self, id_):
-        self.dto['inboundFilterId'] = id_
-        return self
-
-    def outbound_filter_id(self, id_):
-        self.dto['outboundFilterId'] = id_
-        return self
 
     def vif_id(self, id_):
         self.dto['vifId'] = id_
         return self
 
-    def vlan_id(self, id_):
-        self.dto['vlanId'] = id_
-        return self
-
-    def type(self, type_):
-        self.dto['type'] = type_
-        return self
-
-    def link(self, peer_uuid):
-        self.dto['peerId'] = peer_uuid
-        headers = {'Content-Type':
-                    vendor_media_type.APPLICATION_PORT_LINK_JSON}
-        self.auth.do_request(self.dto['link'], 'POST', self.dto,
-                             headers=headers)
-
-        self.get()
-        return self
-
-    def unlink(self):
-        headers = {'Content-Type':
-                    vendor_media_type.APPLICATION_PORT_LINK_JSON}
-        self.auth.do_request(self.dto['link'], 'DELETE')
-        self.get()
-        return self

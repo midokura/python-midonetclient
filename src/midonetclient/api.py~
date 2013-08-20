@@ -17,7 +17,6 @@
 #
 # @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
-# @author: Artem Dmytrenko <art@midokura.com>, Midokura
 
 import logging
 
@@ -31,15 +30,11 @@ LOG = logging.getLogger(__name__)
 class MidonetApi(object):
 
     def __init__(self, base_uri, username, password, project_id=None):
-        self.base_uri = base_uri.rstrip('/')
+        self.base_uri = base_uri
         self.project_id = project_id
         self.app = None
-        self.auth = auth_lib.Auth(self.base_uri + '/login', username, password,
+        self.auth = auth_lib.Auth(base_uri + '/login', username, password,
                                   project_id)
-
-    def get_tenants(self, query = {}):
-        self._ensure_application()
-        return self.app.get_tenants(query)
 
     def delete_router(self, id_):
         self._ensure_application()
@@ -83,27 +78,11 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.get_tunnel_zones(query)
 
-    def get_tunnel_zone(self, id_):
-        self._ensure_application()
-        return self.app.get_tunnel_zone(id_)
-
     def get_hosts(self, query=None):
         if query is None:
             query = {}
         self._ensure_application()
         return self.app.get_hosts(query)
-
-    def get_write_version(self):
-        self._ensure_application()
-        return self.app.get_write_version()
-
-    def get_system_state(self):
-        self._ensure_application()
-        return self.app.get_system_state()
-
-    def get_host_versions(self, query=None):
-        self._ensure_application()
-        return self.app.get_host_versions(query)
 
     def get_host(self, id_):
         self._ensure_application()
@@ -161,10 +140,6 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.get_rule(id_)
 
-    def get_tenant(self, id_):
-        self._ensure_application()
-        return self.app.get_tenant(id_)
-
     def add_router(self):
         self._ensure_application()
         return self.app.add_router()
@@ -181,10 +156,6 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.add_chain()
 
-    def add_tunnel_zone(self):
-        self._ensure_application()
-        return self.app.add_tunnel_zone()
-
     def add_gre_tunnel_zone(self):
         self._ensure_application()
         return self.app.add_gre_tunnel_zone()
@@ -192,35 +163,6 @@ class MidonetApi(object):
     def add_capwap_tunnel_zone(self):
         self._ensure_application()
         return self.app.add_capwap_tunnel_zone()
-
-    # Trace condition operations
-    def add_trace_condition(self):
-        self._ensure_application()
-        return self.app.add_trace_condition()
-
-    def get_trace_conditions(self, query=None):
-        self._ensure_application()
-        return self.app.get_trace_conditions(query)
-
-    def get_trace_condition(self, id_):
-        self._ensure_application()
-        return self.app.get_trace_condition(id_)
-
-    def delete_trace_condition(self, id_):
-        self._ensure_application()
-        return self.app.delete_trace_condition(id_)
-
-    def get_trace_ids(self, query=None):
-        self._ensure_application()
-        return self.app.get_trace_ids(query)
-
-    def get_trace_messages(self, id_):
-        self._ensure_application()
-        return self.app.get_trace_messages(id_)
-
-    def delete_trace_messages(self, id_):
-        self._ensure_application()
-        return self.app.delete_trace_messages(id_)
 
     def _ensure_application(self):
         if self.app is None:
@@ -277,14 +219,14 @@ if __name__ == '__main__':
     api.get_routers({'tenant_id': 'non-existent'})
     api.get_router(router1.get_id())
 
-    router2 = api.add_router().name('router-2').tenant_id(
-        tenant_id).outbound_filter_id(random_uuid).create()
+    router2 = api.add_router().name('router-2').tenant_id(tenant_id)\
+                  .outbound_filter_id(random_uuid).create()
 
     router1.name('router1-changed').update()
 
     api.get_router(router1.get_id())
 
-    for r in api.get_routers({'tenant_id': tenant_id}):
+    for r in  api.get_routers({'tenant_id': tenant_id}):
         print '--------', r.get_name()
         print 'id: ', r.get_id()
         print 'inboundFilterId: ', r.get_inbound_filter_id()
@@ -292,36 +234,13 @@ if __name__ == '__main__':
 
     api.get_router(router1.get_id())
 
-    print '-------- Tenants ------'
-    tenants = api.get_tenants(query={})
-    for t in tenants:
-        print 'id: ',  t.get_id()
-        print 'name: ', t.get_name()
-
-        print '----- Tenant by ID ------'
-        t = api.get_tenant(t.get_id())
-        print 'id: ',  t.get_id()
-        print 'name: ', t.get_name()
-
-    # Tenant routers
-    print '-------- Tenant Routers ------'
-    for t in tenants:
-        for r in t.get_routers():
-            print 'id: ',  r.get_id()
-
     # Routers/Ports
 
     # port group1
     pg1 = api.add_port_group().tenant_id(tenant_id).name('pg-1').create()
     pg2 = api.add_port_group().tenant_id(tenant_id).name('pg-2').create()
 
-    # Tenant port groups
-    print '-------- Tenant port groups ------'
-    for t in tenants:
-        for p in t.get_port_groups():
-            print 'id: ',  p.get_id()
-
-    rp1 = router1.add_port()\
+    rp1 = router1.add_exterior_port()\
                  .port_address('2.2.2.2')\
                  .network_address('2.2.2.0')\
                  .network_length(24).create()
@@ -332,12 +251,12 @@ if __name__ == '__main__':
     print 'rp1 port group ids=%r' % [pgp1.get_port_group_id(),
                                      pgp2.get_port_group_id()]
 
-    rp2 = router1.add_port().port_address('1.1.1.1')\
+    rp2 = router1.add_interior_port().port_address('1.1.1.1')\
                  .network_address('1.1.1.0').network_length(24).create()
 
-    rp3 = router1.add_port().port_address('1.1.1.2')\
+    rp3 = router1.add_interior_port().port_address('1.1.1.2')\
                  .network_address('1.1.1.0').network_length(24).create()
-    rp4 = router1.add_port().port_address('1.1.1.3')\
+    rp4 = router1.add_interior_port().port_address('1.1.1.3')\
                  .network_address('1.1.1.0').network_length(24).create()
     print api.get_port(rp1.get_id())
 
@@ -366,7 +285,7 @@ if __name__ == '__main__':
                              .nw_prefix_length(24)\
                              .create()
 
-    for ar in bgp1.get_ad_routes():
+    for ar in  bgp1.get_ad_routes():
         print 'advertised route--------'
         print '\t', ar.get_id()
         print '\t', ar.get_nw_prefix()
@@ -381,7 +300,7 @@ if __name__ == '__main__':
     bridge2 = api.add_bridge().name('bridge-2').tenant_id(
         tenant_id).inbound_filter_id(random_uuid).create()
 
-    for b in api.get_bridges({'tenant_id': tenant_id}):
+    for b in  api.get_bridges({'tenant_id': tenant_id}):
         print '--------', b.get_name()
         print 'id: ', b.get_id()
         print 'inboundFilterId: ', b.get_inbound_filter_id()
@@ -389,14 +308,8 @@ if __name__ == '__main__':
 
     print api.get_bridge(bridge1.get_id())
 
-    # Tenant bridges
-    print '-------- Tenant Bridges ------'
-    for t in tenants:
-        for b in t.get_bridges():
-            print 'id: ',  b.get_id()
-
     # Bridges/Ports
-    bp1 = bridge1.add_port().inbound_filter_id(random_uuid).create()
+    bp1 = bridge1.add_exterior_port().inbound_filter_id(random_uuid).create()
 
     # Add this port to both port groups
     pgp1 = pg1.add_port_group_port().port_id(bp1.get_id()).create()
@@ -404,7 +317,7 @@ if __name__ == '__main__':
     print 'bp1 port group ids=%r' % [pgp1.get_port_group_id(),
                                      pgp2.get_port_group_id()]
 
-    bp2 = bridge1.add_port().create()
+    bp2 = bridge1.add_interior_port().create()
 
     print api.get_port(bp1.get_id())
     bp2.link(rp4.get_id())
@@ -419,8 +332,8 @@ if __name__ == '__main__':
     dhcp1 = bridge1.add_dhcp_subnet().default_gateway('10.10.10.1')\
                    .subnet_prefix('10.10.10.0').subnet_length(24).create()
 
-    dhcp2 = bridge1.add_dhcp_subnet().default_gateway(
-        '11.11.11.1').subnet_prefix('11.11.11.0').subnet_length(24).create()
+    dhcp2 = bridge1.add_dhcp_subnet().default_gateway('11.11.11.1')\
+                    .subnet_prefix('11.11.11.0').subnet_length(24).create()
 
     dhcp1.add_dhcp_host().name('host-1').ip_addr('10.10.10.2')\
                          .mac_addr('00:00:00:aa:bb:cc').create()
@@ -476,12 +389,6 @@ if __name__ == '__main__':
         print '------- chain: ', c.get_name()
         print c.get_id()
 
-    # Tenant chains
-    print '-------- Tenant Chains -----'
-    for t in tenants:
-        for c in t.get_chains():
-            print 'id: ',  c.get_id()
-
     rule1 = chain1.add_rule().type('accept').create()
     rule2 = chain1.add_rule().type('reject').create()
 
@@ -489,10 +396,11 @@ if __name__ == '__main__':
                     'addressTo': '192.168.100.10',
                     'portFrom': 80,
                     'portTo': 80},
-                   {'addressFrom': '192.168.100.20',
+                  {'addressFrom': '192.168.100.20',
                     'addressTo': '192.168.100.30',
                     'portFrom': 80,
-                    'portTo': 80}]
+                    'portTo': 80},
+                  ]
 
     rule3 = chain1.add_rule().type('dnat').nw_dst_address('1.1.1.1')\
                              .nw_dst_length(32)\
@@ -505,15 +413,3 @@ if __name__ == '__main__':
 
     chain1.delete()
     chain2.delete()
-
-    # Trace conditions
-    tCond1 = api.add_trace_condition().nw_src_address('5.5.5.5').create()
-    tCond2 = api.add_trace_condition().dl_type('1536').nw_proto('1').create()
-
-    tConds = api.get_trace_conditions()
-    for tCond in tConds:
-        print 'trace condition ----'
-        print tCond.get_id()
-
-    tCond1.delete()
-    tCond2.delete()
