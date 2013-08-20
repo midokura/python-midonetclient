@@ -1849,6 +1849,9 @@ class CommandToken():
     def complete(self, context):
         return []
 
+    def complete_and_trim(self, context):
+        return self.complete(context), self
+
     def optimize(self):
         return self
 
@@ -2075,6 +2078,16 @@ class Or(CommandToken):
         for token in self._tokens:
             completions += token.complete(context)
         return completions
+
+    def complete_and_trim(self, context):
+        completions = []
+        with_results = []
+        for token in self._tokens:
+            res = token.complete(context)
+            if res:
+                completions += res
+                with_results.append(token)
+        return completions, Or(*with_results)
 
     def _split_by_common_prefix(self, lists):
         if len(lists) == 1:
@@ -2962,30 +2975,27 @@ class List(Command):
 
 class CompletionCache():
     def __init__(self, commands):
-        self._all_patterns = map(lambda c: c.patterns(), commands)
+        patterns = map(lambda x: x.patterns(), commands)
+        tree = reduce(lambda x, y: x | y, patterns)
+        self._tree = tree.optimize()
         self.last_line = ''
-        self._active_patterns = self._all_patterns
+        self._active_tree = self._tree
         self.cached_completions = []
-    
+
     def clear(self):
         self.last_line = ''
-        self._active_patterns = self._all_patterns
+        self._active_tree = self._tree
         self.cached_completions = []
 
     def complete(self, line, context):
-        if not line.startswith(self.last_line):
+        if line == self.last_line:
+            return self.cached_completions
+        elif not line.startswith(self.last_line):
             self.clear()
 
         self.last_line = line
-        with_results = []
-        all_results = []
-        for pattern in self._active_patterns:
-            res = pattern.complete(context)
-            if res:
-                all_results += res
-                with_results.append(pattern)
-        
-        self._active_patterns = with_results
+        all_results, trimmed_tree = self._active_tree.complete_and_trim(context)
+        self._active_tree = trimmed_tree
         self.cached_completions = self._uniq(all_results)
         return self.cached_completions
 
