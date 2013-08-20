@@ -2835,12 +2835,53 @@ class List(Command):
                 print o.describe()
 
 ################################################################################
+# Autocomplete cache
+################################################################################
+
+class CompletionCache():
+    def __init__(self, commands):
+        self._all_patterns = map(lambda c: c.patterns(), commands)
+        self.last_line = ''
+        self._active_patterns = self._all_patterns
+        self.cached_completions = []
+    
+    def clear(self):
+        self.last_line = ''
+        self._active_patterns = self._all_patterns
+        self.cached_completions = []
+
+    def complete(self, line, context):
+        if not line.startswith(self.last_line):
+            self.clear()
+
+        self.last_line = line
+        with_results = []
+        all_results = []
+        for pattern in self._active_patterns:
+            res = pattern.complete(context)
+            if res:
+                all_results += res
+                with_results.append(pattern)
+        
+        self._active_patterns = with_results
+        self.cached_completions = self._uniq(all_results)
+        return self.cached_completions
+
+    def _uniq(self, seq):
+        res = []
+        for s in seq:
+            if s not in res:
+                res.append(s)
+        return res
+
+
+################################################################################
 # Command loop
 ################################################################################
 
 class MidonetCLI(cmd.Cmd):
     prompt = 'midonet> '
-    lastCommandSucceeded = True
+    last_command_succeeded = True
 
     def __init__(self, root):
         readline.set_completer_delims("")
@@ -2849,9 +2890,11 @@ class MidonetCLI(cmd.Cmd):
         self._root = root
         self._ops = [Show(), List(), Create(), Delete(), Set(),
                      Describe(), Debug(), PushTenant(), PopTenant()]
+        self._completion_cache = CompletionCache(self._ops)
         for op in self._ops:
             if op.name() is not None:
                 setattr(self, "help_%s" % op.name(), op.help)
+
 
     def do_help(self, arg):
         if arg:
@@ -2902,7 +2945,8 @@ class MidonetCLI(cmd.Cmd):
             raise Exception("parser bug")
 
     def default(self, line):
-        self.lastCommandSucceeded = False
+        self._completion_cache.clear()
+        self.last_command_succeeded = False
         try:
             args = shsplit(line)
         except:
@@ -2916,7 +2960,7 @@ class MidonetCLI(cmd.Cmd):
                 result = self.match_command(context, op.patterns())
                 if isinstance(result, MatchingContext):
                     op.do(result.parsed_tokens())
-                    self.lastCommandSucceeded = True
+                    self.last_command_succeeded = True
                     return False
                 elif isinstance(result, ParsingSubmatch):
                     error = error.best_match(result)
@@ -2928,13 +2972,6 @@ class MidonetCLI(cmd.Cmd):
             print "Internal error: %s" % e
 
         return False
-
-    def _uniq(self, seq):
-        res = []
-        for s in seq:
-            if s not in res:
-                res.append(s)
-        return res
 
     def complete(self, line, state):
         try:
@@ -2961,18 +2998,15 @@ class MidonetCLI(cmd.Cmd):
                 return completed
 
     def _complete(self, line, state):
-        completions = []
         try:
             args = shsplit(line)
         except:
             return None
         if line.endswith(" ") or len(args) == 0:
             args.append("")
-        context = MatchingContext(self._root, args)
-        for op in self._ops:
-            completions += op.patterns().complete(context)
 
-        return self._uniq(completions)
+        context = MatchingContext(self._root, args)
+        return self._completion_cache.complete(line, context)
 
     def display_completions(self, subst, matches, longest_len):
         words = map(lambda m: shsplit(m).pop(), matches)
@@ -3006,7 +3040,7 @@ if __name__ == '__main__':
             cli.onecmd(session.command)
         else:
             cli.cmdloop()
-        sys.exit(0 if cli.lastCommandSucceeded else 1)
+        sys.exit(0 if cli.last_command_succeeded else 1)
     except Exception as e:
         sys.stderr.write(e.message + "\n")
         sys.exit(2)
