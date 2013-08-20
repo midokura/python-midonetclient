@@ -373,6 +373,9 @@ class SingleAttr(Attr):
             func(inv)
         return v
 
+    def complete(self, prefix):
+        return []
+
 class EnumAttr(SingleAttr):
     def __init__(self, name, mappings, getter, setter,
                  inv_getter = None, inv_setter = None,
@@ -405,6 +408,13 @@ class EnumAttr(SingleAttr):
             raise Exception("Invalid value field %s: %s" % (self.name, api_val))
         func = obj.reflect(self.setter)
         func(api_val)
+
+    def complete(self, prefix):
+        ret = []
+        for v in self.mappings.values():
+            if v.startswith(prefix):
+                ret.append(v)
+        return ret
 
 class ListAttr(SingleAttr):
     def __init__(self, name, element_type, getter, setter = None,
@@ -2182,6 +2192,8 @@ class NewObjectFieldAssignment(CommandToken):
         fspec = stub.attrs()[fname]
         if isinstance(fspec, ObjectRef):
             return aliases.complete(fval)
+        elif isinstance(fspec, SingleAttr):
+            return fspec.complete(fval)
         else:
             return []
 
