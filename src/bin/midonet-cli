@@ -1802,10 +1802,11 @@ class MatchingContext():
                     themselves here or objects that they resolved.
     """
 
-    def __init__(self, obj, args, parsed = []):
+    def __init__(self, obj, args, parsed = [], command = None):
         self._object = obj
         self._args = args
         self._parsed = list(parsed)
+        self.command = command
 
     def object(self):
         return self._object
@@ -1816,12 +1817,23 @@ class MatchingContext():
     def parsed_tokens(self):
         return list(self._parsed)
 
-    def copy(self, obj = None, args = None, new_tokens = []):
+    def copy(self, obj = None, args = None, new_tokens = [], command = None):
         o = obj if obj is not None else self._object
         a = args if args is not None else self._args
+        c = command if command is not None else self.command
         p = list(self._parsed)
         p.extend(new_tokens)
-        return MatchingContext(o, tuple(a), p)
+        if len(a) == 0:
+            if c:
+                return MatchedCommand(o, tuple(a), p, c)
+            else:
+                return ParsingSubmatch(MatchingContext(o, tuple(a), p, c))
+        else:
+            return MatchingContext(o, tuple(a), p, c)
+
+class MatchedCommand(MatchingContext):
+    def execute(self):
+        self.command.do(self.parsed_tokens())
 
 class CommandToken():
     def __init__(self):
@@ -1889,10 +1901,13 @@ class SingleValue(CommandToken):
 class Verb(CommandToken):
     """Matches a literal word, usually representing a verb or command"""
 
-    def __init__(self, name, partial_match = True, min_match = None):
+    def __init__(self, name, partial_match = True,
+                             min_match = None,
+                             set_command = None):
         self._name = name
         self._partial = partial_match
         self._min = min_match
+        self._set_command = set_command
 
     def matches(self, context):
         args = context.args()
@@ -1902,7 +1917,9 @@ class Verb(CommandToken):
         if (v == self._name) or (self._partial and self._name.startswith(v)):
             if self._min is None or v.startswith(self._min):
                 args.pop(0)
-                return context.copy(args = args, new_tokens = [self])
+                return context.copy(args = args,
+                                    new_tokens = [self],
+                                    command = self._set_command)
         return ParsingSubmatch(context)
 
     def complete(self, context):
@@ -2602,7 +2619,7 @@ class Command():
 
 class Describe(Command):
     def patterns(self):
-        describe = Verb('describe', min_match = 'desc')
+        describe = Verb('describe', min_match = 'desc', set_command = self)
         obj_selector = ObjectById()("+") | RootCtxToken()
 
         patterns = obj_selector + describe + CollectionByType()("?")
@@ -2653,8 +2670,8 @@ class Describe(Command):
 
 class Create(Command):
     def patterns(self):
-        create = Verb('create', partial_match = False)
-        create |= Verb('add', partial_match = False)
+        create = Verb('create', partial_match = False, set_command = self)
+        create |= Verb('add', partial_match = False, set_command = self)
         obj = ObjectById()
         obj_in_col = ObjectFromCollection()
         col_type = CollectionByType()
@@ -2717,7 +2734,7 @@ class Create(Command):
 
 class Set(Command):
     def patterns(self):
-        verb = Verb('set', partial_match = False)
+        verb = Verb('set', partial_match = False, set_command = self)
 
         patterns = verb + ObjectById()("+") + FieldAssignment()("+")
         patterns |= ObjectById()("+") + verb + FieldAssignment()("+")
@@ -2760,7 +2777,7 @@ class Set(Command):
 
 class Delete(Command):
     def patterns(self):
-        delete = Verb('delete', min_match = 'del')
+        delete = Verb('delete', min_match = 'del', set_command = self)
         obj_from_col = ObjectFromCollection()
         obj = ObjectById()
 
@@ -2795,7 +2812,7 @@ class Delete(Command):
 
 class Show(Command):
     def patterns(self):
-        show = Verb('show')
+        show = Verb('show', set_command = self)
         obj = ObjectById()
         obj_in_col = ObjectFromCollection()
         field = FieldByName()
@@ -2843,7 +2860,8 @@ class Show(Command):
 
 class PushTenant(Command):
     def patterns(self):
-        return Verb('pusht', partial_match = False) + SingleValue(StringType())
+        pusht = Verb('pusht', partial_match = False, set_command = self)
+        return pusht + SingleValue(StringType())
 
     def name(self):
         return 'pusht'
@@ -2868,7 +2886,7 @@ class PushTenant(Command):
 
 class PopTenant(Command):
     def patterns(self):
-        return Verb('popt', partial_match = False)
+        return Verb('popt', partial_match = False, set_command = self)
 
     def name(self):
         return 'popt'
@@ -2889,7 +2907,7 @@ class PopTenant(Command):
 
 class Debug(Command):
     def patterns(self):
-        verb = Verb('debug', partial_match = False)
+        verb = Verb('debug', partial_match = False, set_command = self)
         on = Verb('on', partial_match = False)
         off = Verb('off', partial_match = False)
 
@@ -2918,7 +2936,7 @@ class Debug(Command):
 class List(Command):
     def patterns(self):
         obj = ObjectById()("+") | RootCtxToken()
-        verb = Verb('list')
+        verb = Verb('list', set_command = self)
         collection = ObjectFromCollection()("?")
         col_type = CollectionByType()
 
@@ -2974,10 +2992,8 @@ class List(Command):
 ################################################################################
 
 class CompletionCache():
-    def __init__(self, commands):
-        patterns = map(lambda x: x.patterns(), commands)
-        tree = reduce(lambda x, y: x | y, patterns)
-        self._tree = tree.optimize()
+    def __init__(self, grammar):
+        self._tree = grammar
         self.last_line = ''
         self._active_tree = self._tree
         self.cached_completions = []
@@ -3022,11 +3038,12 @@ class MidonetCLI(cmd.Cmd):
         self._root = root
         self._ops = [Show(), List(), Create(), Delete(), Set(),
                      Describe(), Debug(), PushTenant(), PopTenant()]
-        self._completion_cache = CompletionCache(self._ops)
         for op in self._ops:
             if op.name() is not None:
                 setattr(self, "help_%s" % op.name(), op.help)
-
+        grammar = reduce(lambda x,y: x|y, map(lambda x: x.patterns(), self._ops))
+        self._grammar = grammar.optimize()
+        self._completion_cache = CompletionCache(self._grammar)
 
     def do_help(self, arg):
         if arg:
@@ -3068,11 +3085,8 @@ class MidonetCLI(cmd.Cmd):
             return ParsingSubmatch(context)
         elif isinstance(res, ParsingSubmatch):
             return res
-        elif isinstance(res, MatchingContext):
-            if len(res.args()) == 0:
-                return res
-            else:
-                return ParsingSubmatch(res)
+        elif isinstance(res, MatchedCommand):
+            return res
         else:
             raise Exception("parser bug")
 
@@ -3084,19 +3098,18 @@ class MidonetCLI(cmd.Cmd):
         except:
             print "Syntax error: unmatched quote"
             return False
-        context = MatchingContext(self._root, args)
 
+        context = MatchingContext(self._root, args)
         try:
-            error = ParsingSubmatch(context)
-            for op in self._ops:
-                result = self.match_command(context, op.patterns())
-                if isinstance(result, MatchingContext):
-                    op.do(result.parsed_tokens())
-                    self.last_command_succeeded = True
-                    return False
-                elif isinstance(result, ParsingSubmatch):
-                    error = error.best_match(result)
-            print error.describe()
+            result = self.match_command(context, self._grammar)
+            if isinstance(result, MatchedCommand):
+                result.execute()
+                self.last_command_succeeded = True
+                return False
+            elif isinstance(result, ParsingSubmatch):
+                print error.best_match(result).describe()
+            else:
+                print ParsingSubmatch(context).describe()
         except Exception as e:
             import traceback
             if session.debug:
