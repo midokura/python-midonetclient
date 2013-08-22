@@ -60,7 +60,12 @@ class Rule(ResourceBase):
     def is_inv_out_ports(self):
         return self.dto['invOutPorts']
 
-    def is_inv_port_group(self):
+    def is_inv_dst_port_group(self):
+        # TODO fix this after API is fixed
+        return self.dto['invPortGroup']
+
+    def is_inv_src_port_group(self):
+        # TODO fix this after API is fixed
         return self.dto['invPortGroup']
 
     def is_inv_tp_dst(self):
@@ -126,7 +131,12 @@ class Rule(ResourceBase):
     def get_out_ports(self):
         return self.dto['outPorts']
 
-    def get_port_group(self):
+    def get_port_group_dst(self):
+        # TODO fix after API
+        return self.dto['portGroup']
+
+    def get_port_group_src(self):
+        # TODO fix after API
         return self.dto['portGroup']
 
     def get_position(self):
@@ -144,8 +154,14 @@ class Rule(ResourceBase):
     def get_type(self):
         return self.dto['type']
 
-    def inv_port_group(self, inv_port_group):
-        self.dto['invPortGroup'] = inv_port_group
+    def inv_port_group_dst(self, inv_port_group_dst):
+        # TODO fix after API
+        self.dto['invPortGroup'] = inv_port_group_dst
+        return self
+
+    def inv_port_group_src(self, inv_port_group_src):
+        # TODO fix after API
+        self.dto['invPortGroup'] = inv_port_group_src
         return self
 
     def tp_src(self, tp_src):
@@ -204,8 +220,14 @@ class Rule(ResourceBase):
         self.dto['invNwTos'] = inv_nw_tos
         return self
 
-    def port_group(self, port_group):
-        self.dto['portGroup'] = port_group
+    def port_group_dst(self, port_group_dst):
+        # TODO fix this after API is fixed
+        self.dto['portGroup'] = port_group_dst
+        return self
+
+    def port_group_src(self, port_group_src):
+        # TODO fix this after API is fixed
+        self.dto['portGroup'] = port_group_src
         return self
 
     def inv_dl_dst(self, inv_dl_dst):
