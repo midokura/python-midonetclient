@@ -22,7 +22,9 @@
 from midonetclient import port_type
 from midonetclient import resource_base
 from midonetclient import vendor_media_type
+from vendor_media_type import APPLICATION_PORTGROUP_PORT_COLLECTION_JSON
 from midonetclient import bgp
+from midonetclient import port_group_port
 
 
 class Port(resource_base.ResourceBase):
@@ -131,3 +133,8 @@ class Port(resource_base.ResourceBase):
         self.auth.do_request(self.dto['link'], 'DELETE')
         self.get()
         return self
+
+    def get_port_groups(self, query=None):
+        headers = {'Accept': APPLICATION_PORTGROUP_PORT_COLLECTION_JSON}
+        return self.get_children(self.dto['portGroups'], query, headers,
+                                 port_group_port.PortGroupPort)

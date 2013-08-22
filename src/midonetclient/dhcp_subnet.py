@@ -85,7 +85,7 @@ class DhcpSubnet(ResourceBase):
         Given the IP address and mac, returns DhcpHost object
         """
         for dh in self.get_dhcp_hosts():
-            if dh.get_ip_addr() == ip_addr and dh.get_mac_addr() == mac: 
+            if dh.get_ip_addr() == ip_addr and dh.get_mac_addr() == mac:
                 return dh
         return None
 
