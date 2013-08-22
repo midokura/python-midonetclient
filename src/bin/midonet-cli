@@ -1849,6 +1849,20 @@ class CommandToken():
     def complete(self, context):
         return []
 
+    def complete_and_trim(self, context):
+        return self.complete(context), self
+
+    def optimize(self):
+        return self
+
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__)
+            and self.__dict__ == other.__dict__)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+
 class SingleValue(CommandToken):
     """Matches one word of a given type"""
 
@@ -1906,6 +1920,18 @@ class Concat(CommandToken):
         self._a = token_a
         self._b = token_b
 
+    def flatten(self):
+        tokens = []
+        if isinstance(self._a, Concat):
+            tokens += self._a.flatten()
+        else:
+            tokens.append(self._a)
+        if isinstance(self._b, Concat):
+            tokens += self._b.flatten()
+        else:
+            tokens.append(self._b)
+        return tokens
+
     def matches(self, context):
         res = self._a.matches(context)
         if isinstance(res, MatchingContext):
@@ -1927,6 +1953,9 @@ class Concat(CommandToken):
                 return ret
         else:
             return self._a.complete(context)
+
+    def optimize(self):
+        return Concat(self._a.optimize(), self._b.optimize())
 
     def __str__(self):
         return "(%s + %s)" % (self._a, self._b)
@@ -1959,6 +1988,9 @@ class OnceOrMore(CommandToken):
             else:
                 return self._token.complete(lastMatch)
 
+    def optimize(self):
+        return OnceOrMore(self._token.optimize())
+
     def __str__(self):
         return "%s+" % (self._token)
 
@@ -1985,6 +2017,9 @@ class ZeroOrMore(CommandToken):
                 return self._token.complete(context)
         return []
 
+    def optimize(self):
+        return ZeroOrMore(self._token.optimize())
+
     def __str__(self):
         return "%s*" % (self._token)
 
@@ -1998,6 +2033,9 @@ class ZeroOrOne(CommandToken):
 
     def complete(self, context):
         return self._token.complete(context)
+
+    def optimize(self):
+        return ZeroOrOne(self._token.optimize())
 
     def __str__(self):
         return "%s?" % (self._token)
@@ -2040,6 +2078,91 @@ class Or(CommandToken):
         for token in self._tokens:
             completions += token.complete(context)
         return completions
+
+    def complete_and_trim(self, context):
+        completions = []
+        with_results = []
+        for token in self._tokens:
+            res = token.complete(context)
+            if res:
+                completions += res
+                with_results.append(token)
+        return completions, Or(*with_results)
+
+    def _split_by_common_prefix(self, lists):
+        if len(lists) == 1:
+            return lists, []
+
+        firstList, candidates = lists[0], lists[1:]
+        if not firstList:
+            return [firstList], candidates
+
+        common = [firstList]
+        others = []
+        for c in candidates:
+            if c and c[0] == firstList[0]:
+                common.append(c)
+            else:
+                others.append(c)
+        return common, others
+
+    def _optimize_lists(self, lists):
+        unmatched = lists
+        results = []
+        while unmatched:
+            matches, others = self._split_by_common_prefix(unmatched)
+            unmatched = others
+
+            if len(matches) == 1:
+                results.append(reduce(lambda x,y: Concat(x,y), matches[0]))
+            else:
+                head = matches[0][0]
+                tails = []
+                optional = False
+                for m in matches:
+                    if len(m) == 1:
+                        optional = True
+                    else:
+                        token = reduce(lambda x,y: Concat(x,y), m[1:])
+                        tails.append(token)
+                tail = Or(*tails).optimize()
+                if optional:
+                    tail = tail("?")
+                results.append(Concat(head, tail))
+        return results
+
+    def _uniq(self, seq):
+        res = []
+        for s in seq:
+            if s not in res:
+                res.append(s)
+        return res
+
+    def _flatten(self):
+        tokens = []
+        for t in self._tokens:
+            if isinstance(t, Or):
+                tokens += t._flatten()
+            else:
+                tokens.append(t)
+        return self._uniq(tokens)
+
+    def optimize(self):
+        uniq_tokens = self._flatten()
+
+        results = []
+        lists = []
+        for t in uniq_tokens:
+            if isinstance(t, Concat):
+                lists.append(t.optimize().flatten())
+            else:
+                results.append(t.optimize())
+        results += self._optimize_lists(lists)
+
+        if len(results) == 1:
+            return results[0]
+        else:
+            return Or(*self._uniq(results))
 
     def __str__(self):
         return "(%s)" % reduce(lambda a, b:"%s | %s" % (a, b), self._tokens)
@@ -2852,30 +2975,27 @@ class List(Command):
 
 class CompletionCache():
     def __init__(self, commands):
-        self._all_patterns = map(lambda c: c.patterns(), commands)
+        patterns = map(lambda x: x.patterns(), commands)
+        tree = reduce(lambda x, y: x | y, patterns)
+        self._tree = tree.optimize()
         self.last_line = ''
-        self._active_patterns = self._all_patterns
+        self._active_tree = self._tree
         self.cached_completions = []
-    
+
     def clear(self):
         self.last_line = ''
-        self._active_patterns = self._all_patterns
+        self._active_tree = self._tree
         self.cached_completions = []
 
     def complete(self, line, context):
-        if not line.startswith(self.last_line):
+        if line == self.last_line:
+            return self.cached_completions
+        elif not line.startswith(self.last_line):
             self.clear()
 
         self.last_line = line
-        with_results = []
-        all_results = []
-        for pattern in self._active_patterns:
-            res = pattern.complete(context)
-            if res:
-                all_results += res
-                with_results.append(pattern)
-        
-        self._active_patterns = with_results
+        all_results, trimmed_tree = self._active_tree.complete_and_trim(context)
+        self._active_tree = trimmed_tree
         self.cached_completions = self._uniq(all_results)
         return self.cached_completions
 
