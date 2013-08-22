@@ -1370,7 +1370,7 @@ class Router(ObjectType):
                                  element_type = RouterPort,
                                  list_method = 'get_ports',
                                  getter = 'get_port',
-                                 factory_method = 'add_interior_port'))
+                                 factory_method = 'add_port'))
         self.put_attr(Collection(name = 'route',
                                  element_type = Route,
                                  list_method = 'get_routes',
@@ -1462,7 +1462,7 @@ class Bridge(ObjectType):
                                  element_type = BridgePort,
                                  list_method = 'get_ports',
                                  getter = 'get_port',
-                                 factory_method = 'add_interior_port'))
+                                 factory_method = 'add_port'))
         self.put_attr(Collection(name = 'dhcp',
                                  element_type = Dhcp,
                                  list_method = 'get_dhcp_subnets',
@@ -1648,12 +1648,6 @@ class BridgePort(ObjectType):
 
     def __init__(self, obj):
         ObjectType.__init__(self, obj)
-        self.put_attr(EnumAttr(name = 'type',
-                               mappings = {'ExteriorBridge': 'exterior',
-                                           'InteriorBridge': 'interior'},
-                               getter = 'get_type',
-                               setter = 'type',
-                               optional = False))
         self.put_attr(SingleAttr(name = 'device',
                                  value_type = ObjectRef('bridge'),
                                  getter = 'get_device_id'))
@@ -1747,12 +1741,6 @@ class RouterPort(ObjectType):
 
     def __init__(self, obj):
         ObjectType.__init__(self, obj)
-        self.put_attr(EnumAttr(name = 'type',
-                               mappings = {'ExteriorRouter': 'exterior',
-                                           'InteriorRouter': 'interior'},
-                               getter = 'get_type',
-                               setter = 'type',
-                               optional = False))
         self.put_attr(SingleAttr(name = 'device',
                                  value_type = ObjectRef('router'),
                                  getter = 'get_device_id'))
