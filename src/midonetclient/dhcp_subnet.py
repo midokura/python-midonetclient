@@ -34,6 +34,12 @@ class DhcpSubnet(ResourceBase):
     def get_default_gateway(self):
         return self.dto['defaultGateway']
 
+    def get_server_addr(self):
+        return self.dto['serverAddr']
+
+    def get_dns_server_addrs(self):
+        return self.dto['dnsServerAddrs']
+
     def get_subnet_prefix(self):
         return self.dto['subnetPrefix']
 
@@ -45,6 +51,14 @@ class DhcpSubnet(ResourceBase):
 
     def default_gateway(self, gw):
         self.dto['defaultGateway'] = gw
+        return self
+
+    def server_addr(self, addr):
+        self.dto['serverAddr'] = addr
+        return self
+
+    def dns_server_addrs(self, addrs):
+        self.dto['dnsServerAddrs'] = addrs
         return self
 
     def subnet_prefix(self, prefix):

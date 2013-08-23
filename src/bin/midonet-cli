@@ -319,6 +319,7 @@ class Attr():
 class SingleAttr(Attr):
     def __init__(self, name, value_type, getter,
                  setter = None,
+                 unsetter = None,
                  writeable = True,
                  show = True,
                  optional = False,
@@ -328,6 +329,7 @@ class SingleAttr(Attr):
         self.value_type = value_type
         self.getter = getter
         self.setter = setter
+        self.unsetter = unsetter
         self.writeable = writeable
         self.show = show
         self.optional = optional
@@ -361,6 +363,10 @@ class SingleAttr(Attr):
             raise Exception("Invalid value field %s: %s" % (self.name, v))
         func = obj.reflect(self.setter)
         func(v)
+
+    def unset(self, obj):
+        func = obj.reflect(self.unsetter)
+        func()
 
     def set_inv(self, obj, value):
         v = value
@@ -436,6 +442,8 @@ class ListAttr(SingleAttr):
         return ",".join(vals)
 
     def _cli_to_api(self, value):
+        if not value:
+            return []
         values = map(lambda s: s.strip(), value.split(','))
         if isinstance(self.element_type, ObjectRef):
             uuids = []
@@ -1091,6 +1099,12 @@ class ObjectType():
 
         return self.attrs()[field_name].set(self, value)
 
+    def unset_field(self, field_name):
+        if not self.has_field(field_name):
+            raise Exception("%s: no such member" % field_name)
+
+        return self.attrs()[field_name].unset(self)
+
     def fetch_and_wrap_field(self, field_name):
         val = self.fetch_field(field_name)
         if not val:
@@ -1240,6 +1254,14 @@ class Dhcp(ObjectType):
                                  value_type = IPv4Address(),
                                  getter = 'get_default_gateway',
                                  setter = 'default_gateway'))
+        self.put_attr(SingleAttr(name = 'server',
+                                 value_type = IPv4Address(),
+                                 getter = 'get_server_addr',
+                                 setter = 'server_addr'))
+        self.put_attr(ListAttr(name = 'dns-servers',
+                               element_type = IPv4Address(),
+                               getter = 'get_dns_server_addrs',
+                               setter = 'dns_server_addrs'))
         self.put_attr(CidrPair(name = 'subnet',
                                value_type = StringType(),
                                addr_getter = 'get_subnet_prefix',
@@ -1579,6 +1601,7 @@ class BridgePort(ObjectType):
                                  value_type = PortRef(),
                                  getter = 'get_peer_id',
                                  setter = 'link',
+                                 unsetter = 'unlink',
                                  optional = True))
 
 class PortBinding(ObjectType):
@@ -1689,6 +1712,7 @@ class RouterPort(ObjectType):
                                  value_type = PortRef(),
                                  getter = 'get_peer_id',
                                  setter = 'link',
+                                 unsetter = 'unlink',
                                  optional = True))
         self.put_attr(Collection(name = 'bgp',
                                  element_type = Bgp,
@@ -2199,6 +2223,35 @@ class Or(CommandToken):
     def __str__(self):
         return "(%s)" % reduce(lambda a, b:"%s | %s" % (a, b), self._tokens)
 
+class FieldReference(CommandToken):
+    """Matches the name of a field on the context object.
+       Matches on one word: The field name."""
+    def matches(self, context):
+        args = context.args()
+        if (len(args) < 1):
+            return ParsingSubmatch(context)
+
+        field_name = args.pop(0)
+        if not context.object().has_field(field_name):
+            return ParsingSubmatch(context)
+        fspec = context.object().attrs()[field_name]
+        return context.copy(None, args, [fspec])
+
+    def complete(self, context):
+        args = context.args()
+        if (len(args) != 1):
+            return []
+
+        completions = []
+        field_name = args.pop(0)
+        for f in context.object().fields():
+            if f.startswith(field_name):
+                completions.append(f)
+        return completions
+
+    def __str__(self):
+        return "FIELD_REFERENCE"
+
 class CollectionByType(CommandToken):
     """Matches an collection of objects contained in another object.
        Matches on one word: the collection name (e.g. 'router')"""
@@ -2285,99 +2338,39 @@ class RootCtxToken(CommandToken):
     def __str__(self):
         return "ROOT_CONTEXT"
 
-class NewObjectFieldAssignment(CommandToken):
-    def matches(self, context):
+class FieldAssignmentBase(CommandToken):
+    """ Base class for matching assignment to a field."""
+    def matches_with_object(self, context, obj):
         args = context.args()
         if (len(args) < 2):
             return ParsingSubmatch(context)
 
-        col = None
-        for tok in context.parsed_tokens():
-            if isinstance(tok, Collection):
-                col = tok
-        if not col:
-            return ParsingSubmatch(context)
-
-        stub = col.element_type(None)
-        obj = context.object()
         fname = args.pop(0)
-        if stub.has_field(fname):
-            fspec = stub.attrs()[fname]
+        if obj.has_field(fname):
+            fspec = obj.attrs()[fname]
             if isinstance(fspec.value_type, ObjectRef):
                 refmatch = OnceOrMore(ObjectById()).matches(context.copy(app, args))
                 if isinstance(refmatch, MatchingContext):
                     fval = refmatch.object()
                     field = FieldType(fname, fspec, fval.fetch_field('id'))
-                    return context.copy(obj, refmatch.args(), [field])
+                    return context.copy(None, refmatch.args(), [field])
                 else:
                     fval = args.pop(0)
                     fromalias = aliases.lookup(fval)
                     if fromalias:
                         field = FieldType(fname, fspec, fromalias)
-                        return context.copy(obj, args, [field])
+                        return context.copy(None, args, [field])
                     else:
                         return ParsingSubmatch(context)
             else:
                 fval = args.pop(0)
                 field = FieldType(fname, fspec, fval)
-                return context.copy(obj, args, [field])
+                return context.copy(None, args, [field])
         return ParsingSubmatch(context)
 
-    def complete(self, context):
+    def complete_with_object(self, context, obj):
         args = context.args()
         if len(args) < 1 or len(args) > 2:
-            return []
-
-        col = None
-        for tok in context.parsed_tokens():
-            if isinstance(tok, Collection):
-                col = tok
-        if not col:
-            return []
-        stub = col.element_type(None)
-
-        if len(args) == 1:
-            return FieldByName().complete(context.copy(obj = stub))
-
-        fname = args.pop(0)
-        fval = args.pop(0)
-        if not stub.has_field(fname):
-            return []
-
-        fspec = stub.attrs()[fname]
-        if isinstance(fspec, ObjectRef):
-            return aliases.complete(fval)
-        elif isinstance(fspec, SingleAttr):
-            return fspec.complete(fval)
-        else:
-            return []
-
-class FieldAssignment(CommandToken):
-    def matches(self, context):
-        args = context.args()
-        if (len(args) < 2):
-            return ParsingSubmatch(context)
-
-        obj = context.object()
-        if not obj:
-            return ParsingSubmatch(context)
-
-        fname = args.pop(0)
-        fval = args.pop(0)
-        if obj.has_field(fname):
-            # TODO - object refs, reuse code from NewObjectFieldAssignment
-            fspec = obj.attrs()[fname]
-            field = FieldType(fname, fspec, fval)
-            return context.copy(obj, args, [field])
-        return ParsingSubmatch(context)
-
-    def complete(self, context):
-        args = context.args()
-        if len(args) < 1 or len(args) > 2:
-            return []
-
-        obj = context.object()
-        if not obj:
             return []
 
         if len(args) == 1:
@@ -2391,8 +2384,51 @@ class FieldAssignment(CommandToken):
         fspec = obj.attrs()[fname]
         if isinstance(fspec, ObjectRef):
             return aliases.complete(fval)
+        elif isinstance(fspec, SingleAttr):
+            return fspec.complete(fval)
         else:
             return []
+
+class NewObjectFieldAssignment(FieldAssignmentBase):
+    """ Production for assigning a value to a field on a newly-created
+        object. Matches two arguments: a field name and a value. The
+        value may be an object reference."""
+    def matches(self, context):
+        stub = self.get_stub(context)
+        if stub is None:
+            return ParsingSubmatch(context)
+        return FieldAssignmentBase.matches_with_object(self, context, stub)
+
+    def complete(self, context):
+        stub = self.get_stub(context)
+        if stub is None:
+            return []
+        return FieldAssignmentBase.complete_with_object(self, context, stub)
+
+    def get_stub(self, context):
+        col = None
+        for tok in context.parsed_tokens():
+            if isinstance(tok, Collection):
+                col = tok
+        if not col:
+            return None
+        return col.element_type(None)
+
+class FieldAssignment(FieldAssignmentBase):
+    """ Production for assigning a value to a field on an existing
+        object. Matches two arguments: a field name and a value. The
+        value may be an object reference."""
+    def matches(self, context):
+        obj = context.object()
+        if not obj:
+            return ParsingSubmatch(context)
+        return FieldAssignmentBase.matches_with_object(self, context, obj)
+
+    def complete(self, context):
+        obj = context.object()
+        if not obj:
+            return []
+        return FieldAssignmentBase.complete_with_object(self, context, obj)
 
 class ListFilter(CommandToken):
     """Matches a set of field name - value pairs that can be used to filter
@@ -2635,7 +2671,9 @@ class Command():
 class Describe(Command):
     def patterns(self):
         describe = Verb('describe', min_match = 'desc', set_command = self)
-        obj_selector = ObjectById()("+") | RootCtxToken()
+        id_obj = ObjectById()
+        col_obj = ObjectFromCollection()
+        obj_selector = (id_obj("+") + col_obj("*")) | RootCtxToken()
 
         patterns = obj_selector + describe + CollectionByType()("?")
         patterns |= describe + obj_selector + CollectionByType()("?")
@@ -2747,12 +2785,54 @@ class Create(Command):
         else:
             print wrapper.describe()
 
+class Clear(Command):
+    def patterns(self):
+        verb = Verb('clear', partial_match = False, set_command = self)
+
+        patterns = verb + ObjectById()("+") + FieldReference()("+")
+        patterns |= ObjectById()("+") + verb + FieldReference()("+")
+        return patterns
+
+    def help(self):
+        print """clear - Clear the value of a field on an existing object
+
+    Usage: clear <OBJECT> {<CHILD>} <FIELD> {<FIELD>}
+           <OBJECT> {<CHILD>} clear <FIELD> {<FIELD>}
+
+    Examples:
+           clear bridge bridge0 port port0 peer
+           bridge bridge0 port port0 clear peer
+           """
+
+    def name(self):
+        return 'clear'
+
+    def do(self, tokens):
+        assert(len(tokens) >= 3)
+        obj = None
+        fields = []
+        for tok in tokens:
+            if isinstance(tok, ObjectType):
+                obj = tok
+            elif isinstance(tok, SingleAttr):
+                fields.append(tok)
+        assert(obj is not None)
+
+        for f in fields:
+            if (f.unsetter is None):
+                raise Exception("Field %s cannot be cleared." % f.name)
+            obj.unset_field(f.name)
+        obj.object().update()
+
+
 class Set(Command):
     def patterns(self):
         verb = Verb('set', partial_match = False, set_command = self)
+        obj_from_col = ObjectFromCollection()
+        obj = ObjectById()
 
-        patterns = verb + ObjectById()("+") + FieldAssignment()("+")
-        patterns |= ObjectById()("+") + verb + FieldAssignment()("+")
+        patterns = verb + obj("+") + obj_from_col("*") + FieldAssignment()("+")
+        patterns |= obj("+") + obj_from_col("*") + verb + FieldAssignment()("+")
         return patterns
 
     def help(self):
@@ -3051,7 +3131,7 @@ class MidonetCLI(cmd.Cmd):
         readline.set_completion_display_matches_hook(self.display_completions)
         cmd.Cmd.__init__(self)
         self._root = root
-        self._ops = [Show(), List(), Create(), Delete(), Set(),
+        self._ops = [Show(), List(), Create(), Delete(), Set(), Clear(),
                      Describe(), Debug(), PushTenant(), PopTenant()]
         for op in self._ops:
             if op.name() is not None:
@@ -3122,7 +3202,7 @@ class MidonetCLI(cmd.Cmd):
                 self.last_command_succeeded = True
                 return False
             elif isinstance(result, ParsingSubmatch):
-                print error.best_match(result).describe()
+                print result.describe()
             else:
                 print ParsingSubmatch(context).describe()
         except Exception as e:

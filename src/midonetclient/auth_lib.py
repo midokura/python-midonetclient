@@ -96,7 +96,9 @@ class Auth:
         query = query or dict()
         headers = headers or dict()
 
-        self.set_header_token(headers)
+        # Username will be None if user has opted to skip authorization.
+        if self.username is not None:
+            self.set_header_token(headers)
         try:
             return api_lib.do_request(uri, method, body=body,
                                       query=query, headers=headers)
