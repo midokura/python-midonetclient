@@ -2078,17 +2078,25 @@ class Or(CommandToken):
 
     def matches(self, context):
         submatch = ParsingSubmatch(context)
+        matches = []
         for token in self._tokens:
             res = token.matches(context)
             if res is None:
                 continue
-            elif isinstance(res, MatchingContext):
+            elif isinstance(res, MatchedCommand):
                 return res
+            elif isinstance(res, MatchingContext):
+                matches.append(res)
             elif isinstance(res, ParsingSubmatch):
                 submatch = submatch.best_match(res)
             else:
                 raise Exception("parser bug")
-        return submatch
+        if matches:
+            return reduce(lambda x,y: x if len(x.args()) <= len(y.args()) else y,
+                          matches,
+                          matches[0])
+        else:
+            return submatch
 
     def complete(self, context):
         completions = []
@@ -3087,6 +3095,8 @@ class MidonetCLI(cmd.Cmd):
             return res
         elif isinstance(res, MatchedCommand):
             return res
+        elif isinstance(res, MatchingContext):
+            return ParsingSubmatch(res)
         else:
             raise Exception("parser bug")
 
@@ -3107,7 +3117,7 @@ class MidonetCLI(cmd.Cmd):
                 self.last_command_succeeded = True
                 return False
             elif isinstance(result, ParsingSubmatch):
-                print error.best_match(result).describe()
+                print result.describe()
             else:
                 print ParsingSubmatch(context).describe()
         except Exception as e:
