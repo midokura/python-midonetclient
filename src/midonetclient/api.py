@@ -230,6 +230,21 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.delete_trace_messages(id_)
 
+    def add_router_port(self, router, port_address=None,
+                        network_address=None, network_length=None):
+        port = router.add_port()
+        return port.port_address(port_address).network_address(
+            network_address).network_length(network_length).create()
+
+    def link(self, port, peer_id):
+        port.link(peer_id)
+
+    def unlink(self, port):
+        if port.get_peer_id():
+            peer_id = port.get_peer_id()
+            port.unlink()
+            self.delete_port(peer_id)
+
     def add_router_route(self, router, type='Normal',
                          src_network_addr=None, src_network_length=None,
                          dst_network_addr=None, dst_network_length=None,
@@ -244,6 +259,13 @@ class MidonetApi(object):
             next_hop_gateway).weight(weight)
 
         return route.create()
+
+    def get_router_routes(self, router_id):
+        """Get a list of routes for a given router."""
+        router = self.get_router(router_id)
+        if router is None:
+            raise ValueError("Invalid router_id passed in %s" % router_id)
+        return router.get_routes()
 
     def add_chain_rule(self, chain, action='accept', **kwargs):
         """Add a rule to a chain."""
@@ -269,7 +291,7 @@ class MidonetApi(object):
             "inv_dl_type": False,
             "jump_chain_id": None,
             "jump_chain_name": None,
-            "match_forward_flow": False,
+          "match_forward_flow": False,
             "match_return_flow": False,
             "position": None,
             "properties": None
