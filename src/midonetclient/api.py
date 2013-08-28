@@ -28,6 +28,13 @@ from midonetclient.application import Application
 LOG = logging.getLogger(__name__)
 
 
+def _net_addr(addr):
+    """Get network address prefix and length from a given address."""
+    nw_addr, nw_len = addr.split('/')
+    nw_len = int(nw_len)
+    return nw_addr, nw_len
+
+
 class MidonetApi(object):
 
     def __init__(self, base_uri, username, password, project_id=None):
@@ -221,6 +228,58 @@ class MidonetApi(object):
     def delete_trace_messages(self, id_):
         self._ensure_application()
         return self.app.delete_trace_messages(id_)
+
+    def add_router_route(self, router, type='Normal',
+                         src_network_addr=None, src_network_length=None,
+                         dst_network_addr=None, dst_network_length=None,
+                         next_hop_port=None, next_hop_gateway=None,
+                         weight=100):
+        """Add a route to a router."""
+        route = router.add_route().type(type)
+        route = route.src_network_addr(src_network_addr).src_network_length(
+            src_network_length).dst_network_addr(
+                dst_network_addr).dst_network_length(dst_network_length)
+        route = route.next_hop_port(next_hop_port).next_hop_gateway(
+            next_hop_gateway).weight(weight)
+
+        return route.create()
+
+    def add_chain_rule(self, chain, action='accept', **kwargs):
+        """Add a rule to a chain."""
+        # Set default values
+        prop_defaults = {
+            "nw_src_address": None,
+            "nw_src_length": None,
+            "inv_nw_src": False,
+            "tp_src": None,
+            "inv_tp_src": None,
+            "nw_dst_address": None,
+            "nw_dst_length": None,
+            "inv_nw_dst_addr": False,
+            "tp_dst": None,
+            "inv_tp_dst": None,
+            "dl_src": None,
+            "inv_dl_src": False,
+            "dl_dst": None,
+            "inv_dl_dst": False,
+            "nw_proto": None,
+            "inv_nw_proto": False,
+            "dl_type": None,
+            "inv_dl_type": False,
+            "jump_chain_id": None,
+            "jump_chain_name": None,
+            "match_forward_flow": False,
+            "match_return_flow": False,
+            "position": None,
+            "properties": None
+        }
+
+        # Initialize the rule with passed-in or default values
+        rule = chain.add_rule().type(action)
+        for (prop, default) in prop_defaults.iteritems():
+            rule.dto[prop] = kwargs.get(prop. default)
+
+        return rule.create()
 
     def _ensure_application(self):
         if self.app is None:
