@@ -100,6 +100,10 @@ class MidonetApi(object):
             query = {}
         self._ensure_application()
         return self.app.get_hosts(query)
+    
+    def add_host_interface_port(self, host, port_id, interface_name):
+        return host.add_host_interface_port().port_id(vport_id) \
+            .interface_name(host_dev_name).create()
 
     def get_write_version(self):
         self._ensure_application()
