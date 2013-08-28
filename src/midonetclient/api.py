@@ -305,9 +305,35 @@ class MidonetApi(object):
         }
 
         # Initialize the rule with passed-in or default values
-        rule = chain.add_rule().type(action)
+        vals = {}
         for (prop, default) in prop_defaults.iteritems():
-            rule.dto[prop] = kwargs.get(prop, default)
+            vals[prop] = kwargs.get(prop, default)
+
+        rule = chain.add_rule().type(action)
+        rule = rule.nw_src_address(vals.get("nw_src_address"))
+        rule = rule.nw_src_length(vals.get("nw_src_length"))
+        rule = rule.inv_nw_src(vals.get("inv_nw_src"))
+        rule = rule.nw_dst_address(vals.get("nw_dst_address"))
+        rule = rule.nw_dst_length(vals.get("nw_dst_length"))
+        rule = rule.inv_nw_dst(vals.get("inv_nw_dst"))
+        rule = rule.tp_src(vals.get("tp_src"))
+        rule = rule.inv_tp_src(vals.get("inv_tp_src"))
+        rule = rule.tp_dst(vals.get("tp_dst"))
+        rule = rule.inv_tp_dst(vals.get("inv_tp_dst"))
+        rule = rule.dl_src(vals.get("dl_src"))
+        rule = rule.inv_dl_src(vals.get("inv_dl_src"))
+        rule = rule.dl_dst(vals.get("dl_dst"))
+        rule = rule.inv_dl_dst(vals.get("inv_dl_dst"))
+        rule = rule.nw_proto(vals.get("nw_proto"))
+        rule = rule.inv_nw_proto(vals.get("inv_nw_proto"))
+        rule = rule.dl_type(vals.get("dl_type"))
+        rule = rule.inv_dl_type(vals.get("inv_dl_type"))
+        rule = rule.jump_chain_id(vals.get("jump_chain_id"))
+        rule = rule.jump_chain_name(vals.get("jump_chain_name"))
+        rule = rule.match_forward_flow(vals.get("match_forward_flow"))
+        rule = rule.match_return_flow(vals.get("match_return_flow"))
+        rule = rule.position(vals.get("position"))
+        rule = rule.properties(vals.get("properties"))
 
         return rule.create()
 
