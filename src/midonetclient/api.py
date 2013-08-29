@@ -24,6 +24,7 @@ from socket import error as socket_error
 
 from midonetclient import auth_lib
 from midonetclient.application import Application
+from midonetclient import midoapi_exceptions
 
 
 LOG = logging.getLogger(__name__)
@@ -342,8 +343,9 @@ class MidonetApi(object):
             self.app = Application(None, {'uri': self.base_uri}, self.auth)
             try:
                 self.app.get()
-            except socket_error:
+            except midoapi_exceptions.MidoApiConnectionRefused:
                 self.app = None
+                raise
 
 
 # just for testing

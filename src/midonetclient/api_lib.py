@@ -25,6 +25,8 @@ import urllib
 
 import httplib2
 import webob
+from socket import error as socket_error
+from midonetclient import midoapi_exceptions
 
 
 # TODO: lots of duplicates with auth_lib => merge both ?
@@ -75,8 +77,12 @@ def do_request(uri, method, body=None, query=None, headers=None):
     data = json.dumps(body) if body is not None else '{}'
     headers = headers or dict()
 
-    response, content = httplib2.Http().request(uri, method, data,
-                                                headers=headers)
+    try:
+        response, content = httplib2.Http().request(uri, method, data,
+                                                    headers=headers)
+    except socket_error as serr:
+        if serr[1] == "ECONNREFUSED": 
+            raise midoapi_exceptions.MidoApiConnectionRefused()
 
     LOG.debug("do_request: response=%s | content=%s" % (response, content))
 

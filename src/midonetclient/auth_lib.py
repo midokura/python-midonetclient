@@ -88,8 +88,7 @@ class Auth:
         '''
         header['X-Auth-Token'] = self.get_token(force)
 
-    # TODO: check is this is used anywhere at all.
-    #         => seems to conflict with api_lib.do_request ?
+    # This is used by ResourceBase, calls api_lib
     def do_request(self, uri, method, body=None, query=None, headers=None):
         ''' Wrapper for api_lib.do_request that includes auth logic.
         '''
