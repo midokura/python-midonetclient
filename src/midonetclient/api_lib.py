@@ -81,8 +81,9 @@ def do_request(uri, method, body=None, query=None, headers=None):
         response, content = httplib2.Http().request(uri, method, data,
                                                     headers=headers)
     except socket_error as serr:
-        if serr[1] == "ECONNREFUSED": 
+        if serr[1] == "ECONNREFUSED":
             raise midoapi_exceptions.MidoApiConnectionRefused()
+        raise
 
     LOG.debug("do_request: response=%s | content=%s" % (response, content))
 
