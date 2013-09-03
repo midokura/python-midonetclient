@@ -26,22 +26,31 @@ BuildRoot:  /var/tmp/%{name}-buildroot
 Python client for MidoNet REST API.
 
 %prep
-%setup -q 
+%setup -q
+for r in doc/*.ronn
+do
+    ronn --roff $r
+    gzip ${r%.ronn}
+done
+
 
 %install
-mkdir -p $RPM_BUILD_ROOT/%{python_sitelib}
 mkdir -p $RPM_BUILD_ROOT/%{_bindir}
 mkdir -p $RPM_BUILD_ROOT/%{_docdir}/%{name}
-cp -r src/midonetclient/ $RPM_BUILD_ROOT/%{python_sitelib}/
-cp -r src/bin/midonet-cli $RPM_BUILD_ROOT/%{_bindir}/
+mkdir -p $RPM_BUILD_ROOT/%{_mandir}/man1
+mkdir -p $RPM_BUILD_ROOT/%{python_sitelib}
+cp -r doc/*.gz $RPM_BUILD_ROOT/%{_mandir}/man1
 cp -r rhel/copyright $RPM_BUILD_ROOT/%{_docdir}/%{name}/
 cp -r README $RPM_BUILD_ROOT/%{_docdir}/%{name}/
+cp -r src/midonetclient/ $RPM_BUILD_ROOT/%{python_sitelib}/
+cp -r src/bin/midonet-cli $RPM_BUILD_ROOT/%{_bindir}/
 
 %files
 %defattr(-,root,root)
-%{python_sitelib}/midonetclient
 %{_bindir}/midonet-cli
 %{_docdir}/%{name}
+%{_mandir}/man1
+%{python_sitelib}/midonetclient
 
 %changelog
 * Thu Aug 8 2013 Guillermo Ontanon <guillermo@midokura.com> - 1.1.0-1.0
