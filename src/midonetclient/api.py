@@ -103,8 +103,8 @@ class MidonetApi(object):
         return self.app.get_hosts(query)
     
     def add_host_interface_port(self, host, port_id, interface_name):
-        return host.add_host_interface_port().port_id(vport_id) \
-            .interface_name(host_dev_name).create()
+        return host.add_host_interface_port().port_id(port_id) \
+            .interface_name(interface_name).create()
 
     def get_write_version(self):
         self._ensure_application()
@@ -279,12 +279,12 @@ class MidonetApi(object):
         """Add a rule to a chain."""
         # Set default values
         prop_defaults = {
-            "nw_src_address": None,
+            "nw_src_addr": None,
             "nw_src_length": None,
             "inv_nw_src": False,
             "tp_src": None,
             "inv_tp_src": None,
-            "nw_dst_address": None,
+            "nw_dst_addr": None,
             "nw_dst_length": None,
             "inv_nw_dst_addr": False,
             "tp_dst": None,
@@ -311,10 +311,10 @@ class MidonetApi(object):
             vals[prop] = kwargs.get(prop, default)
 
         rule = chain.add_rule().type(action)
-        rule = rule.nw_src_address(vals.get("nw_src_address"))
+        rule = rule.nw_src_address(vals.get("nw_src_addr"))
         rule = rule.nw_src_length(vals.get("nw_src_length"))
         rule = rule.inv_nw_src(vals.get("inv_nw_src"))
-        rule = rule.nw_dst_address(vals.get("nw_dst_address"))
+        rule = rule.nw_dst_address(vals.get("nw_dst_addr"))
         rule = rule.nw_dst_length(vals.get("nw_dst_length"))
         rule = rule.inv_nw_dst(vals.get("inv_nw_dst"))
         rule = rule.tp_src(vals.get("tp_src"))
@@ -335,7 +335,6 @@ class MidonetApi(object):
         rule = rule.match_return_flow(vals.get("match_return_flow"))
         rule = rule.position(vals.get("position"))
         rule = rule.properties(vals.get("properties"))
-
         return rule.create()
 
     def _ensure_application(self):
