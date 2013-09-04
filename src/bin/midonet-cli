@@ -2096,21 +2096,6 @@ class ZeroOrOne(CommandToken):
     def __str__(self):
         return "%s?" % (self._token)
 
-class Seq(CommandToken):
-    def __init__(self, tokens):
-        self._tokens = tokens
-
-    def matches(self, context):
-        ctx = context
-        for tok in self._tokens:
-            ctx = tok.matches(ctx)
-            if not isinstance(ctx, MatchingContext):
-                break
-        return ctx
-
-    def complete(self, context):
-        return []
-
 class Or(CommandToken):
     def __init__(self, *tokens):
         self._tokens = list(tokens)
@@ -2295,7 +2280,7 @@ class ObjectFromCollection(CommandToken):
     """Matches an collection of objects contained in another object.
        Matches on one word: the collection name (e.g. 'router')"""
     def __init__(self):
-        self.subtoken = Seq([CollectionByType(), ListFilter()])
+        self.subtoken = CollectionByType() + ListFilter()
 
     def matches(self, context):
         submatch = self.subtoken.matches(context)
@@ -2326,11 +2311,7 @@ class ObjectFromCollection(CommandToken):
             return context.copy(elems[0], submatch.args(), elems)
 
     def complete(self, context):
-        col = CollectionByType().complete(context)
-        if col:
-            return col
-        else:
-            return ListFilter().complete(context)
+        return self.subtoken.complete(context)
 
     def __str__(self):
         return "OBJECT"
@@ -2382,7 +2363,7 @@ class FieldAssignmentBase(CommandToken):
             return []
 
         if len(args) == 1:
-            return FieldByName().complete(context)
+            return FieldByName().complete(context.copy(obj = obj))
 
         fname = args.pop(0)
         fval = args.pop(0)
@@ -2588,6 +2569,7 @@ class FieldByName(CommandToken):
 
         completions = []
         arg = args.pop(0)
+
         for f in context.object().fields():
             if f.startswith(arg):
                 completions.append(f)
