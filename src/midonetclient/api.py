@@ -24,11 +24,9 @@ from socket import error as socket_error
 
 from midonetclient import auth_lib
 from midonetclient.application import Application
-from midonetclient import midoapi_exceptions
-
+from midonetclient import exc
 
 LOG = logging.getLogger(__name__)
-
 
 def _net_addr(addr):
     """Get network address prefix and length from a given address."""
@@ -299,7 +297,7 @@ class MidonetApi(object):
             "inv_dl_type": False,
             "jump_chain_id": None,
             "jump_chain_name": None,
-          "match_forward_flow": False,
+            "match_forward_flow": False,
             "match_return_flow": False,
             "position": None,
             "properties": None
@@ -342,7 +340,7 @@ class MidonetApi(object):
             self.app = Application(None, {'uri': self.base_uri}, self.auth)
             try:
                 self.app.get()
-            except midoapi_exceptions.MidoApiConnectionRefused:
+            except exc.MidoApiConnectionRefused:
                 self.app = None
                 raise
 

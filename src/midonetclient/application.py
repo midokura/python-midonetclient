@@ -289,6 +289,11 @@ class Application(ResourceBase):
     def _create_uri_from_template(self, template, token, value):
         return template.replace(token, value)
 
+    def _get_resource(self, clazz, create_uri, uri):
+        return clazz(create_uri, {'uri': uri}, self.auth).get(
+            headers={'Content-Type': clazz.media_type,
+                     'Accept': clazz.media_type})
+    
     def _get_resource_by_id(self, clazz, create_uri,
                             template, id_):
         uri = self._create_uri_from_template(template,
