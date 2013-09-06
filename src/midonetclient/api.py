@@ -37,7 +37,7 @@ class MidonetApi(object):
         self.auth = auth_lib.Auth(self.base_uri + '/login', username, password,
                                   project_id)
 
-    def get_tenants(self, query):
+    def get_tenants(self, query = {}):
         self._ensure_application()
         return self.app.get_tenants(query)
 
