@@ -2564,7 +2564,7 @@ class FieldByName(CommandToken):
 
     def complete(self, context):
         args = context.args()
-        if (len(args) == 0):
+        if (len(args) != 1):
             return []
 
         completions = []
@@ -2902,10 +2902,9 @@ class Show(Command):
         obj_in_col = ObjectFromCollection()
         field = FieldByName()
 
-        patterns = obj("+") + show + obj_in_col("?") + field("?")
+        patterns = obj("+") + obj_in_col("?") + show + obj_in_col("?") + field("?")
         patterns |= show + obj("+") + obj_in_col("?") + field("?")
         patterns |= obj("+") + obj_in_col("?") + field("?") + show
-        patterns |= obj("+") + obj_in_col("?") + show + obj_in_col("?") + field("?")
         return patterns
 
     def name(self):
