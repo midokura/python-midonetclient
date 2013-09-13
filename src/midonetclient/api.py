@@ -93,6 +93,14 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.get_hosts(query)
 
+    def get_write_version(self):
+        self._ensure_application()
+        return self.app.get_write_version()
+
+    def get_system_state(self):
+        self._ensure_application()
+        return self.app.get_system_state()
+
     def get_host(self, id_):
         self._ensure_application()
         return self.app.get_host(id_)

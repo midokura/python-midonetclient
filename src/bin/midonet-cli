@@ -766,6 +766,13 @@ class Collection(Attr):
         self.show = show
         self.sort_by = sort_by
 
+class SingleObject(Attr):
+    def __init__(self, name, getter, element_type, show = True):
+        self.name = name
+        self.getter = getter
+        self.show = show,
+        self.element_type = element_type
+
 ################################################################################
 # Alias manager
 ################################################################################
@@ -1007,6 +1014,11 @@ class ObjectType():
     def attrs(self):
         return self._attrs
 
+    def single_objects(self):
+        single_objects = filter(lambda a: isinstance(a, SingleObject),
+                                self._attr_list)
+        return map(lambda f: f.name, single_objects)
+
     def fields(self):
         fields = filter(lambda a: isinstance(a, SingleAttr), self._attr_list)
         return map(lambda f: f.name, fields)
@@ -1014,6 +1026,12 @@ class ObjectType():
     def types(self):
         types = filter(lambda a: isinstance(a, Collection), self._attr_list)
         return map(lambda t: t.name, types)
+
+    def has_single_object(self, single_object_name):
+        if self._attrs.has_key(single_object_name):
+            if isinstance(self._attrs[single_object_name], SingleObject):
+                return True
+        return False
 
     def has_type(self, type_name):
         if self._attrs.has_key(type_name):
@@ -1086,6 +1104,14 @@ class ObjectType():
         except:
             raise Exception("bug in type definition: %s::%s" % (
                 self.__class__.__name__, member_name))
+
+    def fetch_single_object(self, object_name):
+        if not self.has_single_object(object_name):
+            raise Exception("%s: no such member" % object_name)
+        single_obj = self.attrs()[object_name]
+        func = app.reflect(single_obj.getter)
+        obj = func()
+        return single_obj.element_type(obj)
 
     def fetch_field(self, field_name):
         if not self.has_field(field_name):
@@ -1382,6 +1408,30 @@ class Tenant(ObjectType):
                                  setter = 'id'))
     def type_name(self):
         return "tenant"
+
+class SystemState(ObjectType):
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.clear_attrs()
+        self.put_attr(SingleAttr(name = 'state',
+                                 value_type = StringType(),
+                                 getter = 'get_state',
+                                 setter = 'state'))
+
+    def type_name(self):
+        return "system_state"
+
+class WriteVersion(ObjectType):
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.clear_attrs()
+        self.put_attr(SingleAttr(name = 'version',
+                                 value_type = StringType(),
+                                 getter = 'get_version',
+                                 setter = 'version'))
+
+    def type_name(self):
+        return "write_version"
 
 class Bridge(ObjectType):
     def __init__(self, obj):
@@ -1738,7 +1788,7 @@ class Trace(ObjectType):
                                  getter = 'get_trace_messages'))
 
 class Midonet(ObjectType):
-    """ This is the root context for the CLI. At the beggining of matchin on a
+    """ This is the root context for the CLI. At the beggining of matching on a
         command pattern the `MatchingContext` is initialized with an instance of
         this object. Thus, its mission is to give access to top-level objects in
         the REST API"""
@@ -1746,6 +1796,12 @@ class Midonet(ObjectType):
     def __init__(self, app):
         ObjectType.__init__(self, app)
         self.clear_attrs()
+        ObjectType.put_attr(self, SingleObject(name = 'system-state',
+                                             element_type = SystemState,
+                                             getter = 'get_system_state'))
+        ObjectType.put_attr(self, SingleObject(name = 'write-version',
+                                             element_type = WriteVersion,
+                                             getter = 'get_write_version'))
         ObjectType.put_attr(self, Collection(name = 'router',
                                              element_type = Router,
                                              list_method = 'get_routers',
@@ -1794,6 +1850,7 @@ class Midonet(ObjectType):
                                              list_method = 'get_trace_ids',
                                              getter = 'get_trace_messages',
                                              list_with_tenant = False))
+
 
 
 ################################################################################
@@ -2277,7 +2334,7 @@ class CollectionByType(CommandToken):
         return "COLLECTION"
 
 class ObjectFromCollection(CommandToken):
-    """Matches an collection of objects contained in another object.
+    """Matches a collection of objects contained in another object.
        Matches on one word: the collection name (e.g. 'router')"""
     def __init__(self):
         self.subtoken = CollectionByType() + ListFilter()
@@ -2578,6 +2635,45 @@ class FieldByName(CommandToken):
     def __str__(self):
         return "FIELD_NAME"
 
+class SingleObjectByName(CommandToken):
+    """Matches a single object in the object found in the
+       current matching context"""
+
+    def matches(self, context):
+        args = context.args()
+        if (len(args) == 0):
+            return ParsingSubmatch(context)
+
+        object_name = args.pop(0)
+        if not context.object().has_single_object(object_name):
+            return ParsingSubmatch(context)
+
+        obj = context.object().fetch_single_object(object_name)
+
+        if obj:
+            return context.copy(obj, args, [obj])
+
+        non_parsed = context.args()
+        non_parsed.pop(0)
+        return ParsingSubmatch(context.copy(args = non_parsed))
+
+
+    def complete(self, context):
+        args = context.args()
+        if (len(args) == 0):
+            return []
+
+        completions = []
+        arg = args.pop(0)
+        for so in context.object().single_objects():
+            if so.startswith(arg):
+                completions.append(so)
+        return completions
+
+    def __str__(self):
+        return "SINGLE_OBJECT"
+
+
 class ObjectRefField(CommandToken):
     """Matches a field of type ObjectRef"""
 
@@ -2819,10 +2915,13 @@ class Set(Command):
     def patterns(self):
         verb = Verb('set', partial_match = False, set_command = self)
         obj_from_col = ObjectFromCollection()
-        obj = ObjectById()
+        single_obj = SingleObjectByName()
+        obj = ObjectById()("+") | RootCtxToken()
 
-        patterns = verb + obj("+") + obj_from_col("*") + FieldAssignment()("+")
-        patterns |= obj("+") + obj_from_col("*") + verb + FieldAssignment()("+")
+        patterns = single_obj + verb + FieldAssignment()("+")
+        patterns |= verb + single_obj + FieldAssignment()("+")
+        patterns |= verb + obj + obj_from_col("*") + FieldAssignment()("+")
+        patterns |= obj + obj_from_col("*") + verb + FieldAssignment()("+")
         return patterns
 
     def help(self):
@@ -2899,10 +2998,15 @@ class Show(Command):
     def patterns(self):
         show = Verb('show', set_command = self)
         obj = ObjectById()
+        single_obj = SingleObjectByName()("+") | RootCtxToken()
         obj_in_col = ObjectFromCollection()
         field = FieldByName()
 
-        patterns = obj("+") + obj_in_col("?") + show + obj_in_col("?") + field("?")
+        patterns = show + single_obj + field
+        patterns |= single_obj + show + field
+        patterns |= single_obj + field + show
+        patterns |= obj("+") + obj_in_col("?") + show + obj_in_col("?") + field("?")
+        patterns |= obj("+") + show + obj_in_col("?") + field("?")
         patterns |= show + obj("+") + obj_in_col("?") + field("?")
         patterns |= obj("+") + obj_in_col("?") + field("?") + show
         return patterns

@@ -36,6 +36,8 @@ from midonetclient.tenant import Tenant
 from midonetclient.tunnel_zone import TunnelZone
 from midonetclient.trace_condition import TraceCondition
 from midonetclient.trace import Trace
+from midonetclient.write_version import WriteVersion
+from midonetclient.system_state import SystemState
 
 
 class Application(ResourceBase):
@@ -84,6 +86,12 @@ class Application(ResourceBase):
 
     def get_trace_condition_template(self):
         return self.dto['traceConditionTemplate']
+
+    def get_write_version_uri(self):
+        return self.dto['writeVersion']
+
+    def get_system_state_uri(self ):
+        return self.dto['systemState']
 
     def get_tenants(self, query):
         headers = {'Accept':
@@ -261,6 +269,14 @@ class Application(ResourceBase):
     def delete_trace_messages(self, id_):
         return self._delete_resource_by_id(self.get_trace_template(), id_)
 
+    def get_write_version(self):
+        return self._get_resource(WriteVersion, None,
+                                    self.get_write_version_uri())
+
+    def get_system_state(self):
+        return self._get_resource(SystemState, None,
+                                    self.get_system_state_uri())
+
     def _create_uri_from_template(self, template, token, value):
         return template.replace(token, value)
 
@@ -277,14 +293,17 @@ class Application(ResourceBase):
         elif dto['type'].endswith('Bridge'):
             return BridgePort(None, dto, self.auth)
 
+    def _get_resource(self, clazz, create_uri, uri):
+        return clazz(create_uri, {'uri': uri}, self.auth).get(
+            headers={'Content-Type': clazz.media_type,
+                     'Accept': clazz.media_type})
+
     def _get_resource_by_id(self, clazz, create_uri,
                             template, id_):
         uri = self._create_uri_from_template(template,
                                              self.ID_TOKEN,
                                              id_)
-        return clazz(create_uri, {'uri': uri}, self.auth).get(
-            headers={'Content-Type': clazz.media_type,
-                     'Accept': clazz.media_type})
+        return self._get_resource(clazz, create_uri, uri)
 
     def _delete_resource_by_id(self, template, id_):
         uri = self._create_uri_from_template(template,
