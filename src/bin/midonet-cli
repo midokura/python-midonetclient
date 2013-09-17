@@ -1417,6 +1417,10 @@ class SystemState(ObjectType):
                                  value_type = StringType(),
                                  getter = 'get_state',
                                  setter = 'state'))
+        self.put_attr(SingleAttr(name = 'availability',
+                                 value_type = StringType(),
+                                 getter = 'get_availability',
+                                 setter = 'availability'))
 
     def type_name(self):
         return "system_state"
