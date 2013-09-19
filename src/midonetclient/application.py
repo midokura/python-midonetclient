@@ -38,6 +38,7 @@ from midonetclient.trace_condition import TraceCondition
 from midonetclient.trace import Trace
 from midonetclient.write_version import WriteVersion
 from midonetclient.system_state import SystemState
+from midonetclient.host_version import HostVersion
 
 
 class Application(ResourceBase):
@@ -92,6 +93,9 @@ class Application(ResourceBase):
 
     def get_system_state_uri(self ):
         return self.dto['systemState']
+
+    def get_host_versions_uri(self ):
+        return self.dto['hostVersions']
 
     def get_tenants(self, query):
         headers = {'Accept':
@@ -276,6 +280,12 @@ class Application(ResourceBase):
     def get_system_state(self):
         return self._get_resource(SystemState, None,
                                     self.get_system_state_uri())
+
+    def get_host_versions(self, query):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_HOST_VERSION_JSON}
+        return self.get_children(self.dto['hostVersions'], \
+                                 query, headers, HostVersion)
 
     def _create_uri_from_template(self, template, token, value):
         return template.replace(token, value)

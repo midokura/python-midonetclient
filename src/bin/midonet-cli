@@ -1437,6 +1437,23 @@ class WriteVersion(ObjectType):
     def type_name(self):
         return "write_version"
 
+class HostVersion(ObjectType):
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.clear_attrs()
+        self.put_attr(SingleAttr(name = 'version',
+                                 value_type = StringType(),
+                                 getter = 'get_version'))
+        self.put_attr(SingleAttr(name = 'host',
+                                 value_type = StringType(),
+                                 getter = 'get_host'))
+        self.put_attr(SingleAttr(name = 'host_id',
+                                 value_type = StringType(),
+                                 getter = 'get_host_id'))
+
+    def type_name(self):
+        return "write_version"
+
 class Bridge(ObjectType):
     def __init__(self, obj):
         ObjectType.__init__(self, obj)
@@ -1806,6 +1823,10 @@ class Midonet(ObjectType):
         ObjectType.put_attr(self, SingleObject(name = 'write-version',
                                              element_type = WriteVersion,
                                              getter = 'get_write_version'))
+        ObjectType.put_attr(self, Collection(name = 'host-versions',
+                                             element_type = HostVersion,
+                                             list_method = 'get_host_versions',
+                                             list_with_tenant = True))
         ObjectType.put_attr(self, Collection(name = 'router',
                                              element_type = Router,
                                              list_method = 'get_routers',

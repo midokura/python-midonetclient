@@ -101,6 +101,10 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.get_system_state()
 
+    def get_host_versions(self, query=None):
+        self._ensure_application()
+        return self.app.get_host_versions(query)
+
     def get_host(self, id_):
         self._ensure_application()
         return self.app.get_host(id_)
