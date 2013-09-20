@@ -6,7 +6,7 @@
 Name:       python-midonetclient
 Epoch:      1
 Version:    1.2.0
-Release:    0.1.rc2
+Release:    0.1.rc3
 Summary:    Python client for MidoNet REST API.
 Group:      Development/Languages
 License:    Test
