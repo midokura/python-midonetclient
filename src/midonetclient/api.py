@@ -28,6 +28,7 @@ from midonetclient import exc
 
 LOG = logging.getLogger(__name__)
 
+
 def _net_addr(addr):
     """Get network address prefix and length from a given address."""
     nw_addr, nw_len = addr.split('/')
@@ -44,7 +45,7 @@ class MidonetApi(object):
         self.auth = auth_lib.Auth(self.base_uri + '/login', username, password,
                                   project_id)
 
-    def get_tenants(self, query = {}):
+    def get_tenants(self, query={}):
         self._ensure_application()
         return self.app.get_tenants(query)
 
@@ -99,7 +100,7 @@ class MidonetApi(object):
             query = {}
         self._ensure_application()
         return self.app.get_hosts(query)
-    
+
     def add_host_interface_port(self, host, port_id, interface_name):
         return host.add_host_interface_port().port_id(port_id) \
             .interface_name(interface_name).create()
@@ -183,6 +184,46 @@ class MidonetApi(object):
     def add_bridge(self):
         self._ensure_application()
         return self.app.add_bridge()
+
+    def add_bridge_dhcp(self, bridge, gateway_ip, cidr, host_rts=None,
+                        dns_nservers=None):
+        """Creates a dhcp subnet with the provided gateway ip, cidr,
+        host routes, and dns name servers.
+
+        :returns: The new dhcp subnet resource.
+        :param bridge: Bridge of the new dhcp subnet.
+        :param gateway_ip: Single ipv4 address string.
+        :param cidr: Subnet represented by cidr notation [ipv4 addr]/[prefix].
+        :param host_rts: An array of dictionaries, each of the form:
+            {"destination": <ipv4 cidr>, "nexthop": <ipv4 string>}.
+        :param dns_nservers: An array of strings representing ipv4 addresses.
+        """
+        if host_rts is None:
+            host_rts = []
+
+        if dns_nservers is None:
+            dns_nservers = []
+
+        net_addr, net_len = cidr.split('/')
+
+        dhcp = bridge.add_dhcp_subnet()
+        dhcp.default_gateway(gateway_ip)
+        dhcp.subnet_prefix(net_addr)
+        dhcp.subnet_length(net_len)
+
+        if host_rts:
+            opt121_list = []
+            for rt in host_rts:
+                rt_net_addr, rt_net_len = rt['destination'].split('/')
+                opt121_list.append({'destinationPrefix': rt_net_addr,
+                                    'destinationLength': rt_net_len,
+                                    'gatewayAddr': rt['nexthop']})
+            dhcp.opt121_routes(opt121_list)
+
+        if dns_nservers:
+            dhcp.dns_server_addrs(dns_nservers)
+
+        return dhcp.create()
 
     def add_port_group(self):
         self._ensure_application()
