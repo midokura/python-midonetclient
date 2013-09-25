@@ -1577,14 +1577,14 @@ class Condition(ObjectType):
                                                     'match_return_flow') ],
                               optional = True))
         self.put_attr(SingleAttr(name = 'port-group-src',
-                                 value_type = ObjectRef('port-group-src'),
+                                 value_type = ObjectRef('port-group'),
                                  getter = 'get_port_group_src',
                                  setter = 'port_group_src',
                                  inv_getter = 'is_inv_port_group_src',
                                  inv_setter = 'inv_port_group_src',
                                  optional = True))
         self.put_attr(SingleAttr(name = 'port-group-dst',
-                                 value_type = ObjectRef('port-group-dst'),
+                                 value_type = ObjectRef('port-group'),
                                  getter = 'get_port_group_dst',
                                  setter = 'port_group_dst',
                                  inv_getter = 'is_inv_port_group_dst',
