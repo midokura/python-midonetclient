@@ -79,7 +79,7 @@ class Auth:
         Login the user if the global _token variable is not set.
         '''
         global _token
-        if _token == None or force:
+        if _token is None or force:
             self.login()
         return _token
 
@@ -88,8 +88,7 @@ class Auth:
         '''
         header['X-Auth-Token'] = self.get_token(force)
 
-    # TODO: check is this is used anywhere at all.
-    #         => seems to conflict with api_lib.do_request ?
+    # This is used by ResourceBase, calls api_lib
     def do_request(self, uri, method, body=None, query=None, headers=None):
         ''' Wrapper for api_lib.do_request that includes auth logic.
         '''

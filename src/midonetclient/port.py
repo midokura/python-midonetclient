@@ -22,14 +22,17 @@
 from midonetclient import port_type
 from midonetclient import resource_base
 from midonetclient import vendor_media_type
+from vendor_media_type import APPLICATION_PORTGROUP_PORT_COLLECTION_JSON
+from midonetclient import bgp
+from midonetclient import port_group_port
 
 
-class BridgePort(resource_base.ResourceBase):
+class Port(resource_base.ResourceBase):
 
-    media_type = vendor_media_type.APPLICATION_PORT_JSON
+    media_type = vendor_media_type.APPLICATION_PORT_V2_JSON
 
     def __init__(self, uri, dto, auth):
-        super(BridgePort, self).__init__(uri, dto, auth)
+        super(Port, self).__init__(uri, dto, auth)
 
     def get_id(self):
         return self.dto['id']
@@ -49,11 +52,35 @@ class BridgePort(resource_base.ResourceBase):
     def get_vif_id(self):
         return self.dto['vifId']
 
+    def get_host_id(self):
+        return self.dto['hostId']
+
+    def get_interface_name(self):
+        return self.dto['interfaceName']
+
     def get_vlan_id(self):
         return self.dto['vlanId']
 
     def get_peer_id(self):
         return self.dto['peerId']
+
+    def get_network_address(self):
+        return self.dto['networkAddress']
+
+    def get_network_length(self):
+        return self.dto['networkLength']
+
+    def get_port_address(self):
+        return self.dto['portAddress']
+
+    def get_port_mac(self):
+        return self.dto['portMac']
+
+    def get_bgps(self):
+        query = {}
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_BGP_COLLECTION_JSON}
+        return self.get_children(self.dto['bgps'], query, headers, bgp.Bgp)
 
     def inbound_filter_id(self, id_):
         self.dto['inboundFilterId'] = id_
@@ -71,14 +98,29 @@ class BridgePort(resource_base.ResourceBase):
         self.dto['vlanId'] = id_
         return self
 
+    def port_address(self, port_address):
+        self.dto['portAddress'] = port_address
+        return self
+
+    def network_address(self, network_address):
+        self.dto['networkAddress'] = network_address
+        return self
+
+    def network_length(self, network_length):
+        self.dto['networkLength'] = network_length
+        return self
+
     def type(self, type_):
         self.dto['type'] = type_
         return self
 
+    def add_bgp(self):
+        return bgp.Bgp(self.dto['bgps'], {}, self.auth)
+
     def link(self, peer_uuid):
         self.dto['peerId'] = peer_uuid
         headers = {'Content-Type':
-                    vendor_media_type.APPLICATION_PORT_LINK_JSON}
+                   vendor_media_type.APPLICATION_PORT_LINK_JSON}
         self.auth.do_request(self.dto['link'], 'POST', self.dto,
                              headers=headers)
 
@@ -87,7 +129,12 @@ class BridgePort(resource_base.ResourceBase):
 
     def unlink(self):
         headers = {'Content-Type':
-                    vendor_media_type.APPLICATION_PORT_LINK_JSON}
+                   vendor_media_type.APPLICATION_PORT_LINK_JSON}
         self.auth.do_request(self.dto['link'], 'DELETE')
         self.get()
         return self
+
+    def get_port_groups(self, query=None):
+        headers = {'Accept': APPLICATION_PORTGROUP_PORT_COLLECTION_JSON}
+        return self.get_children(self.dto['portGroups'], query, headers,
+                                 port_group_port.PortGroupPort)

@@ -18,7 +18,5 @@
 # @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
-EXTERIOR_BRIDGE = "ExteriorBridge"
-EXTERIOR_ROUTER = "ExteriorRouter"
-INTERIOR_BRIDGE = "InteriorBridge"
-INTERIOR_ROUTER = "InteriorRouter"
+BRIDGE = "Bridge"
+ROUTER = "Router"

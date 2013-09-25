@@ -66,8 +66,8 @@ class ResourceBase(object):
                                          headers=headers)
 
         return map(
-            lambda dto: clazz(uri, dto, self.auth, *(extra_args or []) ),
-            dtos or [] # in case API returns empty when no hosts
+            lambda dto: clazz(uri, dto, self.auth, *(extra_args or [])),
+            dtos or []  # in case API returns empty when no hosts
         )
 
     def get_uri(self):

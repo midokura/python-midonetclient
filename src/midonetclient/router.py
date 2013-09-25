@@ -21,10 +21,9 @@
 
 from midonetclient import port_type
 from midonetclient import vendor_media_type
-from midonetclient.bridge_port import BridgePort
+from midonetclient.port import Port
 from midonetclient.resource_base import ResourceBase
 from midonetclient.route import Route
-from midonetclient.router_port import RouterPort
 
 
 class Router(ResourceBase):
@@ -67,36 +66,29 @@ class Router(ResourceBase):
 
     def get_ports(self, query=None):
         headers = {'Accept':
-                   vendor_media_type.APPLICATION_PORT_COLLECTION_JSON}
-
-        return self.get_children(self.dto['ports'], query, headers, RouterPort)
+                   vendor_media_type.APPLICATION_PORT_V2_COLLECTION_JSON}
+        return self.get_children(self.dto['ports'], query, headers, Port)
 
     def get_routes(self, query=None):
         headers = {'Accept':
-                       vendor_media_type.APPLICATION_ROUTE_COLLECTION_JSON}
+                   vendor_media_type.APPLICATION_ROUTE_COLLECTION_JSON}
         return self.get_children(self.dto['routes'], query, headers, Route)
 
     def get_peer_ports(self, query=None):
+        if query is None:
+            query = {}
         headers = {'Accept':
-                      vendor_media_type.APPLICATION_PORT_COLLECTION_JSON}
+                   vendor_media_type.APPLICATION_PORT_V2_COLLECTION_JSON}
         res, peer_ports = self.auth.do_request(self.dto['peerPorts'], 'GET',
                                                headers=headers, query=query)
-
         res = []
         for pp in peer_ports:
-            if pp['type'] == port_type.INTERIOR_ROUTER:
-                res.append(RouterPort(self.dto['ports'], pp, self.auth))
-            elif pp['type'] == port_type.INTERIOR_BRIDGE:
-                res.append(BridgePort(self.dto['ports'], pp, self.auth))
+            res.append(Port(self.dto['ports'], pp, self.auth))
         return res
 
-    def add_interior_port(self):
-        return RouterPort(self.dto['ports'],
-                          {'type': port_type.INTERIOR_ROUTER}, self.auth)
-
-    def add_exterior_port(self):
-        return RouterPort(self.dto['ports'],
-                          {'type': port_type.EXTERIOR_ROUTER}, self.auth)
+    def add_port(self):
+        return Port(self.dto['ports'],
+                    {'type': port_type.ROUTER}, self.auth)
 
     def add_route(self):
         return Route(self.dto['routes'], {}, self.auth)

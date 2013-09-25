@@ -20,6 +20,7 @@
 
 
 from midonetclient import vendor_media_type
+from vendor_media_type import APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON
 from midonetclient.host_interface import HostInterface
 from midonetclient.host_interface_port import HostInterfacePort
 from midonetclient.resource_base import ResourceBase
@@ -44,20 +45,14 @@ class Host(ResourceBase):
     def get_addresses(self):
         return self.dto['addresses']
 
-    def get_interfaces(self, query = {}):
-        headers = {
-            'Accept':
-                vendor_media_type.APPLICATION_INTERFACE_COLLECTION_JSON
-            }
+    def get_interfaces(self, query={}):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_INTERFACE_COLLECTION_JSON}
         return self.get_children(self.dto['interfaces'], query, headers,
                                  HostInterface)
 
     def get_ports(self):
-        headers = {
-            'Accept':
-                vendor_media_type.\
-                APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON
-            }
+        headers = {'Accept': APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON}
 
         query = {}
         return self.get_children(self.dto['ports'], query, headers,

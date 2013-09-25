@@ -23,14 +23,13 @@ from midonetclient import vendor_media_type
 from midonetclient.ad_route import AdRoute
 from midonetclient.bgp import Bgp
 from midonetclient.bridge import Bridge
-from midonetclient.bridge_port import BridgePort
 from midonetclient.chain import Chain
 from midonetclient.host import Host
+from midonetclient.port import Port
 from midonetclient.port_group import PortGroup
 from midonetclient.resource_base import ResourceBase
 from midonetclient.route import Route
 from midonetclient.router import Router
-from midonetclient.router_port import RouterPort
 from midonetclient.rule import Rule
 from midonetclient.tenant import Tenant
 from midonetclient.tunnel_zone import TunnelZone
@@ -185,8 +184,8 @@ class Application(ResourceBase):
         return self._delete_resource_by_id(self.get_port_template(), id_)
 
     def get_port(self, id_):
-        return self._get_port_resource_by_id(None, self.get_port_template(),
-                                             id_)
+        return self._get_resource_by_id(Port, None,
+                                        self.get_port_template(), id_)
 
     def delete_route(self, id_):
         return self._delete_resource_by_id(self.get_route_template(), id_)
@@ -290,24 +289,11 @@ class Application(ResourceBase):
     def _create_uri_from_template(self, template, token, value):
         return template.replace(token, value)
 
-    def _get_port_resource_by_id(self, create_uri, template, id_):
-        uri = self._create_uri_from_template(template,
-                                             self.ID_TOKEN,
-                                             id_)
-        res, dto = self.auth.do_request(
-            uri, 'GET',
-            headers={'Accept': vendor_media_type.APPLICATION_PORT_JSON})
-
-        if dto['type'].endswith('Router'):
-            return RouterPort(None, dto, self.auth)
-        elif dto['type'].endswith('Bridge'):
-            return BridgePort(None, dto, self.auth)
-
     def _get_resource(self, clazz, create_uri, uri):
         return clazz(create_uri, {'uri': uri}, self.auth).get(
             headers={'Content-Type': clazz.media_type,
                      'Accept': clazz.media_type})
-
+    
     def _get_resource_by_id(self, clazz, create_uri,
                             template, id_):
         uri = self._create_uri_from_template(template,

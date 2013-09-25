@@ -22,6 +22,7 @@
 from midonetclient import vendor_media_type
 from midonetclient.resource_base import ResourceBase
 
+
 class TraceCondition(ResourceBase):
 
     media_type = vendor_media_type.APPLICATION_CONDITION_JSON

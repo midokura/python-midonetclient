@@ -76,9 +76,18 @@ class DhcpSubnet(ResourceBase):
     def get_dhcp_hosts(self):
         query = {}
         headers = {'Accept':
-                       vendor_media_type.APPLICATION_DHCP_HOST_COLLECTION_JSON}
+                   vendor_media_type.APPLICATION_DHCP_HOST_COLLECTION_JSON}
         return self.get_children(self.dto['hosts'], query, headers,
                                  DhcpHost)
+
+    def get_dhcp_host(self, ip_addr, mac):
+        """
+        Given the IP address and mac, returns DhcpHost object
+        """
+        for dh in self.get_dhcp_hosts():
+            if dh.get_ip_addr() == ip_addr and dh.get_mac_addr() == mac:
+                return dh
+        return None
 
     def add_dhcp_host(self):
         return DhcpHost(self.dto['hosts'], {}, self.auth)

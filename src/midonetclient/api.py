@@ -20,12 +20,19 @@
 # @author: Artem Dmytrenko <art@midokura.com>, Midokura
 
 import logging
+from socket import error as socket_error
 
 from midonetclient import auth_lib
 from midonetclient.application import Application
-
+from midonetclient import exc
 
 LOG = logging.getLogger(__name__)
+
+def _net_addr(addr):
+    """Get network address prefix and length from a given address."""
+    nw_addr, nw_len = addr.split('/')
+    nw_len = int(nw_len)
+    return nw_addr, nw_len
 
 
 class MidonetApi(object):
@@ -92,6 +99,10 @@ class MidonetApi(object):
             query = {}
         self._ensure_application()
         return self.app.get_hosts(query)
+    
+    def add_host_interface_port(self, host, port_id, interface_name):
+        return host.add_host_interface_port().port_id(port_id) \
+            .interface_name(interface_name).create()
 
     def get_write_version(self):
         self._ensure_application()
@@ -222,10 +233,116 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.delete_trace_messages(id_)
 
+    def add_bridge_port(self, bridge):
+        return bridge.add_port().create()
+
+    def add_router_port(self, router, port_address=None,
+                        network_address=None, network_length=None):
+        port = router.add_port()
+        return port.port_address(port_address).network_address(
+            network_address).network_length(network_length).create()
+
+    def link(self, port, peer_id):
+        port.link(peer_id)
+
+    def unlink(self, port):
+        if port.get_peer_id():
+            peer_id = port.get_peer_id()
+            port.unlink()
+            self.delete_port(peer_id)
+
+    def add_router_route(self, router, type='Normal',
+                         src_network_addr=None, src_network_length=None,
+                         dst_network_addr=None, dst_network_length=None,
+                         next_hop_port=None, next_hop_gateway=None,
+                         weight=100):
+        """Add a route to a router."""
+        route = router.add_route().type(type)
+        route = route.src_network_addr(src_network_addr).src_network_length(
+            src_network_length).dst_network_addr(
+                dst_network_addr).dst_network_length(dst_network_length)
+        route = route.next_hop_port(next_hop_port).next_hop_gateway(
+            next_hop_gateway).weight(weight)
+
+        return route.create()
+
+    def get_router_routes(self, router_id):
+        """Get a list of routes for a given router."""
+        router = self.get_router(router_id)
+        if router is None:
+            raise ValueError("Invalid router_id passed in %s" % router_id)
+        return router.get_routes()
+
+    def add_chain_rule(self, chain, action='accept', **kwargs):
+        """Add a rule to a chain."""
+        # Set default values
+        prop_defaults = {
+            "nw_src_addr": None,
+            "nw_src_length": None,
+            "inv_nw_src": False,
+            "tp_src": None,
+            "inv_tp_src": None,
+            "nw_dst_addr": None,
+            "nw_dst_length": None,
+            "inv_nw_dst_addr": False,
+            "tp_dst": None,
+            "inv_tp_dst": None,
+            "dl_src": None,
+            "inv_dl_src": False,
+            "dl_dst": None,
+            "inv_dl_dst": False,
+            "nw_proto": None,
+            "inv_nw_proto": False,
+            "dl_type": None,
+            "inv_dl_type": False,
+            "jump_chain_id": None,
+            "jump_chain_name": None,
+            "match_forward_flow": False,
+            "match_return_flow": False,
+            "position": None,
+            "properties": None
+        }
+
+        # Initialize the rule with passed-in or default values
+        vals = {}
+        for (prop, default) in prop_defaults.iteritems():
+            vals[prop] = kwargs.get(prop, default)
+
+        rule = chain.add_rule().type(action)
+        rule = rule.nw_src_address(vals.get("nw_src_addr"))
+        rule = rule.nw_src_length(vals.get("nw_src_length"))
+        rule = rule.inv_nw_src(vals.get("inv_nw_src"))
+        rule = rule.nw_dst_address(vals.get("nw_dst_addr"))
+        rule = rule.nw_dst_length(vals.get("nw_dst_length"))
+        rule = rule.inv_nw_dst(vals.get("inv_nw_dst"))
+        rule = rule.tp_src(vals.get("tp_src"))
+        rule = rule.inv_tp_src(vals.get("inv_tp_src"))
+        rule = rule.tp_dst(vals.get("tp_dst"))
+        rule = rule.inv_tp_dst(vals.get("inv_tp_dst"))
+        rule = rule.dl_src(vals.get("dl_src"))
+        rule = rule.inv_dl_src(vals.get("inv_dl_src"))
+        rule = rule.dl_dst(vals.get("dl_dst"))
+        rule = rule.inv_dl_dst(vals.get("inv_dl_dst"))
+        rule = rule.nw_proto(vals.get("nw_proto"))
+        rule = rule.inv_nw_proto(vals.get("inv_nw_proto"))
+        rule = rule.dl_type(vals.get("dl_type"))
+        rule = rule.inv_dl_type(vals.get("inv_dl_type"))
+        rule = rule.jump_chain_id(vals.get("jump_chain_id"))
+        rule = rule.jump_chain_name(vals.get("jump_chain_name"))
+        rule = rule.match_forward_flow(vals.get("match_forward_flow"))
+        rule = rule.match_return_flow(vals.get("match_return_flow"))
+        rule = rule.position(vals.get("position"))
+        rule = rule.properties(vals.get("properties"))
+        return rule.create()
+
     def _ensure_application(self):
         if self.app is None:
             self.app = Application(None, {'uri': self.base_uri}, self.auth)
-            self.app.get()
+            try:
+                self.app.get()
+            except exc.MidoApiConnectionRefused:
+                self.app = None
+                raise
 
 
 # just for testing
@@ -321,7 +438,7 @@ if __name__ == '__main__':
         for p in t.get_port_groups():
             print 'id: ',  p.get_id()
 
-    rp1 = router1.add_exterior_port()\
+    rp1 = router1.add_port()\
                  .port_address('2.2.2.2')\
                  .network_address('2.2.2.0')\
                  .network_length(24).create()
@@ -332,12 +449,12 @@ if __name__ == '__main__':
     print 'rp1 port group ids=%r' % [pgp1.get_port_group_id(),
                                      pgp2.get_port_group_id()]
 
-    rp2 = router1.add_interior_port().port_address('1.1.1.1')\
+    rp2 = router1.add_port().port_address('1.1.1.1')\
                  .network_address('1.1.1.0').network_length(24).create()
 
-    rp3 = router1.add_interior_port().port_address('1.1.1.2')\
+    rp3 = router1.add_port().port_address('1.1.1.2')\
                  .network_address('1.1.1.0').network_length(24).create()
-    rp4 = router1.add_interior_port().port_address('1.1.1.3')\
+    rp4 = router1.add_port().port_address('1.1.1.3')\
                  .network_address('1.1.1.0').network_length(24).create()
     print api.get_port(rp1.get_id())
 
@@ -396,7 +513,7 @@ if __name__ == '__main__':
             print 'id: ',  b.get_id()
 
     # Bridges/Ports
-    bp1 = bridge1.add_exterior_port().inbound_filter_id(random_uuid).create()
+    bp1 = bridge1.add_port().inbound_filter_id(random_uuid).create()
 
     # Add this port to both port groups
     pgp1 = pg1.add_port_group_port().port_id(bp1.get_id()).create()
@@ -404,7 +521,7 @@ if __name__ == '__main__':
     print 'bp1 port group ids=%r' % [pgp1.get_port_group_id(),
                                      pgp2.get_port_group_id()]
 
-    bp2 = bridge1.add_interior_port().create()
+    bp2 = bridge1.add_port().create()
 
     print api.get_port(bp1.get_id())
     bp2.link(rp4.get_id())
@@ -507,10 +624,11 @@ if __name__ == '__main__':
     chain2.delete()
 
     # Trace conditions
-    tCond1 = add_trace_condition().nw_src_address('5.5.5.5').create()
-    tCond2 = add_trace_condition().dl_type('2').nw_proto('1').create()
+    tCond1 = api.add_trace_condition().nw_src_address('5.5.5.5').create()
+    tCond2 = api.add_trace_condition().dl_type('1536').nw_proto('1').create()
 
-    for tCond in get_trace_conditions():
+    tConds = api.get_trace_conditions()
+    for tCond in tConds:
         print 'trace condition ----'
         print tCond.get_id()
 
