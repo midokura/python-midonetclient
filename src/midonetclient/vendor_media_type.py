@@ -120,3 +120,13 @@ APPLICATION_HOST_VERSION_JSON = \
 APPLICATION_PORT_V2_JSON = "application/vnd.org.midonet.Port-v2+json"
 APPLICATION_PORT_V2_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Port-v2+json"
+
+APPLICATION_IP_ADDR_GROUP_JSON = \
+    "application/vnd.org.midonet.IpAddrGroup-v1+json"
+APPLICATION_IP_ADDR_GROUP_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.IpAddrGroup-v1+json"
+
+APPLICATION_IP_ADDR_GROUP_ADDR_JSON = \
+    "application/vnd.org.midonet.IpAddrGroupAddr-v1+json"
+APPLICATION_IP_ADDR_GROUP_ADDR_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.IpAddrGroupAddr-v1+json"
