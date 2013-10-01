@@ -2,7 +2,7 @@ python-midonetclient (1.2.0~rc4) precise; urgency=low
 
   * 1.2.0~rc4
 
- -- Midokura <galo@midokura.com>  Tue, 1 Oct 2013 18:33:35 CEST
+ -- Midokura <galo@midokura.com>  Tue, 1 Oct 2013 18:33:35 +0000
 
 python-midonetclient (1.2.0~rc3) precise; urgency=low
 
