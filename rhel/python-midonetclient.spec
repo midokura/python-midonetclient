@@ -5,8 +5,8 @@
 # -.pyc files not built and installed.
 Name:       python-midonetclient
 Epoch:      1
-Version:    1.2.0
-Release:    0.1.rc4
+Version:    1.3.0
+Release:    0.1.rc0
 Summary:    Python client for MidoNet REST API.
 Group:      Development/Languages
 License:    Test
