@@ -1363,8 +1363,7 @@ class AdRoute(ObjectType):
 class Router(ObjectType):
     def __init__(self, obj):
         ObjectType.__init__(self, obj)
-        # NOTE: factory method is a hack, the type attribute may later change
-        # the port type to exterior.
+        
         self.put_attr(TenantAttr())
         self.put_attr(Collection(name = 'port',
                                  element_type = RouterPort,
@@ -2850,7 +2849,7 @@ class Create(Command):
 
     Examples:
            create router name 'new router'
-           router router0 add port type interior address 1.1.1.1 net 1.1.1.0/24
+           router router0 add port address 1.1.1.1 net 1.1.1.0/24
            """
 
     def name(self):

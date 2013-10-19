@@ -89,7 +89,7 @@ class Bridge(ObjectType):
                                  element_type = BridgePort,                       
                                  list_method = 'get_ports',                       
                                  getter = 'get_port',                             
-                                 factory_method = 'add_interior_port'))           
+                                 factory_method = 'add_port'))           
         self.put_attr(SingleAttr(name = 'name',                                   
                                  value_type = StringType(),                       
                                  setter = 'name',                                 

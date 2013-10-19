@@ -5,7 +5,7 @@ midonet-cli-bridge(1) -- Bridge objects in midonet-cli
 
     midonet> bridge list
     midonet> bridge create name demo
-    midonet> bridge bridge0 add port type exterior
+    midonet> bridge bridge0 add port
     midonet> bridge bridge0 list port
     midonet> bridge bridge0 add dhcp gw 203.0.113.1 subnet 203.0.113.0/24
     midonet> bridge bridge0 dhcp subnet 203.0.113.0/24 add host name HostName \ 
@@ -52,12 +52,11 @@ Attributes:
 
 Attributes:
 
-  * `type` `interior`|`exterior`
   * `device` <BRIDGE>
   * `infilter` <CHAIN>
   * `outfilter` <CHAIN>
   * `vlan` <VLAN_ID>
-  * `peer` <PORT> (interior ports only)
+  * `peer` <PORT>
 
 ## COPYRIGHT
 
