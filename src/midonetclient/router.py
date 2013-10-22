@@ -24,9 +24,10 @@ from midonetclient import vendor_media_type
 from midonetclient.port import Port
 from midonetclient.resource_base import ResourceBase
 from midonetclient.route import Route
+from midonetclient.admin_state_up_mixin import AdminStateUpMixin
 
 
-class Router(ResourceBase):
+class Router(ResourceBase, AdminStateUpMixin):
 
     media_type = vendor_media_type.APPLICATION_ROUTER_JSON
 

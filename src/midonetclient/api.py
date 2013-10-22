@@ -275,7 +275,7 @@ class MidonetApi(object):
         return self.app.delete_trace_messages(id_)
 
     def add_bridge_port(self, bridge):
-        return bridge.add_port().create()
+        return bridge.add_port()
 
     def add_router_port(self, router, port_address=None,
                         network_address=None, network_length=None):

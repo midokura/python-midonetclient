@@ -25,9 +25,10 @@ from midonetclient import vendor_media_type
 from vendor_media_type import APPLICATION_PORTGROUP_PORT_COLLECTION_JSON
 from midonetclient import bgp
 from midonetclient import port_group_port
+from midonetclient.admin_state_up_mixin import AdminStateUpMixin
 
 
-class Port(resource_base.ResourceBase):
+class Port(resource_base.ResourceBase, AdminStateUpMixin):
 
     media_type = vendor_media_type.APPLICATION_PORT_V2_JSON
 
