@@ -277,11 +277,8 @@ class MidonetApi(object):
     def add_bridge_port(self, bridge):
         return bridge.add_port()
 
-    def add_router_port(self, router, port_address=None,
-                        network_address=None, network_length=None):
-        port = router.add_port()
-        return port.port_address(port_address).network_address(
-            network_address).network_length(network_length).create()
+    def add_router_port(self, router):
+        return router.add_port()
 
     def link(self, port, peer_id):
         port.link(peer_id)
