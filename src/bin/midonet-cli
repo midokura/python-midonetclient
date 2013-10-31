@@ -24,6 +24,7 @@ import readline
 import socket
 import sys
 from shlex import split as shsplit
+from webob import exc
 
 from midonetclient.api import MidonetApi
 
@@ -3319,6 +3320,11 @@ class MidonetCLI(cmd.Cmd):
                 print result.describe()
             else:
                 print ParsingSubmatch(context).describe()
+        except exc.HTTPUnauthorized as err:
+            print "Invalid credential. Wrong username/password.\nBye."
+            if session.debug:
+                print 'Caught HTTPUnauthorized: %s' % str(err)
+            return True
         except Exception as e:
             import traceback
             if session.debug:
