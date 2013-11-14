@@ -3325,6 +3325,11 @@ class MidonetCLI(cmd.Cmd):
             if session.debug:
                 print 'Caught HTTPUnauthorized: %s' % str(err)
             return True
+        except socket.error as err:
+            print "Connection to MidoNet API server refused.\nBye."
+            if session.debug:
+                print 'Caught socket.error: %s' % str(err)
+            return True
         except Exception as e:
             import traceback
             if session.debug:
@@ -3400,8 +3405,8 @@ if __name__ == '__main__':
             cli.onecmd(session.command)
         else:
             # Test the credential by running a sample command first before
-            # starting a command loop.
-            if not cli.onecmd('list host'): cli.cmdloop()
+            # starting a command loop. The output won't be shown on the screen.
+            if not cli.onecmd('list tunnel-zone'): cli.cmdloop()
         sys.exit(0 if cli.last_command_succeeded else 1)
     except Exception as e:
         sys.stderr.write(e.message + "\n")
