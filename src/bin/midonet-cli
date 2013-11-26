@@ -149,6 +149,9 @@ class Session():
             self.debug = True
 
     def load(self):
+        logging.basicConfig()
+        logging.getLogger().setLevel(logging.CRITICAL)
+
         self._load_from_config_file()
         self._load_from_env()
         self._load_from_args()
@@ -167,8 +170,6 @@ class Session():
 
     def connect(self):
         auth = None
-        logging.basicConfig()
-        logging.getLogger().setLevel(logging.CRITICAL)
         return MidonetApi(self.api_url, self.username, self.password, self.project_id)
 
 
@@ -183,6 +184,10 @@ class ValueType():
 
     def is_valid(self, value):
         return True
+
+class BooleanType(ValueType):
+    def is_valid(self, value):
+        return value in (True, False)
 
 class ObjectRef(ValueType):
     """A reference to an object found in the root lookup context (see class
@@ -314,7 +319,7 @@ class UUID(ValueType):
 # Object member types
 ################################################################################
 
-class Attr():
+class Attr(object):
     pass
 
 class SingleAttr(Attr):
@@ -751,6 +756,68 @@ class L4PortRange(SingleAttr):
         func = obj.reflect(self.setter)
         func(api_val)
 
+class BooleanAttr(SingleAttr):
+    get_val = {'true': True, 'false': False}
+
+    def __init__(self, name,
+                 getter,
+                 setter = None,
+                 writeable = True,
+                 show = True,
+                 optional = False,
+                 inv_getter = None,
+                 inv_setter = None):
+        SingleAttr.__init__(self, name, BooleanType(),
+                            getter = getter,
+                            setter = setter,
+                            writeable = writeable,
+                            show = show,
+                            optional = optional,
+                            inv_getter = inv_getter,
+                            inv_setter = inv_setter)
+
+    def fetch(self, obj):
+        try:
+            func = obj.reflect(self.getter)
+            return str(func()).lower()
+        except KeyError:
+            return None
+
+    def set(self, obj, value):
+        val = BooleanAttr.get_val.get(value, None)
+        super(BooleanAttr, self).set(obj, val)
+
+class AdminStateAttr(SingleAttr):
+    get_val = {'up': True, 'down': False}
+
+    def __init__(self, name,
+                 getter,
+                 setter = None,
+                 writeable = True,
+                 show = True,
+                 optional = False,
+                 inv_getter = None,
+                 inv_setter = None):
+        SingleAttr.__init__(self, name, BooleanType(),
+                            getter = getter,
+                            setter = setter,
+                            writeable = writeable,
+                            show = show,
+                            optional = optional,
+                            inv_getter = inv_getter,
+                            inv_setter = inv_setter)
+
+    def fetch(self, obj):
+        try:
+            func = obj.reflect(self.getter)
+            return "up" if func() else "down"
+        except KeyError:
+            return None
+
+    def set(self, obj, value):
+        val = AdminStateAttr.get_val.get(value, None)
+        super(AdminStateAttr, self).set(obj, val)
+
 class Collection(Attr):
     def __init__(self, name, element_type, list_method,
                  list_with_tenant = False,
@@ -1134,7 +1201,7 @@ class ObjectType():
 
     def fetch_and_wrap_field(self, field_name):
         val = self.fetch_field(field_name)
-        if not val:
+        if val is None:
             return None
 
         spec = self.attrs()[field_name]
@@ -1148,7 +1215,7 @@ class ObjectType():
 
     def describe(self):
         flist = filter(lambda f: self.attrs()[f].show, self.fields())
-        flist = filter(lambda f: self.fetch_field(f), flist)
+        flist = filter(lambda f: self.fetch_field(f) is not None, flist)
         values = map(lambda f: self.fetch_and_wrap_field(f), flist)
         values = map(lambda v: self._value_to_str(v), values)
         return " ".join(map(lambda (f, v): "%s %s" % (f, v), zip(flist, values)))
@@ -1384,6 +1451,9 @@ class Router(ObjectType):
                                  setter = 'name',
                                  writeable = False,
                                  optional = True))
+        self.put_attr(AdminStateAttr(name = 'state',
+                                 getter = 'get_admin_state_up',
+                                 setter = 'admin_state_up'))
         self.put_attr(SingleAttr(name = 'infilter',
                                  value_type = ObjectRef('chain'),
                                  getter = 'get_inbound_filter_id'))
@@ -1471,6 +1541,9 @@ class Bridge(ObjectType):
                                  value_type = StringType(),
                                  setter = 'name',
                                  getter = 'get_name'))
+        self.put_attr(AdminStateAttr(name = 'state',
+                                 getter = 'get_admin_state_up',
+                                 setter = 'admin_state_up'))
         self.put_attr(SingleAttr(name = 'infilter',
                                  value_type = ObjectRef('chain'),
                                  getter = 'get_inbound_filter_id',
@@ -1658,6 +1731,9 @@ class BridgePort(ObjectType):
         self.put_attr(SingleAttr(name = 'device',
                                  value_type = ObjectRef('bridge'),
                                  getter = 'get_device_id'))
+        self.put_attr(AdminStateAttr(name = 'state',
+                                 getter = 'get_admin_state_up',
+                                 setter = 'admin_state_up'))
         self.put_attr(SingleAttr(name = 'infilter',
                                  value_type = ObjectRef('chain'),
                                  getter = 'get_inbound_filter_id'))
@@ -1706,8 +1782,8 @@ class Host(ObjectType):
         ObjectType.__init__(self, obj)
         self.put_attr(SingleAttr(name = 'name', value_type = StringType(),
                                  getter = 'get_name', writeable = False))
-        self.put_attr(SingleAttr(name = 'alive', value_type = StringType(),
-                                 getter = 'is_alive', writeable = False))
+        self.put_attr(BooleanAttr(name = 'alive', getter = 'is_alive',
+                                  writeable = False))
         self.put_attr(ListAttr(name = 'addresses', element_type = StringType(),
                                  getter = 'get_addresses', writeable = False))
         self.put_attr(Collection(name = 'interface',
@@ -1751,6 +1827,9 @@ class RouterPort(ObjectType):
         self.put_attr(SingleAttr(name = 'device',
                                  value_type = ObjectRef('router'),
                                  getter = 'get_device_id'))
+        self.put_attr(AdminStateAttr(name = 'state',
+                                 getter = 'get_admin_state_up',
+                                 setter = 'admin_state_up'))
         self.put_attr(SingleAttr(name = 'infilter',
                                  value_type = ObjectRef('chain'),
                                  getter = 'get_inbound_filter_id',
@@ -2970,8 +3049,6 @@ class Set(Command):
         assert(obj is not None)
 
         for f in fields:
-            if not f.is_valid():
-                raise Exception("Invalid %s value: %s" % (f.name, f.value))
             o = f.dereference()
             v = f.value
             if isinstance(o, ObjectType):

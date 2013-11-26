@@ -20,6 +20,7 @@ Bridges are MidoNet's L2 forwarding elements.
 A bridge has these attributes:
 
   * `name` <STRING>
+  * `state` `up`|`down`
   * `infilter` <CHAIN>
   * `outfilter` <CHAIN>
 
@@ -53,6 +54,7 @@ Attributes:
 Attributes:
 
   * `device` <BRIDGE>
+  * `state` `up`|`down`
   * `infilter` <CHAIN>
   * `outfilter` <CHAIN>
   * `vlan` <VLAN_ID>

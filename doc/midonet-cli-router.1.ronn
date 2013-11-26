@@ -20,6 +20,7 @@ Routers are MidoNet's L3 forwarding elements.
 A router has these attributes:
 
   * `name` <STRING>
+  * `state` `up`|`down`
   * `infilter` <CHAIN>
   * `outfilter` <CHAIN>
 
@@ -43,6 +44,8 @@ Attributes:
 
 Attributes:
 
+  * `type` `interior`|`exterior`
+  * `state` `up`|`down`
   * `device` <ROUTER>
   * `infilter` <CHAIN>
   * `outfilter` <CHAIN>
