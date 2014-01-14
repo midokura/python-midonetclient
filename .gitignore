@@ -5,3 +5,6 @@ debian/*.log
 debian/*.substvars
 debian/python-midonetclient/
 doc/*.1
+build/*
+dist/*
+src/*.egg-info
