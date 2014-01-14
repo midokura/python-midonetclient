@@ -17,3 +17,7 @@
 #
 # @author: Tomoe Sugihara <tomoe@midokura.com>, Midokura
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
+
+# The following version number is following the PEP 396:
+#   http://www.python.org/dev/peps/pep-0396/
+__version__ = "1.3.0"
