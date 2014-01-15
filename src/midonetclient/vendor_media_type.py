@@ -27,6 +27,10 @@ APPLICATION_TENANT_COLLECTION_JSON = \
 APPLICATION_ROUTER_JSON = "application/vnd.org.midonet.Router-v1+json"
 APPLICATION_ROUTER_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Router-v1+json"
+APPLICATION_ROUTER_V2_JSON = \
+    "application/vnd.org.midonet.Router-v2+json"
+APPLICATION_ROUTER_COLLECTION_V2_JSON = \
+    "application/vnd.org.midonet.collection.Router-v2+json"
 APPLICATION_BRIDGE_JSON = "application/vnd.org.midonet.Bridge-v1+json"
 APPLICATION_BRIDGE_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Bridge-v1+json"
@@ -131,4 +135,26 @@ APPLICATION_IP_ADDR_GROUP_ADDR_JSON = \
 APPLICATION_IP_ADDR_GROUP_ADDR_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.IpAddrGroupAddr-v1+json"
 
+# L4LB media types
+APPLICATION_LOAD_BALANCER_JSON = \
+    "application/vnd.org.midonet.LoadBalancer-v1+json"
+APPLICATION_LOAD_BALANCER_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.LoadBalancer-v1+json"
+APPLICATION_VIP_JSON = "application/vnd.org.midonet.VIP-v1+json"
+APPLICATION_VIP_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.VIP-v1+json"
+APPLICATION_POOL_JSON = "application/vnd.org.midonet.Pool-v1+json"
+APPLICATION_POOL_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.Pool-v1+json"
 
+APPLICATION_POOL_MEMBER_JSON = "application/vnd.org.midonet.PoolMember-v1+json"
+APPLICATION_POOL_MEMBER_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.PoolMember-v1+json"
+APPLICATION_HEALTH_MONITOR_JSON = \
+    "application/vnd.org.midonet.HealthMonitor-v1+json"
+APPLICATION_HEALTH_MONITOR_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.HealthMonitor-v1+json"
+APPLICATION_POOL_STATISTIC_JSON = \
+    "application/vnd.org.midonet.PoolStatistic-v1+json"
+APPLICATION_POOL_STATISTIC_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.PoolStatistic-v1+json"

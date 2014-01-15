@@ -29,7 +29,7 @@ from midonetclient.admin_state_up_mixin import AdminStateUpMixin
 
 class Router(ResourceBase, AdminStateUpMixin):
 
-    media_type = vendor_media_type.APPLICATION_ROUTER_JSON
+    media_type = vendor_media_type.APPLICATION_ROUTER_V2_JSON
 
     def __init__(self, uri, dto, auth):
         super(Router, self).__init__(uri, dto, auth)
@@ -49,6 +49,9 @@ class Router(ResourceBase, AdminStateUpMixin):
     def get_outbound_filter_id(self):
         return self.dto['outboundFilterId']
 
+    def get_load_balancer_id(self):
+        return self.dto['loadBalancerId']
+
     def name(self, name):
         self.dto['name'] = name
         return self
@@ -63,6 +66,10 @@ class Router(ResourceBase, AdminStateUpMixin):
 
     def outbound_filter_id(self, id_):
         self.dto['outboundFilterId'] = id_
+        return self
+
+    def load_balancer_id(self, load_balancer_id):
+        self.dto['loadBalancerId'] = load_balancer_id
         return self
 
     def get_ports(self, query=None):
