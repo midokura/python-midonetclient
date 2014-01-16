@@ -1063,7 +1063,7 @@ class FieldType():
     def describe(self):
         return self.value
 
-class ObjectType():
+class ObjectType(object):
     """ This is the base class to define CLI wrappers around REST API objects.
         Mainly, it provides an `attrs` method that describes the structure of
         the wrapped type and how they should be treated by the CLI. Most
@@ -1523,6 +1523,11 @@ class Router(ObjectType):
                                  getter = 'get_outbound_filter_id',
                                  setter = 'outbound_filter_id',
                                  unsetter = 'outbound_filter_id'))
+        self.put_attr(SingleAttr(name = 'load-balancer',
+                                 value_type = ObjectRef('load-balancer'),
+                                 getter = 'get_load_balancer_id',
+                                 setter = 'load_balancer_id',
+                                 optional = True))
 
     def type_name(self):
         return "router"
@@ -1967,6 +1972,225 @@ class Trace(ObjectType):
                                  value_type = StringType(),
                                  getter = 'get_trace_messages'))
 
+
+# L4LB features
+class LoadBalancer(ObjectType):
+    """The bridge model between the CLI object and DTO formed from JSON data
+    for the load balancers.
+    """
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.put_attr(SingleAttr(name = 'router',
+                                 value_type = ObjectRef('router'),
+                                 getter = 'get_router_id',
+                                 setter = 'router_id',
+                                 optional = True))
+        self.put_attr(AdminStateAttr(name='state',
+                                     getter = 'get_admin_state_up',
+                                     setter = 'admin_state_up'))
+        self.put_attr(Collection(name = 'pool',
+                                 element_type = Pool,
+                                 list_method = 'get_pools',
+                                 factory_method = 'add_pool'))
+        self.put_attr(Collection(name = 'vip',
+                                 element_type = VIP,
+                                 list_method = 'get_vips',
+                                 factory_method = 'add_vip'))
+
+    def type_name(self):
+        return "lb"
+
+
+class VIP(ObjectType):
+    """The bridge model between the CLI object and DTO formed from JSON data
+    for the VIPs.
+    """
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+
+        self.put_attr(SingleAttr(name = 'load-balancer',
+                                 value_type = ObjectRef('load-balancer'),
+                                 getter = 'get_load_balancer_id',
+                                 setter = 'load_balancer_id'))
+        self.put_attr(SingleAttr(name = 'pool',
+                                 value_type = ObjectRef('pool'),
+                                 getter = 'get_pool_id',
+                                 setter = 'pool_id',
+                                 optional = False))
+        self.put_attr(SingleAttr(name = 'address',
+                                 value_type = IPv4Address(),
+                                 getter = 'get_address',
+                                 setter = 'address'))
+        self.put_attr(SingleAttr(name = 'protocol-port',
+                                 value_type = L4PortNumber(),
+                                 getter = 'get_protocol_port',
+                                 setter = 'protocol_port'))
+        self.put_attr(EnumAttr(name = 'persistence',
+                               mappings = {'SOURCE_IP': 'SOURCE_IP'},
+                               getter = 'get_session_persistence',
+                               setter = 'session_persistence',
+                               optional = True))
+        self.put_attr(AdminStateAttr(name = 'state',
+                                     getter = 'get_admin_state_up',
+                                     setter = 'admin_state_up'))
+
+    def type_name(self):
+        return "vip"
+
+
+class Pool(ObjectType):
+    """The bridge model between the CLI object and DTO formed from JSON data
+    for the pools.
+    """
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+
+        self.put_attr(SingleAttr(name = 'load-balancer',
+                                 value_type = ObjectRef('load-balancer'),
+                                 getter = 'get_load_balancer_id',
+                                 setter = 'load_balancer_id'))
+        self.put_attr(SingleAttr(name = 'health-monitor',
+                                 value_type = ObjectRef('health-monitor'),
+                                 getter = 'get_health_monitor_id',
+                                 setter = 'health_monitor_id'))
+        self.put_attr(EnumAttr(name = 'lb-method',
+                               mappings = {'ROUND_ROBIN': 'ROUND_ROBIN'},
+                               getter = 'get_lb_method',
+                               setter = 'lb_method',
+                               optional = False))
+        self.put_attr(Collection(name = 'member',
+                                 element_type = PoolMember,
+                                 list_method = 'get_pool_members',
+                                 factory_method = 'add_pool_member'))
+        self.put_attr(AdminStateAttr(name = 'state',
+                                     getter = 'get_admin_state_up',
+                                     setter = 'admin_state_up'))
+        self.put_attr(Collection(name = 'vip',
+                                 element_type = VIP,
+                                 list_method = 'get_vips',
+                                 factory_method = 'add_vip'))
+
+    def type_name(self):
+        return "pool"
+
+
+class PoolMember(ObjectType):
+    """The bridge model between the CLI object and DTO formed from JSON data
+    for the pool members.
+    """
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+
+        self.put_attr(SingleAttr(name = 'pool',
+                                 value_type = ObjectRef('pool'),
+                                 getter = 'get_pool_id',
+                                 setter = 'pool_id'))
+        self.put_attr(SingleAttr(name = 'address',
+                                 value_type = IPv4Address(),
+                                 getter = 'get_address',
+                                 setter = 'address'))
+        self.put_attr(SingleAttr(name = 'protocol-port',
+                                 value_type = L4PortNumber(),
+                                 getter = 'get_protocol_port',
+                                 setter = 'protocol_port'))
+        self.put_attr(SingleAttr(name = 'weight',
+                                 value_type = StringType(),
+                                 getter = 'get_weight',
+                                 setter = 'weight',
+                                 optional = True))
+        self.put_attr(AdminStateAttr(name = 'state',
+                                     getter = 'get_admin_state_up',
+                                     setter =  'admin_state_up'))
+        self.put_attr(EnumAttr(name = 'status',
+                               mappings = {'UP': 'UP', 'DOWN': 'DOWN'},
+                               getter = 'get_status',
+                               setter = 'status',
+                               writeable = False))
+
+    def type_name(self):
+        return 'pm'
+
+
+class HealthMonitor(ObjectType):
+    """The bridge model between the CLI object and DTO formed from JSON data
+    for the healthe monitors.
+    """
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+
+        self.put_attr(SingleAttr(name = 'delay',
+                                 value_type = StringType(),
+                                 getter = 'get_delay',
+                                 setter = 'delay'))
+        self.put_attr(SingleAttr(name = 'timeout',
+                                 value_type = StringType(),
+                                 getter = 'get_timeout',
+                                 setter = 'timeout'))
+        self.put_attr(SingleAttr(name = 'max-retries',
+                                 value_type = StringType(),
+                                 getter = 'get_max_retries',
+                                 setter = 'max_retries'))
+        self.put_attr(AdminStateAttr(name = 'state',
+                                     getter = 'get_admin_state_up',
+                                     setter = 'admin_state_up'))
+        self.put_attr(EnumAttr(name = 'status',
+                               mappings = {'ACTIVE': 'ACTIVE',
+                                           'DOWN': 'DOWN',
+                                           'PENDING_CREATE': 'PENDING_CREATE',
+                                           'PENDING_UPDATE': 'PENDING_UPDATE',
+                                           'PENDING_DELETE': 'PENDING_DELETE',
+                                           'INACTIVE': 'INACTIVE',
+                                           'ERROR': 'ERROR'},
+                               getter = 'get_status',
+                               setter = 'status',
+                               writeable = False))
+        self.put_attr(Collection(name = 'pool',
+                                 element_type = Pool,
+                                 list_method = 'get_pools',
+                                 factory_method = 'add_pool'))
+
+    def type_name(self):
+        return 'hm'
+
+
+class PoolStatistic(ObjectType):
+    """The bridge model between the CLI object and DTO formed from JSON data
+    for the pool statistics.
+    """
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+
+        self.put_attr(SingleAttr(name = 'bytes-in',
+                                 value_type = StringType(),
+                                 getter = 'get_bytes_in',
+                                 setter = 'bytes_id'))
+        self.put_attr(SingleAttr(name = 'bytes-out',
+                                 value_type = StringType(),
+                                 getter = 'get_bytes_out',
+                                 setter = 'bytes_out'))
+        self.put_attr(SingleAttr(name = 'active-connections',
+                                 value_type = StringType(),
+                                 getter = 'get_active_connections',
+                                 setter = 'active_connections'))
+        self.put_attr(SingleAttr(name = 'total-connections',
+                                 value_type = StringType(),
+                                 getter = 'get_total_connections',
+                                 setter = 'total_connections'))
+        self.put_attr(SingleAttr(name = 'pool',
+                                 value_type = ObjectRef('pool'),
+                                 getter = 'get_pool_id',
+                                 setter = 'pool_id'))
+
+    def type_name(self):
+        return 'ps'
+
+
 class Midonet(ObjectType):
     """ This is the root context for the CLI. At the beggining of matching on a
         command pattern the `MatchingContext` is initialized with an instance of
@@ -2039,7 +2263,37 @@ class Midonet(ObjectType):
                                              list_method = 'get_trace_ids',
                                              getter = 'get_trace_messages',
                                              list_with_tenant = False))
-
+        # L4LB resources
+        ObjectType.put_attr(self, Collection(name = 'load-balancer',
+                                             element_type = LoadBalancer,
+                                             list_method = 'get_load_balancers',
+                                             getter = 'get_load_balancer',
+                                             factory_method = 'add_load_balancer'))
+        ObjectType.put_attr(self, Collection(name = 'vip',
+                                             element_type = VIP,
+                                             list_method = 'get_vips',
+                                             getter = 'get_vip',
+                                             factory_method = 'add_vip'))
+        ObjectType.put_attr(self, Collection(name = 'pool',
+                                             element_type = Pool,
+                                             list_method = 'get_pools',
+                                             getter = 'get_pool',
+                                             factory_method = 'add_pool'))
+        ObjectType.put_attr(self, Collection(name = 'pool-member',
+                                             element_type = PoolMember,
+                                             list_method = 'get_pool_members',
+                                             getter = 'get_pool_member',
+                                             factory_method = 'add_pool_member'))
+        ObjectType.put_attr(self, Collection(name = 'health-monitor',
+                                             element_type = HealthMonitor,
+                                             list_method = 'get_health_monitors',
+                                             getter = 'get_health_monitor',
+                                             factory_method = 'add_health_monitor'))
+        ObjectType.put_attr(self, Collection(name = 'pool-statistic',
+                                             element_type = PoolStatistic,
+                                             list_method = 'get_pool_statistics',
+                                             getter = 'get_pool_statistic',
+                                             factory_method = 'add_pool_statisic'))
 
 
 ################################################################################
