@@ -42,7 +42,7 @@ from midonetclient.host_version import HostVersion
 
 class Application(ResourceBase):
 
-    media_type = vendor_media_type.APPLICATION_JSON
+    media_type = vendor_media_type.APPLICATION_JSON_V3
     ID_TOKEN = '{id}'
 
     def __init__(self, uri, dto, auth):

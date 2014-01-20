@@ -19,7 +19,7 @@
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
 
-APPLICATION_JSON = "application/vnd.org.midonet.Application-v1+json"
+APPLICATION_JSON_V3 = "application/vnd.org.midonet.Application-v3+json"
 APPLICATION_ERROR_JSON = "application/vnd.org.midonet.Error-v1+json"
 APPLICATION_TENANT_JSON = "application/vnd.org.midonet.Tenant-v1+json"
 APPLICATION_TENANT_COLLECTION_JSON = \
@@ -110,11 +110,11 @@ APPLICATION_TRACE_JSON = "application/vnd.org.midonet.Trace-v1+json"
 APPLICATION_TRACE_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Trace-v1+json"
 APPLICATION_WRITE_VERSION_JSON = \
-    "application/vnd.org.midonet.WriteVersion-v1+json";
+    "application/vnd.org.midonet.WriteVersion-v1+json"
 APPLICATION_SYSTEM_STATE_JSON = \
-    "application/vnd.org.midonet.SystemState-v1+json";
+    "application/vnd.org.midonet.SystemState-v1+json"
 APPLICATION_HOST_VERSION_JSON = \
-    "application/vnd.org.midonet.HostVersion-v1+json";
+    "application/vnd.org.midonet.HostVersion-v1+json"
 
 # Port media types
 APPLICATION_PORT_V2_JSON = "application/vnd.org.midonet.Port-v2+json"
