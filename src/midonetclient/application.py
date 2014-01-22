@@ -27,6 +27,7 @@ from midonetclient.chain import Chain
 from midonetclient.host import Host
 from midonetclient.port import Port
 from midonetclient.port_group import PortGroup
+from midonetclient.ip_addr_group import IpAddrGroup
 from midonetclient.resource_base import ResourceBase
 from midonetclient.route import Route
 from midonetclient.router import Router
@@ -66,6 +67,9 @@ class Application(ResourceBase):
     def get_port_group_template(self):
         return self.dto['portGroupTemplate']
 
+    def get_ip_addr_group_template(self):
+        return self.dto['ipAddrGroupTemplate']
+
     def get_port_template(self):
         return self.dto['portTemplate']
 
@@ -90,10 +94,10 @@ class Application(ResourceBase):
     def get_write_version_uri(self):
         return self.dto['writeVersion']
 
-    def get_system_state_uri(self ):
+    def get_system_state_uri(self):
         return self.dto['systemState']
 
-    def get_host_versions_uri(self ):
+    def get_host_versions_uri(self):
         return self.dto['hostVersions']
 
     def get_tenants(self, query):
@@ -120,6 +124,12 @@ class Application(ResourceBase):
 
         return self.get_children(self.dto['portGroups'], query, headers,
                                  PortGroup)
+
+    def get_ip_addr_groups(self, query):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_IP_ADDR_GROUP_COLLECTION_JSON}
+        return self.get_children(self.dto['ipAddrGroups'], query, headers,
+                                 IpAddrGroup)
 
     def get_chains(self, query):
         headers = {'Accept':
@@ -180,6 +190,14 @@ class Application(ResourceBase):
         return self._get_resource_by_id(PortGroup, self.dto['portGroups'],
                                         self.get_port_group_template(), id_)
 
+    def delete_ip_addr_group(self, id_):
+        return self._delete_resource_by_id(self.get_ip_addr_group_template(),
+                                           id_)
+
+    def get_ip_addr_group(self, id_):
+        return self._get_resource_by_id(IpAddrGroup, self.dto['ipAddrGroups'],
+                                        self.get_ip_addr_group_template(), id_)
+
     def delete_port(self, id_):
         return self._delete_resource_by_id(self.get_port_template(), id_)
 
@@ -220,6 +238,9 @@ class Application(ResourceBase):
 
     def add_port_group(self):
         return PortGroup(self.dto['portGroups'], {}, self.auth)
+
+    def add_ip_addr_group(self):
+        return IpAddrGroup(self.dto['ipAddrGroups'], {}, self.auth)
 
     def add_chain(self):
         return Chain(self.dto['chains'], {}, self.auth)
@@ -262,28 +283,28 @@ class Application(ResourceBase):
 
     def get_trace_ids(self, query):
         headers = {'Accept':
-                    vendor_media_type.APPLICATION_TRACE_COLLECTION_JSON}
+                   vendor_media_type.APPLICATION_TRACE_COLLECTION_JSON}
         return self.get_children(self.dto['traces'], query, headers, Trace)
 
     def get_trace_messages(self, id_):
         return self._get_resource_by_id(Trace, None,
-                                    self.get_trace_template(), id_)
+                                        self.get_trace_template(), id_)
 
     def delete_trace_messages(self, id_):
         return self._delete_resource_by_id(self.get_trace_template(), id_)
 
     def get_write_version(self):
         return self._get_resource(WriteVersion, None,
-                                    self.get_write_version_uri())
+                                  self.get_write_version_uri())
 
     def get_system_state(self):
         return self._get_resource(SystemState, None,
-                                    self.get_system_state_uri())
+                                  self.get_system_state_uri())
 
     def get_host_versions(self, query):
         headers = {'Accept':
                    vendor_media_type.APPLICATION_HOST_VERSION_JSON}
-        return self.get_children(self.dto['hostVersions'], \
+        return self.get_children(self.dto['hostVersions'],
                                  query, headers, HostVersion)
 
     def _create_uri_from_template(self, template, token, value):
@@ -293,7 +314,7 @@ class Application(ResourceBase):
         return clazz(create_uri, {'uri': uri}, self.auth).get(
             headers={'Content-Type': clazz.media_type,
                      'Accept': clazz.media_type})
-    
+
     def _get_resource_by_id(self, clazz, create_uri,
                             template, id_):
         uri = self._create_uri_from_template(template,
