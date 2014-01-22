@@ -3198,6 +3198,17 @@ class Command():
         raise Exception("Unimplemented command")
 
 class Describe(Command):
+    """describe - Show the names of members of an object
+
+    Usage: desc[ribe] [<OBJECT> {<CHILD>}]
+           <OBJECT> {<CHILD>} desc[ribe]
+
+    Examples:
+           describe
+           describe router router0
+           router router0 port port2 describe
+    """
+
     def patterns(self):
         describe = Verb('describe', min_match = 'desc', set_command = self)
         id_obj = ObjectById()
@@ -3212,15 +3223,7 @@ class Describe(Command):
         return 'describe'
 
     def help(self):
-        print """describe - Show the names of members of an object
-
-    Usage: desc[ribe] [<OBJECT> {<CHILD>}]
-           <OBJECT> {<CHILD>} desc[ribe]
-
-    Examples:
-           describe
-           describe router router0
-           router router0 port port2 describe"""
+        print self.__doc__
 
     def do(self, tokens):
         assert(len(tokens) >= 1)
@@ -3251,6 +3254,17 @@ class Describe(Command):
             print "<NONE>"
 
 class Create(Command):
+    """create - Create a new object
+
+    Usage: create|add [<OBJECT> {<CHILD>}] <TYPE> {<FIELD> <VALUE>}
+           [<OBJECT> {<CHILD>}] create|add <TYPE> {<FIELD> <VALUE>}
+           [<OBJECT> {<CHILD>}] <TYPE> create|add {<FIELD> <VALUE>}
+
+    Examples:
+           create router name 'new router'
+           router router0 add port address 1.1.1.1 net 1.1.1.0/24
+    """
+
     def patterns(self):
         create = Verb('create', partial_match = False, set_command = self)
         create |= Verb('add', partial_match = False, set_command = self)
@@ -3265,16 +3279,7 @@ class Create(Command):
         return patterns
 
     def help(self):
-        print """create - Create a new object
-
-    Usage: create|add [<OBJECT> {<CHILD>}] <TYPE> {<FIELD> <VALUE>}
-           [<OBJECT> {<CHILD>}] create|add <TYPE> {<FIELD> <VALUE>}
-           [<OBJECT> {<CHILD>}] <TYPE> create|add {<FIELD> <VALUE>}
-
-    Examples:
-           create router name 'new router'
-           router router0 add port address 1.1.1.1 net 1.1.1.0/24
-           """
+        print self.__doc__
 
     def name(self):
         return 'create'
@@ -3315,6 +3320,16 @@ class Create(Command):
             print wrapper.describe()
 
 class Clear(Command):
+    """clear - Clear the value of a field on an existing object
+
+    Usage: clear <OBJECT> {<CHILD>} <FIELD> {<FIELD>}
+           <OBJECT> {<CHILD>} clear <FIELD> {<FIELD>}
+
+    Examples:
+           clear bridge bridge0 port port0 peer
+           bridge bridge0 port port0 clear peer
+    """
+
     def patterns(self):
         verb = Verb('clear', partial_match = False, set_command = self)
 
@@ -3323,15 +3338,7 @@ class Clear(Command):
         return patterns
 
     def help(self):
-        print """clear - Clear the value of a field on an existing object
-
-    Usage: clear <OBJECT> {<CHILD>} <FIELD> {<FIELD>}
-           <OBJECT> {<CHILD>} clear <FIELD> {<FIELD>}
-
-    Examples:
-           clear bridge bridge0 port port0 peer
-           bridge bridge0 port port0 clear peer
-           """
+        print self.__doc__
 
     def name(self):
         return 'clear'
@@ -3355,6 +3362,16 @@ class Clear(Command):
 
 
 class Set(Command):
+    """set - Update values in an existing object
+
+    Usage: set <OBJECT> {<CHILD>} <FIELD> <VALUE> {<FIELD> <VALUE>}
+           <OBJECT> {<CHILD>} set <FIELD> <VALUE> {<FIELD> <VALUE>}
+
+    Examples:
+           set router router name 'new name for router'
+           router router0 port port0 set address 1.1.1.1 net 1.1.1.0/24
+    """
+
     def patterns(self):
         verb = Verb('set', partial_match = False, set_command = self)
         obj_from_col = ObjectFromCollection()
@@ -3368,15 +3385,7 @@ class Set(Command):
         return patterns
 
     def help(self):
-        print """set - Update values in an existing object
-
-    Usage: set <OBJECT> {<CHILD>} <FIELD> <VALUE> {<FIELD> <VALUE>}
-           <OBJECT> {<CHILD>} set <FIELD> <VALUE> {<FIELD> <VALUE>}
-
-    Examples:
-           set router router name 'new name for router'
-           router router0 port port0 set address 1.1.1.1 net 1.1.1.0/24
-           """
+        print self.__doc__
 
     def name(self):
         return 'set'
@@ -3401,6 +3410,17 @@ class Set(Command):
         obj.object().update()
 
 class Delete(Command):
+    """delete - Delete an object
+
+    Usage: delete <OBJECT> {<CHILD>}
+           <OBJECT> {<CHILD>} delete {<CHILD>}
+
+    Examples:
+           delete router router0 name 'new name for router'
+           router router0 port port0 delete
+           router router0 delete port port0
+    """
+
     def patterns(self):
         delete = Verb('delete', min_match = 'del', set_command = self)
         obj_from_col = ObjectFromCollection()
@@ -3412,16 +3432,7 @@ class Delete(Command):
         return patterns
 
     def help(self):
-        print """delete - Delete an object
-
-    Usage: delete <OBJECT> {<CHILD>}
-           <OBJECT> {<CHILD>} delete {<CHILD>}
-
-    Examples:
-           delete router router0 name 'new name for router'
-           router router0 port port0 delete
-           router router0 delete port port0
-           """
+        print self.__doc__
 
     def name(self):
         return 'delete'
@@ -3436,6 +3447,20 @@ class Delete(Command):
         obj.object().delete()
 
 class Show(Command):
+    """show - Show an object or field
+
+    Usage: s[how] <OBJECT> {<CHILD>} [<FIELD>]
+           <OBJECT> s[how] {<CHILD>} [<FIELD>]
+           <OBJECT> {<CHILD>} s[how] [<FIELD>]
+           <OBJECT> {<CHILD>} [<FIELD>] s[how]
+           <OBJECT> {<CHILD>} [<FIELD>]
+
+    Examples:
+           show router router0
+           sh router router0 port port2
+           router router0 port port2 show infilter
+    """
+
     def patterns(self):
         show = Verb('show', set_command = self)
         obj = ObjectById()
@@ -3456,18 +3481,7 @@ class Show(Command):
         return 'show'
 
     def help(self):
-        print """show - Show an object or field
-
-    Usage: s[how] <OBJECT> {<CHILD>} [<FIELD>]
-           <OBJECT> s[how] {<CHILD>} [<FIELD>]
-           <OBJECT> {<CHILD>} s[how] [<FIELD>]
-           <OBJECT> {<CHILD>} [<FIELD>] s[how]
-           <OBJECT> {<CHILD>} [<FIELD>]
-
-    Examples:
-           show router router0
-           sh router router0 port port2
-           router router0 port port2 show infilter"""
+        print self.__doc__
 
     def do(self, tokens):
         assert(len(tokens) >= 1)
@@ -3488,6 +3502,16 @@ class Show(Command):
             print "%s %s" % (ref.type_name(), ref.describe())
 
 class PushTenant(Command):
+    """pusht - Adds a tenant id to the top of the tenant id stack
+
+    Usage: pusht <TENANT_ID>
+
+    Examples:
+           pusht <TENANT_ID_A>
+           list router
+           popt
+    """
+
     def patterns(self):
         pusht = Verb('pusht', partial_match = False, set_command = self)
         return pusht + SingleValue(StringType())
@@ -3496,14 +3520,7 @@ class PushTenant(Command):
         return 'pusht'
 
     def help(self):
-        print """pusht - Adds a tenant id to the top of the tenant id stack
-
-    Usage: pusht <TENANT_ID>
-
-    Examples:
-           pusht <TENANT_ID_A>
-           list router
-           popt"""
+        print self.__doc__
 
     def do(self, tokens):
         for tok in tokens:
@@ -3514,6 +3531,16 @@ class PushTenant(Command):
                 session.print_current_tenant()
 
 class PopTenant(Command):
+    """popt - Removes a tenant for the top of the tenant stack
+
+    Usage: popt
+
+    Examples:
+           pusht <TENANT_ID_A>
+           list router
+           popt
+    """
+
     def patterns(self):
         return Verb('popt', partial_match = False, set_command = self)
 
@@ -3521,20 +3548,18 @@ class PopTenant(Command):
         return 'popt'
 
     def help(self):
-        print """popt - Removes a tenant for the top of the tenant stack
-
-    Usage: popt
-
-    Examples:
-           pusht <TENANT_ID_A>
-           list router
-           popt"""
+        print self.__doc__
 
     def do(self, tokens):
         session.pop_tenant()
         session.print_current_tenant()
 
 class Debug(Command):
+    """debug - Toggle debug mode
+
+    Usage: debug on|off
+    """
+
     def patterns(self):
         verb = Verb('debug', partial_match = False, set_command = self)
         on = Verb('on', partial_match = False)
@@ -3546,9 +3571,7 @@ class Debug(Command):
         return 'debug'
 
     def help(self):
-        print """debug - Toggle debug mode
-
-    Usage: debug on|off"""
+        print self.__doc__
 
     def do(self, tokens):
         for tok in tokens:
@@ -3563,6 +3586,18 @@ class Debug(Command):
                     print "turned off debug mode"
 
 class List(Command):
+    """list - List the children of an object of a given type
+
+    Usage: l[ist] [<OBJECT> {<CHILD>}] <COLlECTION_NAME>
+           <OBJECT> l[ist] {<CHILD>} <COLlECTION_NAME>
+           [<OBJECT> {<CHILD>}] <COLlECTION_NAME> l[ist]
+
+    Examples:
+           list router
+           router router0 list port
+           router router0 route list
+    """
+
     def patterns(self):
         obj = ObjectById()("+") | RootCtxToken()
         verb = Verb('list', set_command = self)
@@ -3579,16 +3614,7 @@ class List(Command):
         return 'list'
 
     def help(self):
-        print """list - List the children of an object of a given type
-
-    Usage: l[ist] [<OBJECT> {<CHILD>}] <COLlECTION_NAME>
-           <OBJECT> l[ist] {<CHILD>} <COLlECTION_NAME>
-           [<OBJECT> {<CHILD>}] <COLlECTION_NAME> l[ist]
-
-    Examples:
-           list router
-           router router0 list port
-           router router0 route list"""
+        print self.__doc__
 
     def do(self, tokens):
         ref = None
