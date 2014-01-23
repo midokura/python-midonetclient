@@ -41,7 +41,7 @@ def is_valid_uuid(value):
 # Session initialization
 ################################################################################
 
-class Session():
+class Session(object):
     def __init__(self):
         self.api_url = None
         self.username = None
@@ -179,7 +179,7 @@ class Session():
 # Field value types
 ################################################################################
 
-class ValueType():
+class ValueType(object):
     def __init__(self):
         pass
 
@@ -216,7 +216,7 @@ class ObjectRef(ValueType):
             o.alias_from_root = True
         return o
 
-class RelativeObjectPath():
+class RelativeObjectPath(object):
     def __init__(self, root_getter, parent_pointer, parent_getter,
                  parent_type, child_type):
         self.root_getter = root_getter
@@ -267,11 +267,11 @@ class RelativeObjectRef(ObjectRef):
 
 class PortRef(RelativeObjectRef):
     def __init__(self):
-        RelativeObjectRef.__init__(self,
+        super(PortRef, self).__init__(
             [RelativeObjectPath('get_port', 'device', 'get_router',
-                                 Router, RouterPort),
+                                Router, RouterPort),
              RelativeObjectPath('get_port', 'device', 'get_bridge',
-                                 Bridge, BridgePort)])
+                                Bridge, BridgePort)])
 
 class StringType(ValueType):
     pass
@@ -399,8 +399,9 @@ class EnumAttr(SingleAttr):
     def __init__(self, name, mappings, getter, setter,
                  inv_getter = None, inv_setter = None,
                  writeable = True, show = True, optional = False):
-        SingleAttr.__init__(self, name, StringType(), getter, setter,
-                            writeable, show, optional)
+        super(EnumAttr, self).__init__(name, StringType(), getter,
+                                       setter, writeable,
+                                       show, optional)
         self.mappings = mappings
 
     def _api_to_cli(self, value):
@@ -439,8 +440,9 @@ class ListAttr(SingleAttr):
     def __init__(self, name, element_type, getter, setter = None,
                  inv_getter = None, inv_setter = None,
                  writeable = True, show = True, optional = False):
-        SingleAttr.__init__(self, name, StringType(), getter, setter,
-                            writeable, show, optional)
+        super(ListAttr, self).__init__(name, StringType(),
+                                       getter, setter,
+                                       writeable, show, optional)
         self.element_type = element_type
 
     def _api_to_cli(self, value):
@@ -492,14 +494,13 @@ class ListAttr(SingleAttr):
 
 class TenantAttr(SingleAttr):
     def __init__(self):
-        SingleAttr.__init__(self,
-                            name = 'tenant',
-                            value_type = StringType(),
-                            getter = 'get_tenant_id',
-                            setter = 'tenant_id',
-                            writeable = True,
-                            optional = True,
-                            show = False)
+        super(TenantAttr, self).__init__(name = 'tenant',
+                                         value_type = StringType(),
+                                         getter = 'get_tenant_id',
+                                         setter = 'tenant_id',
+                                         writeable = True,
+                                         optional = True,
+                                         show = False)
 
 class FlagSetFlag:
     def __init__(self, literal, getter, setter = None):
@@ -513,12 +514,12 @@ class FlagSet(SingleAttr):
                  writeable = True,
                  show = True,
                  optional = False):
-        SingleAttr.__init__(self, name, StringType(),
-                            getter = None,
-                            setter = None,
-                            writeable = writeable,
-                            show = show,
-                            optional = optional)
+        super(FlagSet, self).__init__(name, StringType(),
+                                     getter = None,
+                                     setter = None,
+                                     writeable = writeable,
+                                     show = show,
+                                     optional = optional)
         self.flags = flags
 
     def fetch(self, obj):
@@ -557,14 +558,14 @@ class CidrPair(SingleAttr):
                  optional = False,
                  inv_getter = None,
                  inv_setter = None):
-        SingleAttr.__init__(self, name, value_type,
-                            getter = None,
-                            setter = None,
-                            writeable = writeable,
-                            show = show,
-                            optional = optional,
-                            inv_getter = inv_getter,
-                            inv_setter = inv_setter)
+        super(CidrPair, self).__init__(name, value_type,
+                                        getter = None,
+                                        setter = None,
+                                        writeable = writeable,
+                                        show = show,
+                                        optional = optional,
+                                        inv_getter = inv_getter,
+                                        inv_setter = inv_setter)
         self.addr_getter = addr_getter
         self.addr_setter = addr_setter
         self.mask_getter = mask_getter
@@ -610,14 +611,14 @@ class NatTarget(SingleAttr):
                  optional = True,
                  inv_getter = None,
                  inv_setter = None):
-        SingleAttr.__init__(self, name, StringType(),
-                            getter = getter,
-                            setter = setter,
-                            writeable = writeable,
-                            show = show,
-                            optional = optional,
-                            inv_getter = inv_getter,
-                            inv_setter = inv_setter)
+        super(NatTarget, self).__init__(name, StringType(),
+                                        getter = getter,
+                                        setter = setter,
+                                        writeable = writeable,
+                                        show = show,
+                                        optional = optional,
+                                        inv_getter = inv_getter,
+                                        inv_setter = inv_setter)
 
     def _api_to_cli(self, value):
         if not value:
@@ -713,14 +714,14 @@ class L4PortRange(SingleAttr):
                  optional = False,
                  inv_getter = None,
                  inv_setter = None):
-        SingleAttr.__init__(self, name, StringType(),
-                            getter = getter,
-                            setter = setter,
-                            writeable = writeable,
-                            show = show,
-                            optional = optional,
-                            inv_getter = inv_getter,
-                            inv_setter = inv_setter)
+        super(L4PortRange, self).__init__(name, StringType(),
+                                          getter = getter,
+                                          setter = setter,
+                                          writeable = writeable,
+                                          show = show,
+                                          optional = optional,
+                                          inv_getter = inv_getter,
+                                          inv_setter = inv_setter)
 
     def _api_to_cli(self, value):
         if not value:
@@ -774,14 +775,14 @@ class BooleanAttr(SingleAttr):
                  optional = False,
                  inv_getter = None,
                  inv_setter = None):
-        SingleAttr.__init__(self, name, BooleanType(),
-                            getter = getter,
-                            setter = setter,
-                            writeable = writeable,
-                            show = show,
-                            optional = optional,
-                            inv_getter = inv_getter,
-                            inv_setter = inv_setter)
+        super(BooleanAttr, self).__init__(name, BooleanType(),
+                                          getter = getter,
+                                          setter = setter,
+                                          writeable = writeable,
+                                          show = show,
+                                          optional = optional,
+                                          inv_getter = inv_getter,
+                                          inv_setter = inv_setter)
 
     def fetch(self, obj):
         try:
@@ -805,14 +806,14 @@ class AdminStateAttr(SingleAttr):
                  optional = False,
                  inv_getter = None,
                  inv_setter = None):
-        SingleAttr.__init__(self, name, BooleanType(),
-                            getter = getter,
-                            setter = setter,
-                            writeable = writeable,
-                            show = show,
-                            optional = optional,
-                            inv_getter = inv_getter,
-                            inv_setter = inv_setter)
+        super(AdminStateAttr, self).__init__(name, BooleanType(),
+                                             getter = getter,
+                                             setter = setter,
+                                             writeable = writeable,
+                                             show = show,
+                                             optional = optional,
+                                             inv_getter = inv_getter,
+                                             inv_setter = inv_setter)
 
     def fetch(self, obj):
         try:
@@ -1244,7 +1245,7 @@ class ObjectType(object):
 
 class Route(ObjectType):
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(Route, self).__init__(obj)
         self.put_attr(EnumAttr(name = 'type',
                                mappings = {'Normal': 'normal',
                                            'BlackHole': 'blackhole',
@@ -1288,7 +1289,7 @@ class TunnelZone(ObjectType):
         return "tzone"
 
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(TunnelZone, self).__init__(obj)
         self.put_attr(SingleAttr(name = 'name',
                                  value_type = StringType(),
                                  getter = 'get_name',
@@ -1309,7 +1310,7 @@ class TunnelZoneHost(ObjectType):
         return "tunnel-zone-host"
 
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(TunnelZoneHost, self).__init__(obj)
         self.clear_attrs()
         self.put_attr(SingleAttr(name = 'zone',
                                  value_type = ObjectRef('tunnel-zone'),
@@ -1331,7 +1332,7 @@ class PortGroup(ObjectType):
         return "pgroup"
 
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(PortGroup, self).__init__(obj)
         self.put_attr(TenantAttr())
         self.put_attr(SingleAttr(name = 'name',
                                  value_type = StringType(),
@@ -1347,7 +1348,7 @@ class PortGroupPort(ObjectType):
         return "port-group-port"
 
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(PortGroupPort, self).__init__(obj)
         self.clear_attrs()
         self.put_attr(SingleAttr(name = 'port-group',
                                  value_type = ObjectRef('port-group'),
@@ -1364,7 +1365,7 @@ class IpAddressGroup(ObjectType):
         return "ip-address-group"
 
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(IpAddressGroup, self).__init__(obj)
         self.put_attr(SingleAttr(name = 'name',
                                  value_type = StringType(),
                                  getter = 'get_name',
@@ -1401,7 +1402,7 @@ class Dhcp(ObjectType):
         return "dhcp"
 
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(Dhcp, self).__init__(obj)
         self.clear_attrs()
         self.put_attr(SingleAttr(name = 'gw',
                                  value_type = IPv4Address(),
@@ -1435,7 +1436,7 @@ class DhcpHost(ObjectType):
         return "dhcp-host"
 
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(DhcpHost, self).__init__(obj)
         self.clear_attrs()
         self.put_attr(SingleAttr(name = 'name',
                                  value_type = StringType(),
@@ -1452,7 +1453,7 @@ class DhcpHost(ObjectType):
 
 class Bgp(ObjectType):
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(Bgp, self).__init__(obj)
         self.put_attr(SingleAttr(name = 'local-AS',
                                  value_type = StringType(),
                                  getter = 'get_local_as',
@@ -1479,7 +1480,7 @@ class AdRoute(ObjectType):
         return "ad-route"
 
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(AdRoute, self).__init__(obj)
         self.put_attr(CidrPair(name = 'net',
                                value_type = StringType(),
                                addr_getter = 'get_nw_prefix',
@@ -1489,8 +1490,7 @@ class AdRoute(ObjectType):
 
 class Router(ObjectType):
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
-
+        super(Router, self).__init__(obj)
         self.put_attr(TenantAttr())
         self.put_attr(Collection(name = 'port',
                                  element_type = RouterPort,
@@ -1534,7 +1534,7 @@ class Router(ObjectType):
 
 class Tenant(ObjectType):
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(Tenant, self).__init__(obj)
 
         # Since alias provides no value for tenants, clear the id attribute
         # and rename the actual id field of the tenant model so that its
@@ -1549,7 +1549,7 @@ class Tenant(ObjectType):
 
 class SystemState(ObjectType):
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(SystemState, self).__init__(obj)
         self.clear_attrs()
         self.put_attr(SingleAttr(name = 'state',
                                  value_type = StringType(),
@@ -1565,7 +1565,7 @@ class SystemState(ObjectType):
 
 class WriteVersion(ObjectType):
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(WriteVersion, self).__init__(obj)
         self.clear_attrs()
         self.put_attr(SingleAttr(name = 'version',
                                  value_type = StringType(),
@@ -1577,7 +1577,7 @@ class WriteVersion(ObjectType):
 
 class HostVersion(ObjectType):
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(HostVersion, self).__init__(obj)
         self.clear_attrs()
         self.put_attr(SingleAttr(name = 'version',
                                  value_type = StringType(),
@@ -1594,7 +1594,7 @@ class HostVersion(ObjectType):
 
 class Bridge(ObjectType):
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(Bridge, self).__init__(obj)
         self.put_attr(TenantAttr())
         self.put_attr(Collection(name = 'port',
                                  element_type = BridgePort,
@@ -1628,7 +1628,7 @@ class Bridge(ObjectType):
 
 class Chain(ObjectType):
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(Chain, self).__init__(obj)
         self.put_attr(TenantAttr())
         self.put_attr(Collection(name = 'rule',
                                  element_type = Rule,
@@ -1645,7 +1645,7 @@ class Chain(ObjectType):
 
 class Condition(ObjectType):
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(Condition, self).__init__(obj)
         self.put_attr(SingleAttr(name = 'hw-src',
                                  value_type = MacAddress(),
                                  getter = 'get_dl_src',
@@ -1764,7 +1764,7 @@ class Condition(ObjectType):
 
 class Rule(Condition):
     def __init__(self, obj):
-        Condition.__init__(self, obj)
+        super(Rule, self).__init__(obj)
         self.put_attr(SingleAttr(name = 'chain',
                                  value_type = ObjectRef('chain'),
                                  getter = 'get_chain_id',
@@ -1811,7 +1811,7 @@ class BridgePort(ObjectType):
         return "port"
 
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(BridgePort, self).__init__(obj)
         self.put_attr(SingleAttr(name = 'device',
                                  value_type = ObjectRef('bridge'),
                                  getter = 'get_device_id'))
@@ -1845,7 +1845,7 @@ class PortBinding(ObjectType):
         return "binding"
 
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(PortBinding, self).__init__(obj)
         self.clear_attrs()
         self.put_attr(SingleAttr(name = 'host',
                                  value_type = ObjectRef('host'),
@@ -1867,7 +1867,7 @@ class Host(ObjectType):
         return "host"
 
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(Host, self).__init__(obj)
         self.put_attr(SingleAttr(name = 'name', value_type = StringType(),
                                  getter = 'get_name', writeable = False))
         self.put_attr(BooleanAttr(name = 'alive', getter = 'is_alive',
@@ -1887,7 +1887,7 @@ class Interface(ObjectType):
         return "interface"
 
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(Interface, self).__init__(obj)
         self.clear_attrs()
         self.put_attr(SingleAttr(name = 'iface', value_type = StringType(),
                                  getter = 'get_name', writeable = False))
@@ -1911,7 +1911,7 @@ class RouterPort(ObjectType):
         return "port"
 
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(RouterPort, self).__init__(obj)
         self.put_attr(SingleAttr(name = 'device',
                                  value_type = ObjectRef('router'),
                                  getter = 'get_device_id'))
@@ -1957,7 +1957,7 @@ class RouterPort(ObjectType):
 
 class TraceCondition(Condition):
     def __init__(self, obj):
-        Condition.__init__(self, obj)
+        super(TraceCondition, self).__init__(obj)
 
     def type_name(self):
         return "tcond"
@@ -1967,7 +1967,7 @@ class Trace(ObjectType):
         return "trace"
 
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(Trace, self).__init__(obj)
         self.put_attr(SingleAttr(name = 'messages',
                                  value_type = StringType(),
                                  getter = 'get_trace_messages'))
@@ -1980,7 +1980,8 @@ class LoadBalancer(ObjectType):
     """
 
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(LoadBalancer, self).__init__(obj)
+
         self.put_attr(SingleAttr(name = 'router',
                                  value_type = ObjectRef('router'),
                                  getter = 'get_router_id',
@@ -2008,7 +2009,7 @@ class VIP(ObjectType):
     """
 
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(VIP, self).__init__(obj)
 
         self.put_attr(SingleAttr(name = 'load-balancer',
                                  value_type = ObjectRef('load-balancer'),
@@ -2046,7 +2047,7 @@ class Pool(ObjectType):
     """
 
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(Pool, self).__init__(obj)
 
         self.put_attr(SingleAttr(name = 'load-balancer',
                                  value_type = ObjectRef('load-balancer'),
@@ -2083,7 +2084,7 @@ class PoolMember(ObjectType):
     """
 
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(PoolMember, self).__init__(obj)
 
         self.put_attr(SingleAttr(name = 'pool',
                                  value_type = ObjectRef('pool'),
@@ -2121,7 +2122,7 @@ class HealthMonitor(ObjectType):
     """
 
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(HealthMonitor, self).__init__(obj)
 
         self.put_attr(SingleAttr(name = 'delay',
                                  value_type = StringType(),
@@ -2164,7 +2165,7 @@ class PoolStatistic(ObjectType):
     """
 
     def __init__(self, obj):
-        ObjectType.__init__(self, obj)
+        super(PoolStatistic, self).__init__(obj)
 
         self.put_attr(SingleAttr(name = 'bytes-in',
                                  value_type = StringType(),
@@ -2198,102 +2199,103 @@ class Midonet(ObjectType):
         the REST API"""
 
     def __init__(self, app):
-        ObjectType.__init__(self, app)
+        super(Midonet, self).__init__(app)
         self.clear_attrs()
-        ObjectType.put_attr(self, SingleObject(name = 'system-state',
-                                             element_type = SystemState,
-                                             getter = 'get_system_state'))
-        ObjectType.put_attr(self, SingleObject(name = 'write-version',
-                                             element_type = WriteVersion,
-                                             getter = 'get_write_version'))
-        ObjectType.put_attr(self, Collection(name = 'host-versions',
-                                             element_type = HostVersion,
-                                             list_method = 'get_host_versions',
-                                             list_with_tenant = True))
-        ObjectType.put_attr(self, Collection(name = 'router',
-                                             element_type = Router,
-                                             list_method = 'get_routers',
-                                             getter = 'get_router',
-                                             list_with_tenant = True,
-                                             factory_method = 'add_router'))
-        ObjectType.put_attr(self, Collection(name = 'bridge',
-                                             element_type = Bridge,
-                                             list_method = 'get_bridges',
-                                             getter = 'get_bridge',
-                                             list_with_tenant = True,
-                                             factory_method = 'add_bridge'))
-        ObjectType.put_attr(self, Collection(name = 'chain',
-                                             element_type = Chain,
-                                             list_method = 'get_chains',
-                                             getter = 'get_chain',
-                                             list_with_tenant = True,
-                                             factory_method = 'add_chain'))
-        ObjectType.put_attr(self, Collection(name = 'host',
-                                             element_type = Host,
-                                             list_method = 'get_hosts',
-                                             getter = 'get_host'))
-        ObjectType.put_attr(self, Collection(name = 'port-group',
-                                             element_type = PortGroup,
-                                             list_method = 'get_port_groups',
-                                             getter = 'get_port_group',
-                                             list_with_tenant = True,
-                                             factory_method = 'add_port_group'))
-        ObjectType.put_attr(self, Collection(name = 'ip-address-group',
-                                             element_type = IpAddressGroup,
-                                             list_method = 'get_ip_addr_groups',
-                                             getter = 'get_ip_addr_group',
-                                             factory_method = 'add_ip_addr_group'))
-        ObjectType.put_attr(self, Collection(name = 'tunnel-zone',
-                                             element_type = TunnelZone,
-                                             list_method = 'get_tunnel_zones',
-                                             getter = 'get_tunnel_zone',
-                                             list_with_tenant = True,
-                                             factory_method = 'add_tunnel_zone'))
-        ObjectType.put_attr(self, Collection(name = 'trace-condition',
-                                             element_type = TraceCondition,
-                                             list_method = 'get_trace_conditions',
-                                             getter = 'get_trace_condition',
-                                             list_with_tenant = False,
-                                             factory_method = 'add_trace_condition'))
-        ObjectType.put_attr(self, Collection(name = 'tenant',
-                                             element_type = Tenant,
-                                             list_method = 'get_tenants'))
-        ObjectType.put_attr(self, Collection(name = 'trace',
-                                             element_type = Trace,
-                                             list_method = 'get_trace_ids',
-                                             getter = 'get_trace_messages',
-                                             list_with_tenant = False))
+
+        self.put_attr(SingleObject(name = 'system-state',
+                                   element_type = SystemState,
+                                   getter = 'get_system_state'))
+        self.put_attr(SingleObject(name = 'write-version',
+                                   element_type = WriteVersion,
+                                   getter = 'get_write_version'))
+        self.put_attr(Collection(name = 'host-versions',
+                                 element_type = HostVersion,
+                                 list_method = 'get_host_versions',
+                                 list_with_tenant = True))
+        self.put_attr(Collection(name = 'router',
+                                 element_type = Router,
+                                 list_method = 'get_routers',
+                                 getter = 'get_router',
+                                 list_with_tenant = True,
+                                 factory_method = 'add_router'))
+        self.put_attr(Collection(name = 'bridge',
+                                 element_type = Bridge,
+                                 list_method = 'get_bridges',
+                                 getter = 'get_bridge',
+                                 list_with_tenant = True,
+                                 factory_method = 'add_bridge'))
+        self.put_attr(Collection(name = 'chain',
+                                 element_type = Chain,
+                                 list_method = 'get_chains',
+                                 getter = 'get_chain',
+                                 list_with_tenant = True,
+                                 factory_method = 'add_chain'))
+        self.put_attr(Collection(name = 'host',
+                                 element_type = Host,
+                                 list_method = 'get_hosts',
+                                 getter = 'get_host'))
+        self.put_attr(Collection(name = 'port-group',
+                                 element_type = PortGroup,
+                                 list_method = 'get_port_groups',
+                                 getter = 'get_port_group',
+                                 list_with_tenant = True,
+                                 factory_method = 'add_port_group'))
+        self.put_attr(Collection(name = 'ip-address-group',
+                                 element_type = IpAddressGroup,
+                                 list_method = 'get_ip_addr_groups',
+                                 getter = 'get_ip_addr_group',
+                                 factory_method = 'add_ip_addr_group'))
+        self.put_attr(Collection(name = 'tunnel-zone',
+                                 element_type = TunnelZone,
+                                 list_method = 'get_tunnel_zones',
+                                 getter = 'get_tunnel_zone',
+                                 list_with_tenant = True,
+                                 factory_method = 'add_tunnel_zone'))
+        self.put_attr(Collection(name = 'trace-condition',
+                                 element_type = TraceCondition,
+                                 list_method = 'get_trace_conditions',
+                                 getter = 'get_trace_condition',
+                                 list_with_tenant = False,
+                                 factory_method = 'add_trace_condition'))
+        self.put_attr(Collection(name = 'tenant',
+                                 element_type = Tenant,
+                                 list_method = 'get_tenants'))
+        self.put_attr(Collection(name = 'trace',
+                                 element_type = Trace,
+                                 list_method = 'get_trace_ids',
+                                 getter = 'get_trace_messages',
+                                 list_with_tenant = False))
         # L4LB resources
-        ObjectType.put_attr(self, Collection(name = 'load-balancer',
-                                             element_type = LoadBalancer,
-                                             list_method = 'get_load_balancers',
-                                             getter = 'get_load_balancer',
-                                             factory_method = 'add_load_balancer'))
-        ObjectType.put_attr(self, Collection(name = 'vip',
-                                             element_type = VIP,
-                                             list_method = 'get_vips',
-                                             getter = 'get_vip',
-                                             factory_method = 'add_vip'))
-        ObjectType.put_attr(self, Collection(name = 'pool',
-                                             element_type = Pool,
-                                             list_method = 'get_pools',
-                                             getter = 'get_pool',
-                                             factory_method = 'add_pool'))
-        ObjectType.put_attr(self, Collection(name = 'pool-member',
-                                             element_type = PoolMember,
-                                             list_method = 'get_pool_members',
-                                             getter = 'get_pool_member',
-                                             factory_method = 'add_pool_member'))
-        ObjectType.put_attr(self, Collection(name = 'health-monitor',
-                                             element_type = HealthMonitor,
-                                             list_method = 'get_health_monitors',
-                                             getter = 'get_health_monitor',
-                                             factory_method = 'add_health_monitor'))
-        ObjectType.put_attr(self, Collection(name = 'pool-statistic',
-                                             element_type = PoolStatistic,
-                                             list_method = 'get_pool_statistics',
-                                             getter = 'get_pool_statistic',
-                                             factory_method = 'add_pool_statisic'))
+        self.put_attr(Collection(name = 'load-balancer',
+                                 element_type = LoadBalancer,
+                                 list_method = 'get_load_balancers',
+                                 getter = 'get_load_balancer',
+                                 factory_method = 'add_load_balancer'))
+        self.put_attr(Collection(name = 'vip',
+                                 element_type = VIP,
+                                 list_method = 'get_vips',
+                                 getter = 'get_vip',
+                                 factory_method = 'add_vip'))
+        self.put_attr(Collection(name = 'pool',
+                                 element_type = Pool,
+                                 list_method = 'get_pools',
+                                 getter = 'get_pool',
+                                 factory_method = 'add_pool'))
+        self.put_attr(Collection(name = 'pool-member',
+                                 element_type = PoolMember,
+                                 list_method = 'get_pool_members',
+                                 getter = 'get_pool_member',
+                                 factory_method = 'add_pool_member'))
+        self.put_attr(Collection(name = 'health-monitor',
+                                 element_type = HealthMonitor,
+                                 list_method = 'get_health_monitors',
+                                 getter = 'get_health_monitor',
+                                 factory_method = 'add_health_monitor'))
+        self.put_attr(Collection(name = 'pool-statistic',
+                                 element_type = PoolStatistic,
+                                 list_method = 'get_pool_statistics',
+                                 getter = 'get_pool_statistic',
+                                 factory_method = 'add_pool_statisic'))
 
 
 ################################################################################
@@ -3148,7 +3150,7 @@ class ObjectRefField(CommandToken):
 
 class ObjectSelector(Or):
     def __init__(self):
-        Or.__init__(self, ObjectRefField(), ObjectById())
+        super(ObjectSelector, self).__init__(ObjectRefField(), ObjectById())
 
 ################################################################################
 # Commands
