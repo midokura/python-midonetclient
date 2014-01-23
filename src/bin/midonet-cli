@@ -1337,6 +1337,43 @@ class PortGroupPort(ObjectType):
                                  setter = 'port_id',
                                  optional = False))
 
+class IpAddressGroup(ObjectType):
+    def type_name(self):
+        return "ip-address-group"
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        self.put_attr(SingleAttr(name = 'name',
+                                 value_type = StringType(),
+                                 getter = 'get_name',
+                                 setter = 'name'))
+        self.put_attr(Collection(name = 'ip',
+                                 element_type = IpAddressGroupAddress,
+                                 list_method = 'get_addrs',
+                                 factory_method = 'add_ipv4_addr'))
+        self.put_attr(Collection(name = 'ipv4',
+                                 element_type = IpAddressGroupAddress,
+                                 list_method = 'get_addrs',
+                                 factory_method = 'add_ipv4_addr'))
+        self.put_attr(Collection(name = 'ipv6',
+                                 element_type = IpAddressGroupAddress,
+                                 list_method = 'get_addrs',
+                                 factory_method = 'add_ipv6_addr'))
+
+class IpAddressGroupAddress(ObjectType):
+    def type_name(self):
+        return "ip-address-group-address"
+
+    def __init__(self, obj):
+        ObjectType.__init__(self, obj)
+        # The following is necessary, otherwise the class will complain
+        # about 'id' attribute inherited from IpAddressGroup not populated.
+        self.clear_attrs()
+        self.put_attr(SingleAttr(name = 'address',
+                                 value_type = StringType(),
+                                 getter = 'get_addr',
+                                 setter = 'addr'))
+
 class Dhcp(ObjectType):
     def type_name(self):
         return "dhcp"
@@ -1931,6 +1968,11 @@ class Midonet(ObjectType):
                                              getter = 'get_port_group',
                                              list_with_tenant = True,
                                              factory_method = 'add_port_group'))
+        ObjectType.put_attr(self, Collection(name = 'ip-address-group',
+                                             element_type = IpAddressGroup,
+                                             list_method = 'get_ip_addr_groups',
+                                             getter = 'get_ip_addr_group',
+                                             factory_method = 'add_ip_addr_group'))
         ObjectType.put_attr(self, Collection(name = 'tunnel-zone',
                                              element_type = TunnelZone,
                                              list_method = 'get_tunnel_zones',
