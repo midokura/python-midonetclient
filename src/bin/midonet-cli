@@ -865,8 +865,23 @@ class Namespace():
         return "%s%s" % (prefix, count)
 
     def lookup(self, name):
-        if self._aliases.has_key(name):
-            return self._aliases[name]
+        """Looks up a corresponding UUID for a given alias.
+        
+        Arguments:
+        name -- An alias. Might be in the inverted form. Eg. "!pgroup0"
+        
+        Returns: An UUID for the alias. If the alias is inverted, its UUID would
+        also be inverted as in "!d3ab9c45-1e83-4c44-864f-51e698d6cc47".
+        """
+        normalized_name = name
+        is_inverse = False
+        if name.startswith("!"):
+            normalized_name = name.lstrip('!')
+            is_inverse = True
+        if self._aliases.has_key(normalized_name):
+            resolved = self._aliases[normalized_name]
+            if is_inverse: resolved = '!%s' % resolved
+            return resolved
         else:
             return None
 
@@ -1701,6 +1716,20 @@ class Condition(ObjectType):
                                  setter = 'port_group_dst',
                                  inv_getter = 'is_inv_port_group_dst',
                                  inv_setter = 'inv_port_group_dst',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'ip-address-group-src',
+                                 value_type = ObjectRef('ip-address-group'),
+                                 getter = 'get_ip_addr_group_src',
+                                 setter = 'ip_addr_group_src',
+                                 inv_getter = 'is_inv_ip_addr_group_src',
+                                 inv_setter = 'inv_ip_addr_group_src',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'ip-address-group-dst',
+                                 value_type = ObjectRef('ip-address-group'),
+                                 getter = 'get_ip_addr_group_dst',
+                                 setter = 'ip_addr_group_dst',
+                                 inv_getter = 'is_inv_ip_addr_group_dst',
+                                 inv_setter = 'inv_ip_addr_group_dst',
                                  optional = True))
         self.put_attr(ListAttr(name = 'in-ports',
                                  element_type = PortRef(),

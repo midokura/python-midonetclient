@@ -86,6 +86,12 @@ These attributes perform matches on the packet:
   * `port-group` [!]<PORT_GROUP>:
     Match a port group (see midonet-cli-port-group(1)).
 
+  * `ip-address-group-src` [!]<IP_ADDRESS_GROUP>:
+    Match a source IP address group (see midonet-cli-ip-address-group(1)).
+
+  * `ip-address-group-dst` [!]<IP_ADDRESS_GROUP>:
+    Match a destination IP address group (see midonet-cli-ip-address-group(1)).
+
   * `in-ports` [!]<PORT[,PORT...]>:
     Matches the virtual port (see midonet-cli-router(1) and
     midonet-cli-bridge(1)) through which the packet ingressed the virtual device
