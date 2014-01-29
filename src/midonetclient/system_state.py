@@ -20,6 +20,7 @@
 from midonetclient import vendor_media_type
 from midonetclient.resource_base import ResourceBase
 
+
 class SystemState(ResourceBase):
 
     media_type = vendor_media_type.APPLICATION_SYSTEM_STATE_JSON
@@ -40,4 +41,3 @@ class SystemState(ResourceBase):
     def availability(self, availability):
         self.dto['availability'] = availability
         return self
-
