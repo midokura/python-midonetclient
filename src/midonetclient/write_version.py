@@ -20,6 +20,7 @@
 from midonetclient import vendor_media_type
 from midonetclient.resource_base import ResourceBase
 
+
 class WriteVersion(ResourceBase):
 
     media_type = vendor_media_type.APPLICATION_WRITE_VERSION_JSON
@@ -33,4 +34,3 @@ class WriteVersion(ResourceBase):
     def version(self, version):
         self.dto['version'] = version
         return self
-
