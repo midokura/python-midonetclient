@@ -30,10 +30,10 @@ def get_exception(status_code):
 
 
 class MidoApiConnectionError(Exception):
-	pass
+    pass
 
 
 class MidoApiConnectionRefused(MidoApiConnectionError):
-	def __init__(self):
-		MidoApiConnectionError.__init__(self,
-			"Could not connect to the midonet-api.")
+    def __init__(self):
+        MidoApiConnectionError.__init__(
+            self, "Could not connect to the midonet-api.")
