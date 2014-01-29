@@ -19,6 +19,7 @@
 from midonetclient import vendor_media_type
 from midonetclient.resource_base import ResourceBase
 
+
 class HostVersion(ResourceBase):
 
     media_type = vendor_media_type.APPLICATION_HOST_VERSION_JSON
@@ -38,7 +39,9 @@ class HostVersion(ResourceBase):
     # only get is supported for HostVersion
     def update(self, headers=None):
         raise AttributeError
+
     def create(self, headers=None):
         raise AttributeError
+
     def delete(self, headers=None):
         raise AttributeError

@@ -60,11 +60,8 @@ class Rule(ResourceBase):
     def is_inv_out_ports(self):
         return self.dto['invOutPorts']
 
-    def is_inv_port_group_dst(self):
-        return self.dto['invPortGroupDst']
-
-    def is_inv_port_group_src(self):
-        return self.dto['invPortGroupSrc']
+    def is_inv_port_group(self):
+        return self.dto['invPortGroup']
 
     def is_inv_ip_addr_group_dst(self):
         return self.dto['invIpAddrGroupDst']
@@ -135,11 +132,8 @@ class Rule(ResourceBase):
     def get_out_ports(self):
         return self.dto['outPorts']
 
-    def get_port_group_dst(self):
-        return self.dto['portGroupDst']
-
-    def get_port_group_src(self):
-        return self.dto['portGroupSrc']
+    def get_port_group(self):
+        return self.dto['portGroup']
 
     def get_ip_addr_group_dst(self):
         return self.dto['ipAddrGroupDst']
@@ -162,12 +156,8 @@ class Rule(ResourceBase):
     def get_type(self):
         return self.dto['type']
 
-    def inv_port_group_dst(self, inv_port_group_dst):
-        self.dto['invPortGroupDst'] = inv_port_group_dst
-        return self
-
-    def inv_port_group_src(self, inv_port_group_src):
-        self.dto['invPortGroupSrc'] = inv_port_group_src
+    def inv_port_group(self, inv_port_group):
+        self.dto['invPortGroup'] = inv_port_group
         return self
 
     def inv_ip_addr_group_dst(self, inv_ip_addr_group_dst):
@@ -234,12 +224,8 @@ class Rule(ResourceBase):
         self.dto['invNwTos'] = inv_nw_tos
         return self
 
-    def port_group_dst(self, port_group_dst):
-        self.dto['portGroupDst'] = port_group_dst
-        return self
-
-    def port_group_src(self, port_group_src):
-        self.dto['portGroupSrc'] = port_group_src
+    def port_group(self, port_group):
+        self.dto['portGroup'] = port_group
         return self
 
     def ip_addr_group_dst(self, ip_addr_group_dst):

@@ -316,7 +316,7 @@ class MidonetApi(object):
         route = router.add_route().type(type)
         route = route.src_network_addr(src_network_addr).src_network_length(
             src_network_length).dst_network_addr(
-                dst_network_addr).dst_network_length(dst_network_length)
+            dst_network_addr).dst_network_length(dst_network_length)
         route = route.next_hop_port(next_hop_port).next_hop_gateway(
             next_hop_gateway).weight(weight)
 
@@ -492,26 +492,10 @@ if __name__ == '__main__':
 
     # Routers/Ports
 
-    # port group1
-    pg1 = api.add_port_group().tenant_id(tenant_id).name('pg-1').create()
-    pg2 = api.add_port_group().tenant_id(tenant_id).name('pg-2').create()
-
-    # Tenant port groups
-    print '-------- Tenant port groups ------'
-    for t in tenants:
-        for p in t.get_port_groups():
-            print 'id: ',  p.get_id()
-
     rp1 = router1.add_port()\
                  .port_address('2.2.2.2')\
                  .network_address('2.2.2.0')\
                  .network_length(24).create()
-
-    # Add this port to both port groups
-    pgp1 = pg1.add_port_group_port().port_id(rp1.get_id()).create()
-    pgp2 = pg2.add_port_group_port().port_id(rp1.get_id()).create()
-    print 'rp1 port group ids=%r' % [pgp1.get_port_group_id(),
-                                     pgp2.get_port_group_id()]
 
     rp2 = router1.add_port().port_address('1.1.1.1')\
                  .network_address('1.1.1.0').network_length(24).create()
@@ -623,12 +607,6 @@ if __name__ == '__main__':
     # Bridges/Ports
     bp1 = bridge1.add_port().inbound_filter_id(random_uuid).create()
 
-    # Add this port to both port groups
-    pgp1 = pg1.add_port_group_port().port_id(bp1.get_id()).create()
-    pgp2 = pg2.add_port_group_port().port_id(bp1.get_id()).create()
-    print 'bp1 port group ids=%r' % [pgp1.get_port_group_id(),
-                                     pgp2.get_port_group_id()]
-
     bp2 = bridge1.add_port().create()
 
     print api.get_port(bp1.get_id())
@@ -658,31 +636,6 @@ if __name__ == '__main__':
         print 'dhcp subnet', ds
 
     bridge1.get_dhcp_subnet('11.11.11.0_24')
-
-    # list port groups and remove them.
-    pgs = api.get_port_groups({'tenant_id': tenant_id})
-    for pg in pgs:
-        print pg.get_name()
-        print pg.get_id()
-
-    # Add a port(bp2) to pg2
-    pgp1 = pg2.add_port_group_port().port_id(bp2.get_id()).create()
-
-    membership = pg2.get_ports()
-    size = len(membership)
-    print 'pg2(id=%r) membership=%r, size=%d' % (pg2.get_id(), membership,
-                                                 size)
-    pgp1.delete()
-    membership = pg2.get_ports()
-    size_after_delete_pgp1 = len(membership)
-    print 'pg2(id=%r) membership=%r, size=%d' % (pg2.get_id(),
-                                                 membership,
-                                                 size_after_delete_pgp1)
-    assert size == size_after_delete_pgp1 + 1
-
-    pg1.delete()
-    # Try deleting by ID
-    api.delete_port(pg2.get_id())
 
     # tear down routers and bridges
     bp2.unlink()    # if I don't unlink, deletion of router blows up
