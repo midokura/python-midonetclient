@@ -2567,7 +2567,8 @@ class FieldAssignmentBase(CommandToken):
         if obj.has_field(fname):
             fspec = obj.attrs()[fname]
             if isinstance(fspec.value_type, ObjectRef):
-                refmatch = OnceOrMore(ObjectById()).matches(context.copy(app, args))
+                token = OnceOrMore(ObjectById())
+                refmatch = token.matches(context.copy(app, context.args()))
                 if isinstance(refmatch, MatchingContext):
                     fval = refmatch.object()
                     field = FieldType(fname, fspec, fval.fetch_field('id'))
