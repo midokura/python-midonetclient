@@ -1659,9 +1659,11 @@ class BridgePort(ObjectType):
                                  getter = 'get_device_id'))
         self.put_attr(SingleAttr(name = 'infilter',
                                  value_type = ObjectRef('chain'),
+                                 setter = 'inbound_filter_id',
                                  getter = 'get_inbound_filter_id'))
         self.put_attr(SingleAttr(name = 'outfilter',
                                  value_type = ObjectRef('chain'),
+                                 setter = 'outbound_filter_id',
                                  getter = 'get_outbound_filter_id'))
         self.put_attr(SingleAttr(name = 'vlan',
                                  value_type = StringType(),
