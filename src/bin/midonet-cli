@@ -3550,15 +3550,36 @@ if __name__ == '__main__':
         session = Session()
         session.load()
         root = session.connect()
+        try:
+            # Test the credential by making an API call first before starting a
+            # command loop.
+            root.get_tunnel_zones()
+            # Those except clauses are duplicitous. Cf. MidontCLI.default().
+        except exc.HTTPUnauthorized as err:
+            sys.stderr.write("Invalid credential. Wrong username/password. "
+                             "Bye.\n")
+            if session.debug:
+                sys.stderr.write("Caught HTTPUnauthorized: %s\n" % str(err))
+            sys.exit(1)
+        except socket.error as err:
+            sys.stderr.write("Connection to MidoNet API server refused. "
+                             "Bye.\n")
+            if session.debug:
+                sys.stderr.write("Caught socket.error: %s\n" % str(err))
+            sys.exit(1)
+        except Exception as err:
+            sys.stderr.write("The API server failed to respond normally. "
+                             "The network DB is possibly down. Bye.\n")
+            if session.debug:
+                sys.stderr.write("Internal error: %s\n" % traceback.format_exc())
+            sys.exit(1)
         aliases = AliasManager() if session.enable_alias_manager else NoOpAliasManager()
         app = Midonet(root)
         cli = MidonetCLI(app)
         if session.do_eval:
             cli.onecmd(session.command)
         else:
-            # Test the credential by running a sample command first before
-            # starting a command loop. The output won't be shown on the screen.
-            if not cli.onecmd('list tunnel-zone'): cli.cmdloop()
+            cli.cmdloop()
         sys.exit(0 if cli.last_command_succeeded else 1)
     except Exception as e:
         sys.stderr.write(e.message + "\n")
