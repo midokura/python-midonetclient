@@ -3571,7 +3571,7 @@ if __name__ == '__main__':
             sys.stderr.write("The API server failed to respond normally. "
                              "The network DB is possibly down. Bye.\n")
             if session.debug:
-                sys.stderr.write("Internal error: %s\n" % traceback.format_exc())
+                sys.stderr.write("Internal error: %s\n" % str(err))
             sys.exit(1)
         aliases = AliasManager() if session.enable_alias_manager else NoOpAliasManager()
         app = Midonet(root)
