@@ -5,13 +5,13 @@
 # -.pyc files not built and installed.
 Name:       python-midonetclient
 Epoch:      1
-Version:    1.3.0
-Release:    0.1.rc1
+Version:    %{version}
+Release:    %{release}
 Summary:    Python client for MidoNet REST API.
 Group:      Development/Languages
 License:    Test
-URL:        https://github.com/midokura/midonet-client
-Source0:    https://github.com/midokura/midonet-client/python-midonetclient-%{version}.tar.gz
+URL:        https://github.com/midokura/python-midonetclient
+Source0:    https://github.com/midokura/python-midonetclient-%{version}.tar.gz
 BuildArch:  noarch
 BuildRoot:  /var/tmp/%{name}-buildroot
 # I added this line but then had to comment it out to build on Ubuntu,
@@ -53,7 +53,5 @@ cp -r src/bin/midonet-cli $RPM_BUILD_ROOT/%{_bindir}/
 %{python_sitelib}/midonetclient
 
 %changelog
-* Thu Aug 8 2013 Guillermo Ontanon <guillermo@midokura.com> - 1.1.0-1.0
-* Mon Aug 5 2013 Guillermo Ontanon <guillermo@midokura.com> - 1.0.99-rc5
-* Thu Jul 18 2013 Takaaki Suzuki <suzuki@midokura.com> - 1.0.99-rc3
+* %{now} Midokura <info@midokura.com> - Package for %{version}-%{release}
 - Initial package
