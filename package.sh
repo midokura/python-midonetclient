@@ -9,6 +9,7 @@
 
 BUILD_DIR=build
 NOW=`date -u +"%a, %d %b %Y %T %z"` # RFC 5322
+TIMESTAMP=`date +%Y%m%d%H%M` 
 YEAR=`date +%Y`
 USER="Midokura"
 USER_E="info@midokura.com"
@@ -41,7 +42,6 @@ gen_deb() {
 # generates files for rhel packaging, creating the copyright file in the
 # build directory.
 gen_rhel() {
-    echo "Generating version-dependent files $@"
     echo "This work was packaged for RPM by:
 
     $USER <$USER_E> on $NOW
@@ -74,7 +74,7 @@ The RPM packaging is:
 package_deb() {
 
     version=`echo $1 | sed -e "s/-/~/"` # X.Y.Z-rc5 -> X.Y.Z~rc5
-    stage "Creating DEBIAN package for version: $version"
+    echo "Creating DEBIAN package for version: $version"
 
     if [ "$1" == "" ]
     then
@@ -82,10 +82,11 @@ package_deb() {
         exit -1
     fi
 
+    version=`echo $version | sed -e "s/SNAPSHOT/$TIMESTAMP/g"`
     gen_deb $version
- 
+
     echo "Generating DEBIAN packages"
-     
+
     dpkg-buildpackage -rfakeroot -b -us -uc
     destdir="$BUILD_DIR/debian/"
     mv ../*_${version}_*.deb $destdir
@@ -102,7 +103,7 @@ package_deb() {
 #   will be inferred from the version if not present
 package_rhel() {
 
-    stage "Creating RHEL packages, version: $1, release: $2"
+    echo "Creating RHEL packages, version: $1, release: $2"
 
     version=$1
     release=$2
@@ -113,32 +114,27 @@ package_rhel() {
         exit -1
     fi
 
-    # suffix is the -rcX or -hfX
-    suffix=`echo $version | sed -e 's/^.*-//'`
+    # pre_ver is the -rcX or -hfX
+    pre_ver=`echo $version | sed -e 's/^.*-//'`
+    pre_ver=`echo $pre_ver | sed -e "s/SNAPSHOT/$TIMESTAMP/g"`
     if [ "$release" == "" ]
     then
-	if [ "$suffix" == "" ]
-	then
-	    release="1.0" # a final
-   	else
-	    release="0.1.$suffix" # a pre release
-	fi
+        if [ "$pre_ver" == "" ]
+        then
+            release="1.0" # a final
+        else
+            release="0.1" # a pre release
+        fi
     fi
 
-    # remove pre release tag
-    rpm_ver=`echo $version | sed -e 's/-.*$//'` 
+    # - prerelease: X.Y.Z-0.1.prerelease-tag (e.g.: 1.2.3-0.1.rc4)
+    # - final: X.Y.Z-1.0
+    release="$release.$pre_ver"
+    rpm_ver=`echo $version | sed -e 's/-.*$//'` # remove pre-release tag
+
     gen_rhel $rpm_ver $release
 
-    # prerelease: X.Y.Z-0.1.prerelease-tag (e.g.: 1.2.3-0.1.rc4)
-    # final: X.Y.Z-1.0
-    if [ "$suffix" -ne "" ]
-    then
-    	rpm_ver="$rpm_ver.$suffix"
-    fi
-
     echo "Generating RHEL packages for version: $rpm_ver"
-
-    rpm_ver=$rpm_ver.$suffix
 
     DATE=`date -u +"%a %b %d %Y"`
     TAR=~/rpmbuild/SOURCES/python-midonetclient-$rpm_ver.tar
