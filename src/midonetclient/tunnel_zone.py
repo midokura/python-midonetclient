@@ -64,7 +64,7 @@ class TunnelZone(ResourceBase):
 
     def type(self, type_):
         self.dto['type'] = type_
-        return self.dto['type']
+        return self
 
     def get_id(self):
         return self.dto['id']
