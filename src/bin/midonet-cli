@@ -18,6 +18,7 @@
 # @author: Guillermo Ontanon <guillermo@midokura.com>, Midokura
 
 import cmd
+import inspect
 import logging
 import re
 import readline
@@ -366,7 +367,13 @@ class SingleAttr(Attr):
 
     def unset(self, obj):
         func = obj.reflect(self.unsetter)
-        func()
+
+        # if the unset function takes in one arg (besides self), which
+        # means it's a setter, call with None to unset the field
+        if len(inspect.getargspec(func).args) == 1 + 1:
+            func(None)
+        else:
+            func()
 
     def set_inv(self, obj, value):
         v = value
@@ -797,8 +804,23 @@ class Namespace():
         return "%s%s" % (prefix, count)
 
     def lookup(self, name):
-        if self._aliases.has_key(name):
-            return self._aliases[name]
+        """Looks up a corresponding UUID for a given alias.
+
+        Arguments:
+        name -- An alias. Might be in the inverted form. Eg. "!pgroup0"
+
+        Returns: An UUID for the alias. If the alias is inverted, its UUID would
+        also be inverted as in "!d3ab9c45-1e83-4c44-864f-51e698d6cc47".
+        """
+        normalized_name = name
+        is_inverse = False
+        if name.startswith("!"):
+            normalized_name = name.lstrip('!')
+            is_inverse = True
+        if self._aliases.has_key(normalized_name):
+            resolved = self._aliases[normalized_name]
+            if is_inverse: resolved = '!%s' % resolved
+            return resolved
         else:
             return None
 
@@ -1363,8 +1385,7 @@ class AdRoute(ObjectType):
 class Router(ObjectType):
     def __init__(self, obj):
         ObjectType.__init__(self, obj)
-        # NOTE: factory method is a hack, the type attribute may later change
-        # the port type to exterior.
+
         self.put_attr(TenantAttr())
         self.put_attr(Collection(name = 'port',
                                  element_type = RouterPort,
@@ -1659,10 +1680,14 @@ class BridgePort(ObjectType):
                                  getter = 'get_device_id'))
         self.put_attr(SingleAttr(name = 'infilter',
                                  value_type = ObjectRef('chain'),
-                                 getter = 'get_inbound_filter_id'))
+                                 setter = 'inbound_filter_id',
+                                 getter = 'get_inbound_filter_id',
+                                 unsetter = 'inbound_filter_id'))
         self.put_attr(SingleAttr(name = 'outfilter',
                                  value_type = ObjectRef('chain'),
-                                 getter = 'get_outbound_filter_id'))
+                                 setter = 'outbound_filter_id',
+                                 getter = 'get_outbound_filter_id',
+                                 unsetter = 'outbound_filter_id'))
         self.put_attr(SingleAttr(name = 'vlan',
                                  value_type = StringType(),
                                  setter = 'vlan_id',
@@ -1759,11 +1784,13 @@ class RouterPort(ObjectType):
         self.put_attr(SingleAttr(name = 'infilter',
                                  value_type = ObjectRef('chain'),
                                  getter = 'get_inbound_filter_id',
-                                 setter = 'inbound_filter_id'))
+                                 setter = 'inbound_filter_id',
+                                 unsetter = 'inbound_filter_id'))
         self.put_attr(SingleAttr(name = 'outfilter',
                                  value_type = ObjectRef('chain'),
                                  getter = 'get_outbound_filter_id',
-                                 setter = 'outbound_filter_id'))
+                                 setter = 'outbound_filter_id',
+                                 unsetter = 'outbound_filter_id'))
         self.put_attr(SingleAttr(name = 'mac',
                                  value_type = MacAddress(),
                                  getter = 'get_port_mac',
