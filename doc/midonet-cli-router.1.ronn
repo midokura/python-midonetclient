@@ -8,10 +8,11 @@ midonet-cli-router(1) -- Router objects in midonet-cli
     midonet> router router0 add port type exterior address 192.0.2.1 \
              net 192.0.2.0/24
     midonet> router router0 list port<br>
-    midonet> router router0 port port0 add bgp peer 192.0.2.2 \ 
+    midonet> router router0 port port0 add bgp peer 192.0.2.2 \
              local-AS 1 peer-AS 2
     midonet> router router0 port port0 bgp bgp0 add route 203.0.113.0/24
     midonet> router router0 set infilter chain chain0
+    midonet> router router0 clear infilter
 
 ## DESCRIPTION
 
