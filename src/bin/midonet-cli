@@ -1516,11 +1516,13 @@ class Router(ObjectType):
         self.put_attr(SingleAttr(name = 'infilter',
                                  value_type = ObjectRef('chain'),
                                  getter = 'get_inbound_filter_id',
-                                 setter = 'inbound_filter_id'))
+                                 setter = 'inbound_filter_id',
+                                 unsetter = 'inbound_filter_id'))
         self.put_attr(SingleAttr(name = 'outfilter',
                                  value_type = ObjectRef('chain'),
                                  getter = 'get_outbound_filter_id',
-                                 setter = 'outbound_filter_id'))
+                                 setter = 'outbound_filter_id',
+                                 unsetter = 'outbound_filter_id'))
 
     def type_name(self):
         return "router"
@@ -1608,11 +1610,13 @@ class Bridge(ObjectType):
         self.put_attr(SingleAttr(name = 'infilter',
                                  value_type = ObjectRef('chain'),
                                  getter = 'get_inbound_filter_id',
-                                 setter = 'inbound_filter_id'))
+                                 setter = 'inbound_filter_id',
+                                 unsetter = 'inbound_filter_id'))
         self.put_attr(SingleAttr(name = 'outfilter',
                                  value_type = ObjectRef('chain'),
                                  getter = 'get_outbound_filter_id',
-                                 setter = 'outbound_filter_id'))
+                                 setter = 'outbound_filter_id',
+                                 unsetter = 'outbound_filter_id'))
 
     def type_name(self):
         return "bridge"
