@@ -87,8 +87,14 @@ class Rule(ResourceBase):
     def get_dl_dst(self):
         return self.dto['dlDst']
 
+    def get_dl_dst_mask(self):
+        return self.dto['dlDstMask']
+
     def get_dl_src(self):
         return self.dto['dlSrc']
+
+    def get_dl_src_mask(self):
+        return self.dto['dlSrcMask']
 
     def get_dl_type(self):
         return self.dto['dlType']
@@ -176,12 +182,20 @@ class Rule(ResourceBase):
         self.dto['dlSrc'] = dl_src
         return self
 
+    def dl_src_mask(self, dl_src_mask):
+        self.dto['dlSrcMask'] = dl_src_mask
+        return self
+
     def inv_nw_dst(self, inv_nw_dst):
         self.dto['invNwDst'] = inv_nw_dst
         return self
 
     def dl_dst(self, dl_dst):
         self.dto['dlDst'] = dl_dst
+        return self
+
+    def dl_dst_mask(self, dl_dst_mask):
+        self.dto['dlDstMask'] = dl_dst_mask
         return self
 
     def match_forward_flow(self, match_forward_flow):
