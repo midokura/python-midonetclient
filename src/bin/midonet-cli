@@ -2822,12 +2822,13 @@ class FieldAssignmentBase(CommandToken):
                     return context.copy(None, refmatch.args(), [field])
                 else:
                     fval = args.pop(0)
-                    fromalias = aliases.lookup(fval)
-                    if fromalias:
-                        field = FieldType(fname, fspec, fromalias)
-                        return context.copy(None, args, [field])
-                    else:
-                        return ParsingSubmatch(context)
+                    # try aliase, if not found, then try the value as is.
+                    # this is to work around MN-1383, in which you cannot
+                    # set a field typed as ObjectRef with a real val.
+                    val_to_set = aliases.lookup(fval) or fval
+                    field = FieldType(fname, fspec, val_to_set)
+                    return context.copy(None, args, [field])
+
             else:
                 fval = args.pop(0)
                 field = FieldType(fname, fspec, fval)
