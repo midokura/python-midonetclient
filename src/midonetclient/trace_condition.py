@@ -63,6 +63,12 @@ class TraceCondition(ResourceBase):
     def is_inv_port_group(self):
         return self.dto['invPortGroup']
 
+    def is_inv_ip_addr_group_dst(self):
+        return self.dto['invIpAddrGroupDst']
+
+    def is_inv_ip_addr_group_src(self):
+        return self.dto['invIpAddrGroupSrc']
+
     def is_inv_tp_dst(self):
         return self.dto['invTpDst']
 
@@ -114,24 +120,31 @@ class TraceCondition(ResourceBase):
     def get_port_group(self):
         return self.dto['portGroup']
 
-    def get_tp_src_start(self):
-        return self.dto['tpSrcStart']
+    def get_tp_src(self):
+        return self.dto['tpSrc']
 
-    def get_tp_dst_start(self):
-        return self.dto['tpDstStart']
+    def get_tp_dst(self):
+        return self.dto['tpDst']
 
-    def get_tp_src_end(self):
-        return self.dto['tpSrcEnd']
+    def get_ip_addr_group_dst(self):
+        return self.dto['ipAddrGroupDst']
 
-    def get_tp_dst_end(self):
-        return self.dto['tpDstEnd']
+    def get_ip_addr_group_src(self):
+        return self.dto['ipAddrGroupSrc']
 
     def inv_port_group(self, inv_port_group):
         self.dto['invPortGroup'] = inv_port_group
+
+    def inv_ip_addr_group_dst(self, inv_ip_addr_group_dst):
+        self.dto['invIpAddrGroupDst'] = inv_ip_addr_group_dst
         return self
 
-    def tp_src_start(self, tp_src_start):
-        self.dto['tpSrcStart'] = tp_src_start
+    def inv_ip_addr_group_src(self, inv_ip_addr_group_src):
+        self.dto['invIpAddrGroupSrc'] = inv_ip_addr_group_src
+        return self
+
+    def tp_src(self, tp_src):
+        self.dto['tpSrc'] = tp_src
         return self
 
     def dl_src(self, dl_src):
@@ -148,10 +161,6 @@ class TraceCondition(ResourceBase):
 
     def match_forward_flow(self, match_forward_flow):
         self.dto['matchForwardFlow'] = match_forward_flow
-        return self
-
-    def tp_src_end(self, tp_src_end):
-        self.dto['tpSrcEnd'] = tp_src_end
         return self
 
     def inv_tp_src(self, inv_tp_src):
@@ -238,14 +247,10 @@ class TraceCondition(ResourceBase):
         self.dto['condInvert'] = cond_invert
         return self
 
-    def tp_dst_end(self, tp_dst_end):
-        self.dto['tpDstEnd'] = tp_dst_end
-        return self
-
     def inv_dl_src(self, inv_dl_src):
         self.dto['invDlSrc'] = inv_dl_src
         return self
 
-    def tp_dst_start(self, tp_dst_start):
-        self.dto['tpDstStart'] = tp_dst_start
+    def tp_dst(self, tp_dst):
+        self.dto['tpDst'] = tp_dst
         return self
