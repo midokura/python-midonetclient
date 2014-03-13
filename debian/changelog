@@ -1,3 +1,9 @@
+python-midonetclient (1.2.2~rc2) precise; urgency=low
+
+  * 1.2.2~rc2
+
+ -- Midokura <midokura@localhost>  Thu, 13 Mar 2014 03:24:17 +0000
+
 python-midonetclient (1.2.2~rc1) precise; urgency=low
 
   * 1.2.2~rc1
