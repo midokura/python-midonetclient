@@ -39,6 +39,12 @@ from midonetclient.trace import Trace
 from midonetclient.write_version import WriteVersion
 from midonetclient.system_state import SystemState
 from midonetclient.host_version import HostVersion
+from midonetclient.load_balancer import LoadBalancer
+from midonetclient.vip import VIP
+from midonetclient.pool import Pool
+from midonetclient.pool_member import PoolMember
+from midonetclient.health_monitor import HealthMonitor
+from midonetclient.pool_statistic import PoolStatistic
 
 
 class Application(ResourceBase):
@@ -100,6 +106,43 @@ class Application(ResourceBase):
     def get_host_versions_uri(self):
         return self.dto['hostVersions']
 
+    #L4LB resources
+    def get_load_balancers_uri(self):
+        return self.dto['loadBalancers']
+
+    def get_vips_uri(self):
+        return self.dto['vips']
+
+    def get_pools_uri(self):
+        return self.dto['pools']
+
+    def get_pool_members_uri(self):
+        return self.dto['poolMembers']
+
+    def get_health_monitors_uri(self):
+        return self.dto['healthMonitors']
+
+    def get_pool_statistics_uri(self):
+        return self.dto['poolStatistics']
+
+    def get_load_balancer_template(self):
+        return self.dto['loadBalancerTemplate']
+
+    def get_vip_template(self):
+        return self.dto['vipTemplate']
+
+    def get_pool_template(self):
+        return self.dto['poolTemplate']
+
+    def get_pool_member_template(self):
+        return self.dto['poolMemberTemplate']
+
+    def get_health_monitor_template(self):
+        return self.dto['healthMonitorTemplate']
+
+    def get_pool_statistic_template(self):
+        return self.dto['poolStatisticTemplate']
+
     def get_tenants(self, query):
         headers = {'Accept':
                    vendor_media_type.APPLICATION_TENANT_COLLECTION_JSON}
@@ -110,7 +153,7 @@ class Application(ResourceBase):
 
     def get_routers(self, query):
         headers = {'Accept':
-                   vendor_media_type.APPLICATION_ROUTER_COLLECTION_JSON}
+                   vendor_media_type.APPLICATION_ROUTER_COLLECTION_V2_JSON}
         return self.get_children(self.dto['routers'], query, headers, Router)
 
     def get_bridges(self, query):
@@ -327,3 +370,110 @@ class Application(ResourceBase):
                                              self.ID_TOKEN,
                                              id_)
         self.auth.do_request(uri, 'DELETE')
+
+    #L4LB resources
+    def get_load_balancers(self, query):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_LOAD_BALANCER_COLLECTION_JSON}
+        return self.get_children(self.dto['loadBalancers'],
+                                 query, headers, LoadBalancer)
+
+    def get_vips(self, query):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_VIP_COLLECTION_JSON}
+        return self.get_children(self.dto['vips'], query, headers, VIP)
+
+    def get_pools(self, query):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_POOL_COLLECTION_JSON}
+        return self.get_children(self.dto['pools'], query, headers, Pool)
+
+    def get_pool_members(self, query):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_POOL_MEMBER_COLLECTION_JSON}
+        return self.get_children(self.dto['poolMembers'],
+                                 query, headers, PoolMember)
+
+    def get_health_monitors(self, query):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_HEALTH_MONITOR_COLLECTION_JSON}
+        return self.get_children(self.dto['healthMonitors'],
+                                 query, headers, HealthMonitor)
+
+    def get_pool_statistics(self, query):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_POOL_STATISTIC_COLLECTION_JSON}
+        return self.get_children(self.dto['poolStatistics'],
+                                 query, headers, PoolStatistic)
+
+    def get_load_balancer(self, id_):
+        return self._get_resource_by_id(LoadBalancer,
+                                        self.dto['loadBalancers'],
+                                        self.get_load_balancer_template(),
+                                        id_)
+
+    def get_vip(self, id_):
+        return self._get_resource_by_id(VIP,
+                                        self.dto['vips'],
+                                        self.get_vip_template(),
+                                        id_)
+    def get_pool(self, id_):
+        return self._get_resource_by_id(Pool,
+                                        self.dto['pools'],
+                                        self.get_pool_template(),
+                                        id_)
+    def get_pool_member(self, id_):
+        return self._get_resource_by_id(PoolMember,
+                                        self.dto['poolMembers'],
+                                        self.get_pool_member_template(),
+                                        id_)
+
+    def get_health_monitor(self, id_):
+        return self._get_resource_by_id(HealthMonitor,
+                                        self.dto['healthMonitors'],
+                                        self.get_health_monitor_template(),
+                                        id_)
+    def get_pool_statistic(self, id_):
+        return self._get_resource_by_id(PoolStatistic,
+                                        self.dto['poolStatistic'],
+                                        self.get_pool_statistic_template(),
+                                        id_)
+    def delete_load_balancer(self, id_):
+        return self._delete_resource_by_id(
+            self.get_load_balancer_template(), id_)
+
+    def delete_vip(self, id_):
+        return self._delete_resource_by_id(self.get_vip_template(), id_)
+
+    def delete_pool(self, id_):
+        return self._delete_resource_by_id(self.get_pool_template(), id_)
+
+    def delete_pool_member(self, id_):
+        return self._delete_resource_by_id(
+            self.get_pool_member_template(), id_)
+
+    def delete_health_monitor(self, id_):
+        return self._delete_resource_by_id(
+            self.get_health_monitor_template(), id_)
+
+    def delete_pool_statistic(self, id_):
+        return self._delete_resource_by_id(
+            self.get_pool_statistic_template(), id_)
+
+    def add_load_balancer(self):
+        return LoadBalancer(self.dto['loadBalancers'], {}, self.auth)
+
+    def add_vip(self):
+        return VIP(self.dto['vips'], {}, self.auth)
+
+    def add_pool(self):
+        return Pool(self.dto['pools'], {}, self.auth)
+
+    def add_pool_member(self):
+        return PoolMember(self.dto['poolMembers'], {}, self.auth)
+
+    def add_health_monitor(self):
+        return HealthMonitor(self.dto['healthMonitors'], {}, self.auth)
+
+    def add_pool_statistic(self):
+        return PoolStatistic(self.dto['poolStatistics'], {}, self.auth)

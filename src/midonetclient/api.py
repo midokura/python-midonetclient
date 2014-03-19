@@ -111,6 +111,116 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.get_hosts(query)
 
+    # L4LB resources
+    def get_load_balancers(self, query=None):
+        if query is None:
+            query = {}
+        self._ensure_application()
+        return self.app.get_load_balancers(query)
+
+
+    def get_vips(self, query=None):
+        if query is None:
+            query = {}
+        self._ensure_application()
+        return self.app.get_vips(query)
+
+    def get_pools(self, query=None):
+        if query is None:
+            query = {}
+        self._ensure_application()
+        return self.app.get_pools(query)
+
+    def get_pool_members(self, query=None):
+        if query is None:
+            query = {}
+        self._ensure_application()
+        return self.app.get_pool_members(query)
+
+    def get_health_monitors(self, query=None):
+        if query is None:
+            query = {}
+        self._ensure_application()
+        return self.app.get_health_monitors(query)
+
+    def get_pool_statistics(self, query=None):
+        if query is None:
+            query = {}
+        self._ensure_application()
+        return self.app.get_pool_statistics(query)
+
+    def get_load_balancer(self, id_):
+        self._ensure_application()
+        return self.app.get_load_balancer(id_)
+
+    def get_vip(self, id_):
+        self._ensure_application()
+        return self.app.get_vip(id_)
+
+    def get_pool(self, id_):
+        self._ensure_application()
+        return self.app.get_pool(id_)
+
+    def get_pool_member(self, id_):
+        self._ensure_application()
+        return self.app.get_pool_member(id_)
+
+    def get_health_monitor(self, id_):
+        self._ensure_application()
+        return self.app.get_health_monitor(id_)
+
+    def get_pool_statistic(self, id_):
+        self._ensure_application()
+        return self.app.get_pool_statistic(id_)
+
+    def add_load_balancer(self):
+        self._ensure_application()
+        return self.app.add_load_balancer()
+
+    def add_vip(self):
+        self._ensure_application()
+        return self.app.add_vip()
+
+    def add_pool(self):
+        self._ensure_application()
+        return self.app.add_pool()
+
+    def add_pool_member(self):
+        self._ensure_application()
+        return self.app.add_pool_member()
+
+    def add_health_monitor(self):
+        self._ensure_application()
+        return self.app.add_health_monitor()
+
+    def add_pool_statistic(self):
+        self._ensure_application()
+        return self.app.add_pool_statistic()
+
+    def delete_load_balancer(self, id_):
+        self._ensure_application()
+        return self.app.delete_load_balancer(id_)
+
+    def delete_vip(self, id_):
+        self._ensure_application()
+        return self.app.delete_vips(id_)
+
+    def delete_pool(self, id_):
+        self._ensure_application()
+        return self.app.delete_pool(id_)
+
+    def delete_pool_member(self, id_):
+        self._ensure_application()
+        return self.app.delete_pool_member(id_)
+
+    def delete_health_monitor(self, id_):
+        self._ensure_application()
+        return self.app.delete_health_monitor(id_)
+
+    def delete_pool_statistic(self, id_):
+        self._ensure_application()
+        return self.app.delete_pool_statistic(id_)
+
     def add_host_interface_port(self, host, port_id, interface_name):
         return host.add_host_interface_port().port_id(port_id) \
             .interface_name(interface_name).create()

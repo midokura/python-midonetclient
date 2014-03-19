@@ -81,7 +81,8 @@ class ResourceBase(object):
         self._ensure_content_type(headers)
 
         resp, body = self.auth.do_request(self.dto['uri'], 'PUT',
-                                          body=self.dto, headers=headers)
+                                          body=self.dto,
+                                          headers=headers)
 
         headers['Accept'] = self.media_type
         resp, self.dto = self.auth.do_request(self.dto['uri'], 'GET',
