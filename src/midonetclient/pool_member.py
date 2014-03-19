@@ -55,7 +55,7 @@ class PoolMember(ResourceBase, AdminStateUpMixin):
         self.dto['protocolPort'] = protocol_port
         return self
 
-    def wight(self, weight):
+    def weight(self, weight):
         self.dto['weight'] = weight
         return self
 
