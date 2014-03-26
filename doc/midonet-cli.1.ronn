@@ -40,7 +40,6 @@ collections:
   * `host` (see midonet-cli-host(1))
   * `port-group` (see midonet-cli-port-group(1))
   * `tunnel-zone` (see midonet-cli-tunnel-zone(1))
-  * `trace-condition` (see midonet-cli-trace-condition(1))
   * `host-versions` (see midonet-cli-host-version(1))
   * `system-state` (see midonet-cli-system-state(1))
   * `write-version` (see midonet-cli-write-version(1))
@@ -216,5 +215,4 @@ midonet-cli is Copyright (C) 2013 Midokura PTE LTD.
 ## SEE ALSO
 
 midonet-cli-router(1), midonet-cli-bridge(1), midonet-cli-chain(1),
-midonet-cli-host(1), midonet-cli-port-group(1), midonet-cli-tunnel-zone(1),
-midonet-cli-trace-condition(1)
+midonet-cli-host(1), midonet-cli-port-group(1), midonet-cli-tunnel-zone(1)

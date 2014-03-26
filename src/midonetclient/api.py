@@ -373,35 +373,6 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.add_capwap_tunnel_zone()
 
-    # Trace condition operations
-    def add_trace_condition(self):
-        self._ensure_application()
-        return self.app.add_trace_condition()
-
-    def get_trace_conditions(self, query=None):
-        self._ensure_application()
-        return self.app.get_trace_conditions(query)
-
-    def get_trace_condition(self, id_):
-        self._ensure_application()
-        return self.app.get_trace_condition(id_)
-
-    def delete_trace_condition(self, id_):
-        self._ensure_application()
-        return self.app.delete_trace_condition(id_)
-
-    def get_trace_ids(self, query=None):
-        self._ensure_application()
-        return self.app.get_trace_ids(query)
-
-    def get_trace_messages(self, id_):
-        self._ensure_application()
-        return self.app.get_trace_messages(id_)
-
-    def delete_trace_messages(self, id_):
-        self._ensure_application()
-        return self.app.delete_trace_messages(id_)
-
     def add_bridge_port(self, bridge):
         return bridge.add_port()
 
@@ -793,15 +764,3 @@ if __name__ == '__main__':
 
     chain1.delete()
     chain2.delete()
-
-    # Trace conditions
-    tCond1 = api.add_trace_condition().nw_src_address('5.5.5.5').create()
-    tCond2 = api.add_trace_condition().dl_type('1536').nw_proto('1').create()
-
-    tConds = api.get_trace_conditions()
-    for tCond in tConds:
-        print 'trace condition ----'
-        print tCond.get_id()
-
-    tCond1.delete()
-    tCond2.delete()
