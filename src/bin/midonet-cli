@@ -1948,24 +1948,6 @@ class RouterPort(ObjectType):
                                  getter = 'get_bgp',
                                  factory_method = 'add_bgp'))
 
-class TraceCondition(Condition):
-    def __init__(self, obj):
-        super(TraceCondition, self).__init__(obj)
-
-    def type_name(self):
-        return "tcond"
-
-class Trace(ObjectType):
-    def type_name(self):
-        return "trace"
-
-    def __init__(self, obj):
-        super(Trace, self).__init__(obj)
-        self.put_attr(SingleAttr(name = 'messages',
-                                 value_type = StringType(),
-                                 getter = 'get_trace_messages'))
-
-
 # L4LB features
 class LoadBalancer(ObjectType):
     """The bridge model between the CLI object and DTO formed from JSON data
@@ -2239,20 +2221,9 @@ class Midonet(ObjectType):
                                  getter = 'get_tunnel_zone',
                                  list_with_tenant = True,
                                  factory_method = 'add_tunnel_zone'))
-        self.put_attr(Collection(name = 'trace-condition',
-                                 element_type = TraceCondition,
-                                 list_method = 'get_trace_conditions',
-                                 getter = 'get_trace_condition',
-                                 list_with_tenant = False,
-                                 factory_method = 'add_trace_condition'))
         self.put_attr(Collection(name = 'tenant',
                                  element_type = Tenant,
                                  list_method = 'get_tenants'))
-        self.put_attr(Collection(name = 'trace',
-                                 element_type = Trace,
-                                 list_method = 'get_trace_ids',
-                                 getter = 'get_trace_messages',
-                                 list_with_tenant = False))
         # L4LB resources
         self.put_attr(Collection(name = 'load-balancer',
                                  element_type = LoadBalancer,

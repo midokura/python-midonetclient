@@ -34,8 +34,6 @@ from midonetclient.router import Router
 from midonetclient.rule import Rule
 from midonetclient.tenant import Tenant
 from midonetclient.tunnel_zone import TunnelZone
-from midonetclient.trace_condition import TraceCondition
-from midonetclient.trace import Trace
 from midonetclient.write_version import WriteVersion
 from midonetclient.system_state import SystemState
 from midonetclient.host_version import HostVersion
@@ -94,9 +92,6 @@ class Application(ResourceBase):
     def get_tunnel_zone_template(self):
         return self.dto['tunnelZoneTemplate']
 
-    def get_trace_condition_template(self):
-        return self.dto['traceConditionTemplate']
-
     def get_write_version_uri(self):
         return self.dto['writeVersion']
 
@@ -147,9 +142,6 @@ class Application(ResourceBase):
         headers = {'Accept':
                    vendor_media_type.APPLICATION_TENANT_COLLECTION_JSON}
         return self.get_children(self.dto['tenants'], query, headers, Tenant)
-
-    def get_trace_template(self):
-        return self.dto['traceTemplate']
 
     def get_routers(self, query):
         headers = {'Accept':
@@ -303,38 +295,6 @@ class Application(ResourceBase):
             vendor_media_type.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON,
             vendor_media_type.
             APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON)
-
-    # Trace condition operations
-    def add_trace_condition(self):
-        return TraceCondition(self.dto['traceConditions'], {}, self.auth)
-
-    def get_trace_conditions(self, query):
-        headers = {'Accept':
-                   vendor_media_type.APPLICATION_CONDITION_COLLECTION_JSON}
-        return self.get_children(self.dto['traceConditions'], query, headers,
-                                 TraceCondition)
-
-    def get_trace_condition(self, id_):
-        return self._get_resource_by_id(TraceCondition,
-                                        self.dto['traceConditions'],
-                                        self.get_trace_condition_template(),
-                                        id_)
-
-    def delete_trace_condition(self, id_):
-        return self._delete_resource_by_id(self.get_trace_condition_template(),
-                                           id_)
-
-    def get_trace_ids(self, query):
-        headers = {'Accept':
-                   vendor_media_type.APPLICATION_TRACE_COLLECTION_JSON}
-        return self.get_children(self.dto['traces'], query, headers, Trace)
-
-    def get_trace_messages(self, id_):
-        return self._get_resource_by_id(Trace, None,
-                                        self.get_trace_template(), id_)
-
-    def delete_trace_messages(self, id_):
-        return self._delete_resource_by_id(self.get_trace_template(), id_)
 
     def get_write_version(self):
         return self._get_resource(WriteVersion, None,
