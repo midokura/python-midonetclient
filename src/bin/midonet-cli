@@ -277,7 +277,12 @@ class StringType(ValueType):
     pass
 
 class MacAddress(ValueType):
-    pass
+    def is_valid(self, value):
+        return re.match('^(?:[0-9A-Fa-f]{1,2}:){5}[0-9A-Fa-f]{1,2}$', value)
+
+class MacAddressMask(ValueType):
+    def is_valid(self, value):
+        return re.match('^(?:[0-9A-Fa-f]{4}\.){2}[0-9A-Fa-f]{4}$', value)
 
 class IPv4Address(ValueType):
     def is_valid(self, value):
@@ -1653,12 +1658,22 @@ class Condition(ObjectType):
                                  inv_getter = 'is_inv_dl_src',
                                  inv_setter = 'inv_dl_src',
                                  optional = True))
+        self.put_attr(SingleAttr(name = 'hw-src-mask',
+                                 value_type = MacAddressMask(),
+                                 getter = 'get_dl_src_mask',
+                                 setter = 'dl_src_mask',
+                                 optional = True))
         self.put_attr(SingleAttr(name = 'hw-dst',
                                  value_type = MacAddress(),
                                  getter = 'get_dl_dst',
                                  setter = 'dl_dst',
                                  inv_getter = 'is_inv_dl_dst',
                                  inv_setter = 'inv_dl_dst',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'hw-dst-mask',
+                                 value_type = MacAddressMask(),
+                                 getter = 'get_dl_dst_mask',
+                                 setter = 'dl_dst_mask',
                                  optional = True))
         self.put_attr(SingleAttr(name = 'ethertype',
                                  value_type = StringType(),
@@ -3432,6 +3447,7 @@ class Show(Command):
     def do(self, tokens):
         assert(len(tokens) >= 1)
         object_chain = []
+
         for o in tokens:
             if (isinstance(o, ObjectType)):
                 object_chain.append(o)
