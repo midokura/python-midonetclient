@@ -162,6 +162,9 @@ class Rule(ResourceBase):
     def get_type(self):
         return self.dto['type']
 
+    def get_fragment_policy(self):
+        return self.dto['fragmentPolicy']
+
     def inv_port_group(self, inv_port_group):
         self.dto['invPortGroup'] = inv_port_group
         return self
@@ -332,4 +335,8 @@ class Rule(ResourceBase):
 
     def nat_targets(self, nat_targets):
         self.dto['natTargets'] = nat_targets
+        return self
+
+    def fragment_policy(self, fragment_policy):
+        self.dto['fragmentPolicy'] = fragment_policy
         return self

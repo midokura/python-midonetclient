@@ -1769,6 +1769,13 @@ class Condition(ObjectType):
                                  inv_getter = 'is_inv_out_ports',
                                  inv_setter = 'inv_out_ports',
                                  optional = True))
+        self.put_attr(EnumAttr(name = 'fragment-policy',
+                               mappings = {'any': 'any',
+                                           'header': 'header',
+                                           'nonheader': 'nonheader',
+                                           'unfragmented': 'unfragmented'},
+                               getter = 'get_fragment_policy',
+                               setter = 'fragment_policy'))
 
 class Rule(Condition):
     def __init__(self, obj):
