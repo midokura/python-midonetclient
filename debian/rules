@@ -20,4 +20,3 @@ override_dh_auto_build:
 	ronn < doc/midonet-cli-host.1.ronn > doc/midonet-cli-host.1
 	ronn < doc/midonet-cli-tunnel-zone.1.ronn > doc/midonet-cli-tunnel-zone.1
 	ronn < doc/midonet-cli-port-group.1.ronn > doc/midonet-cli-port-group.1
-	ronn < doc/midonet-cli-trace-condition.1.ronn > doc/midonet-cli-trace-condition.1
