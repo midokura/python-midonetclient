@@ -35,6 +35,9 @@ class HealthMonitor(ResourceBase, AdminStateUpMixin):
     def get_timeout(self):
         return self.dto['timeout']
 
+    def get_type(self):
+        return self.dto['type']
+
     def get_max_retries(self):
         return self.dto['maxRetries']
 
@@ -55,6 +58,10 @@ class HealthMonitor(ResourceBase, AdminStateUpMixin):
 
     def timeout(self, timeout):
         self.dto['timeout'] = timeout
+        return self
+
+    def type(self, t):
+        self.dto['type'] = t
         return self
 
     def max_retries(self, max_retries):
