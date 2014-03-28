@@ -21,7 +21,6 @@ import cmd
 import inspect
 import logging
 import re
-import readline
 import socket
 import sys
 from shlex import split as shsplit
@@ -3655,9 +3654,13 @@ class MidonetCLI(cmd.Cmd):
     prompt = 'midonet> '
     last_command_succeeded = True
 
-    def __init__(self, root):
-        readline.set_completer_delims("")
-        readline.set_completion_display_matches_hook(self.display_completions)
+    def __init__(self, root, in_eval_mode=False):
+        if not in_eval_mode:
+            # import readline only in interactive (non eval) mode
+            # Workaround for https://midobugs.atlassian.net/browse/MN-1470
+            import readline
+            readline.set_completer_delims("")
+            readline.set_completion_display_matches_hook(self.display_completions)
         cmd.Cmd.__init__(self)
         self._root = root
         self._ops = [Show(), List(), Create(), Delete(), Set(), Clear(),
@@ -3839,7 +3842,7 @@ if __name__ == '__main__':
             sys.exit(1)
         aliases = AliasManager() if session.enable_alias_manager else NoOpAliasManager()
         app = Midonet(root)
-        cli = MidonetCLI(app)
+        cli = MidonetCLI(app, session.do_eval)
         if session.do_eval:
             cli.onecmd(session.command)
         else:
