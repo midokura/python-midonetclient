@@ -36,6 +36,10 @@ uuid_pattern = re.compile("^[0-F]{8}-[0-F]{4}-[0-F]{4}-[0-F]{4}-[0-F]{12}$", re.
 def is_valid_uuid(value):
     return True if uuid_pattern.match(value) is not None else False
 
+hex_uuid_pattern = re.compile("^[0-F]{32}$", re.I)
+def is_valid_hex_uuid(value):
+    return True if hex_uuid_pattern.match(value) is not None else False
+
 ################################################################################
 # Session initialization
 ################################################################################
@@ -56,6 +60,12 @@ class Session(object):
         print "tenant_id: %s" % (self.current_tenant())
 
     def push_tenant(self, tenant_id):
+        if not self.do_eval:
+            if not is_valid_hex_uuid(tenant_id):
+                print ("WARNING!: tenant_id=%s is not a 32-char hex string, "
+                       "which is used in Keystone for project id format"
+                       % tenant_id)
+
         self.tenant_stack.append(tenant_id)
 
     def pop_tenant(self):
