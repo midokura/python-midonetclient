@@ -3,6 +3,5 @@ doc/midonet-cli-chain.1
 doc/midonet-cli-host.1
 doc/midonet-cli-port-group.1
 doc/midonet-cli-router.1
-doc/midonet-cli-trace-condition.1
 doc/midonet-cli-tunnel-zone.1
 doc/midonet-cli.1
