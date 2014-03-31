@@ -70,9 +70,9 @@ APPLICATION_AD_ROUTE_COLLECTION_JSON = \
 APPLICATION_VPN_JSON = "application/vnd.org.midonet.Vpn-v1+json"
 APPLICATION_VPN_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Vpn-v1+json"
-APPLICATION_DHCP_SUBNET_JSON = "application/vnd.org.midonet.DhcpSubnet-v1+json"
+APPLICATION_DHCP_SUBNET_JSON = "application/vnd.org.midonet.DhcpSubnet-v2+json"
 APPLICATION_DHCP_SUBNET_COLLECTION_JSON = \
-    "application/vnd.org.midonet.collection.DhcpSubnet-v1+json"
+    "application/vnd.org.midonet.collection.DhcpSubnet-v2+json"
 APPLICATION_DHCP_HOST_JSON = "application/vnd.org.midonet.DhcpHost-v1+json"
 APPLICATION_DHCP_HOST_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.DhcpHost-v1+json"
