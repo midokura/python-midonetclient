@@ -12,7 +12,6 @@ midonet-cli-load-balancer(1) -- Load Balancer objects in midonet-cli
  
     midonet> router router0 set load-balancer lb0
  
-    midonet> load-balance lb0 create pool address 192.168.100.1 
     midonet> load-balancer lb0 create pool lb-method ROUND_ROBIN
     lb0:pool0
     midonet> load-balancer lb0 pool pool0 show
