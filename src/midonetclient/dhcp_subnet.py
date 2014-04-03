@@ -49,6 +49,9 @@ class DhcpSubnet(ResourceBase):
     def get_opt121_routes(self):
         return self.dto['opt121Routes']
 
+    def is_enabled(self):
+        return self.dto["enabled"]
+
     def default_gateway(self, gw):
         self.dto['defaultGateway'] = gw
         return self
@@ -71,6 +74,10 @@ class DhcpSubnet(ResourceBase):
 
     def opt121_routes(self, routes):
         self.dto['opt121Routes'] = routes
+        return self
+
+    def enabled(self, enabled):
+        self.dto['enabled'] = enabled
         return self
 
     def get_dhcp_hosts(self):

@@ -118,7 +118,6 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.get_load_balancers(query)
 
-
     def get_vips(self, query=None):
         if query is None:
             query = {}
@@ -309,8 +308,38 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.add_bridge()
 
+    def _set_op121(self, dhcp, rts):
+        opt121_list = []
+        for rt in rts:
+            rt_net_addr, rt_net_len = rt['destination'].split('/')
+            opt121_list.append({'destinationPrefix': rt_net_addr,
+                                'destinationLength': rt_net_len,
+                                'gatewayAddr': rt['nexthop']})
+        dhcp.opt121_routes(opt121_list)
+
+    def update_bridge_dhcp(self, bridge, cidr, gateway_ip, host_rts=None,
+                           dns_nservers=None, enabled=None):
+        mido_cidr = cidr.replace("/", "_")
+        dhcp = bridge.get_dhcp_subnet(mido_cidr)
+        if dhcp is None:
+            return
+
+        if gateway_ip is not None:
+            dhcp.default_gateway(gateway_ip)
+
+        if host_rts is not None:
+            self._set_op121(dhcp, host_rts)
+
+        if dns_nservers is not None:
+            dhcp.dns_server_addrs(dns_nservers)
+
+        if enabled is not None:
+            dhcp.enabled(enabled)
+
+        return dhcp.update()
+
     def add_bridge_dhcp(self, bridge, gateway_ip, cidr, host_rts=None,
-                        dns_nservers=None):
+                        dns_nservers=None, enabled=True):
         """Creates a dhcp subnet with the provided gateway ip, cidr,
         host routes, and dns name servers.
 
@@ -321,6 +350,7 @@ class MidonetApi(object):
         :param host_rts: An array of dictionaries, each of the form:
             {"destination": <ipv4 cidr>, "nexthop": <ipv4 string>}.
         :param dns_nservers: An array of strings representing ipv4 addresses.
+        :param enabled: Enable DHCP
         """
         if host_rts is None:
             host_rts = []
@@ -336,17 +366,12 @@ class MidonetApi(object):
         dhcp.subnet_length(net_len)
 
         if host_rts:
-            opt121_list = []
-            for rt in host_rts:
-                rt_net_addr, rt_net_len = rt['destination'].split('/')
-                opt121_list.append({'destinationPrefix': rt_net_addr,
-                                    'destinationLength': rt_net_len,
-                                    'gatewayAddr': rt['nexthop']})
-            dhcp.opt121_routes(opt121_list)
+            self._set_op121(dhcp, host_rts)
 
         if dns_nservers:
             dhcp.dns_server_addrs(dns_nservers)
 
+        dhcp.enabled(enabled)
         return dhcp.create()
 
     def add_port_group(self):
@@ -397,7 +422,7 @@ class MidonetApi(object):
         route = router.add_route().type(type)
         route = route.src_network_addr(src_network_addr).src_network_length(
             src_network_length).dst_network_addr(
-            dst_network_addr).dst_network_length(dst_network_length)
+                dst_network_addr).dst_network_length(dst_network_length)
         route = route.next_hop_port(next_hop_port).next_hop_gateway(
             next_hop_gateway).weight(weight)
 
