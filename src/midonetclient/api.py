@@ -558,14 +558,11 @@ if __name__ == '__main__':
     api.get_routers({'tenant_id': 'non-existent'})
     print api.get_routers({'tenant_id': tenant_id})
 
-    random_uuid = str(uuid.uuid4())
-    router1 = api.add_router().name('router-1').tenant_id(
-        tenant_id).inbound_filter_id(random_uuid).create(headers={})
+    router1 = api.add_router().name('router-1').tenant_id(tenant_id).create()
     api.get_routers({'tenant_id': 'non-existent'})
     api.get_router(router1.get_id())
 
-    router2 = api.add_router().name('router-2').tenant_id(
-        tenant_id).outbound_filter_id(random_uuid).create()
+    router2 = api.add_router().name('router-2').tenant_id(tenant_id).create()
 
     router1.name('router1-changed').update()
 
@@ -693,8 +690,7 @@ if __name__ == '__main__':
     bridge1 = api.add_bridge().name('bridge-1').tenant_id(tenant_id).create()
     bridge1.name('bridge1-changed').update()
 
-    bridge2 = api.add_bridge().name('bridge-2').tenant_id(
-        tenant_id).inbound_filter_id(random_uuid).create()
+    bridge2 = api.add_bridge().name('bridge-2').tenant_id(tenant_id).create()
 
     for b in api.get_bridges({'tenant_id': tenant_id}):
         print '--------', b.get_name()
@@ -711,7 +707,7 @@ if __name__ == '__main__':
             print 'id: ',  b.get_id()
 
     # Bridges/Ports
-    bp1 = bridge1.add_port().inbound_filter_id(random_uuid).create()
+    bp1 = bridge1.add_port().create()
 
     bp2 = bridge1.add_port().create()
 
