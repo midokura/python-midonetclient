@@ -119,22 +119,28 @@ package_rhel() {
     pre_ver=`echo $pre_ver | sed -e "s/SNAPSHOT/$TIMESTAMP/g"`
     if [ "$release" == "" ]
     then
-        if [ "$pre_ver" == "" ]
+        if [ "$pre_ver" == "$version" ] # no -XXXX replaced above
         then
+	    echo "This looks like a FINAL"
             release="1.0" # a final
         else
+	    echo "This looks like a non final"
             release="0.1" # a pre release
         fi
     fi
 
+    if [ "$release" != "1.0" ]
+    then
+        release="$release.$pre_ver"
+    fi
+
     # - prerelease: X.Y.Z-0.1.prerelease-tag (e.g.: 1.2.3-0.1.rc4)
     # - final: X.Y.Z-1.0
-    release="$release.$pre_ver"
     rpm_ver=`echo $version | sed -e 's/-.*$//'` # remove pre-release tag
 
     gen_rhel $rpm_ver $release
 
-    echo "Generating RHEL packages for version: $rpm_ver"
+    echo "Generating RHEL packages for version: $rpm_ver, release $release"
 
     DATE=`date -u +"%a %b %d %Y"`
     TAR=~/rpmbuild/SOURCES/python-midonetclient-$rpm_ver.tar
