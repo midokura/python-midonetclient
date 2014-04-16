@@ -2142,15 +2142,14 @@ class HealthMonitor(ObjectType):
                                      setter = 'admin_state_up'))
         self.put_attr(EnumAttr(name = 'status',
                                mappings = {'ACTIVE': 'ACTIVE',
-                                           'DOWN': 'DOWN',
-                                           'PENDING_CREATE': 'PENDING_CREATE',
-                                           'PENDING_UPDATE': 'PENDING_UPDATE',
-                                           'PENDING_DELETE': 'PENDING_DELETE',
-                                           'INACTIVE': 'INACTIVE',
-                                           'ERROR': 'ERROR'},
+                                           'INACTIVE': 'INACTIVE'},
                                getter = 'get_status',
                                setter = 'status',
                                writeable = False))
+        self.put_attr(EnumAttr(name = 'type',
+                               mappings = {'TCP': 'TCP'},
+                               getter = 'get_type',
+                               setter = 'type'))
         self.put_attr(Collection(name = 'pool',
                                  element_type = Pool,
                                  list_method = 'get_pools',
