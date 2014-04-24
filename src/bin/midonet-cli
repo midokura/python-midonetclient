@@ -2065,6 +2065,11 @@ class Pool(ObjectType):
                                getter = 'get_lb_method',
                                setter = 'lb_method',
                                optional = False))
+        self.put_attr(EnumAttr(name = 'protocol',
+                               mappings = {'TCP': 'TCP'},
+                               getter = 'get_protocol',
+                               setter = 'protocol',
+                               writeable = False))
         self.put_attr(Collection(name = 'member',
                                  element_type = PoolMember,
                                  list_method = 'get_pool_members',

@@ -39,6 +39,9 @@ class Pool(ResourceBase, AdminStateUpMixin):
     def get_health_monitor_id(self):
         return self.dto['healthMonitorId']
 
+    def get_protocol(self):
+        return self.dto['protocol']
+
     def get_pool_members(self, query=None):
         headers = {'Accept':
                    vendor_media_type.APPLICATION_POOL_MEMBER_COLLECTION_JSON}
@@ -66,6 +69,10 @@ class Pool(ResourceBase, AdminStateUpMixin):
 
     def health_monitor_id(self, health_monitor_id):
         self.dto['healthMonitorId'] = health_monitor_id
+        return self
+
+    def protocol(self, protocol):
+        self.dto['protocol'] = protocol
         return self
 
     def add_pool_member(self):
