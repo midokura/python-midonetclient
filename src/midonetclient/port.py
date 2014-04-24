@@ -19,13 +19,12 @@
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
 
-from midonetclient import port_type
 from midonetclient import resource_base
 from midonetclient import vendor_media_type
-from vendor_media_type import APPLICATION_PORTGROUP_PORT_COLLECTION_JSON
 from midonetclient import bgp
 from midonetclient import port_group_port
 from midonetclient.admin_state_up_mixin import AdminStateUpMixin
+from vendor_media_type import APPLICATION_PORTGROUP_PORT_COLLECTION_JSON
 
 
 class Port(resource_base.ResourceBase, AdminStateUpMixin):
@@ -82,6 +81,12 @@ class Port(resource_base.ResourceBase, AdminStateUpMixin):
         headers = {'Accept':
                    vendor_media_type.APPLICATION_BGP_COLLECTION_JSON}
         return self.get_children(self.dto['bgps'], query, headers, bgp.Bgp)
+
+    def get_mgmt_ip(self):
+        return self.dto['mgmtIpAddr']
+
+    def get_vni(self):
+        return self.dto['vni']
 
     def inbound_filter_id(self, id_):
         self.dto['inboundFilterId'] = id_

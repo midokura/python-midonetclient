@@ -504,6 +504,18 @@ class MidonetApi(object):
         rule = rule.properties(vals.get("properties"))
         return rule.create()
 
+    def get_vteps(self):
+        self._ensure_application()
+        return self.app.get_vteps()
+
+    def add_vtep(self):
+        self._ensure_application()
+        return self.app.add_vtep()
+
+    def delete_vtep(self, mgmt_ip):
+        self._ensure_application()
+        return self.app.delete_vtep(mgmt_ip)
+
     def _ensure_application(self):
         if self.app is None:
             self.app = Application(None, {'uri': self.base_uri}, self.auth)

@@ -1863,6 +1863,12 @@ class BridgePort(ObjectType):
                                  setter = 'link',
                                  unsetter = 'unlink',
                                  optional = True))
+        self.put_attr(SingleAttr(name = 'management-ip',
+                                 value_type = IPv4Address(),
+                                 getter = 'get_mgmt_ip'))
+        self.put_attr(SingleAttr(name = 'vni',
+                                 value_type = StringType(),
+                                 getter = 'get_vni'))
 
 class PortBinding(ObjectType):
     def type_name(self):
@@ -2197,6 +2203,65 @@ class PoolStatistic(ObjectType):
         return 'ps'
 
 
+class Vtep(ObjectType):
+    def __init__(self, obj):
+        super(Vtep, self).__init__(obj)
+        self.clear_attrs()
+        self.put_attr(SingleAttr(name = 'name',
+                                 value_type = StringType(),
+                                 setter = '',
+                                 getter = 'get_name'))
+        # Description field is not implemented.
+        #self.put_attr(SingleAttr(name = 'description',
+        #                         value_type = StringType(),
+        #                         setter = 'description',
+        #                         getter = 'get_description'))
+        self.put_attr(SingleAttr(name = 'management-ip',
+                                 value_type = IPv4Address(),
+                                 getter = 'get_management_ip',
+                                 setter = 'management_ip'))
+        self.put_attr(SingleAttr(name = 'management-port',
+                                 value_type = L4PortNumber(),
+                                 getter = 'get_management_port',
+                                 setter = 'management_port'))
+        self.put_attr(SingleAttr(name = 'tunnel-zone-id',
+                                 value_type = UUID(),
+                                 getter = 'get_tunnel_zone_id',
+                                 setter = 'tunnel_zone_id'))
+        self.put_attr(Collection(name = 'binding',
+                                 element_type = VtepBinding,
+                                 list_method = '',
+                                 getter = '',
+                                 factory_method = 'add_binding'))
+
+    def type_name(self):
+        return "vtep"
+
+
+class VtepBinding(ObjectType):
+    def __init__(self, obj):
+        super(VtepBinding, self).__init__(obj)
+        self.clear_attrs()
+        self.put_attr(SingleAttr(name = 'management-ip',
+                                 value_type = IPv4Address(),
+                                 getter = 'get_management_ip'))
+        self.put_attr(SingleAttr(name = 'physical-port',
+                                 value_type = StringType(),
+                                 setter = 'port_name',
+                                 getter = 'get_port_name'))
+        self.put_attr(SingleAttr(name = 'vlan',
+                                 value_type = StringType(),
+                                 setter = 'vlan_id',
+                                 getter = 'get_vlan_id'))
+        self.put_attr(SingleAttr(name = 'network-id',
+                                 value_type = StringType(),
+                                 getter = 'get_network_id',
+                                 setter = 'network_id'))
+
+    def type_name(self):
+        return "binding"
+
+
 class Midonet(ObjectType):
     """ This is the root context for the CLI. At the beggining of matching on a
         command pattern the `MatchingContext` is initialized with an instance of
@@ -2275,6 +2340,11 @@ class Midonet(ObjectType):
                                  list_method = 'get_pool_statistics',
                                  getter = 'get_pool_statistic',
                                  factory_method = 'add_pool_statisic'))
+        self.put_attr(Collection(name = 'vtep',
+                                 element_type = Vtep,
+                                 list_method = 'get_vteps',
+                                 getter = '',
+                                 factory_method = 'add_vtep'))
 
 
 ################################################################################
