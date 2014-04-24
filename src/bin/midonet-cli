@@ -3859,5 +3859,5 @@ if __name__ == '__main__':
             cli.cmdloop()
         sys.exit(0 if cli.last_command_succeeded else 1)
     except Exception as e:
-        sys.stderr.write(e.message + "\n")
+        sys.stderr.write(str(e) + "\n")
         sys.exit(2)
