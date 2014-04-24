@@ -21,7 +21,6 @@
 
 from midonetclient import port_type
 from midonetclient import vendor_media_type
-from midonetclient.port import Port
 from midonetclient.dhcp_subnet import DhcpSubnet
 from midonetclient.port import Port
 from midonetclient.resource_base import ResourceBase
@@ -78,7 +77,7 @@ class Bridge(ResourceBase, AdminStateUpMixin):
             query = {}
         headers = {'Accept':
                    vendor_media_type.APPLICATION_PORT_V2_COLLECTION_JSON}
-        res, peer_ports = self.auth.do_request(self.dto['peerPorts'], 'GET',
+        _, peer_ports = self.auth.do_request(self.dto['peerPorts'], 'GET',
                                                headers=headers, query=query)
         res = []
         for pp in peer_ports:
