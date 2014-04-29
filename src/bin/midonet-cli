@@ -2228,9 +2228,13 @@ class Vtep(ObjectType):
                                  value_type = UUID(),
                                  getter = 'get_tunnel_zone_id',
                                  setter = 'tunnel_zone_id'))
+        self.put_attr(SingleAttr(name = 'connection-state',
+                                 value_type = StringType(),
+                                 getter = 'get_connection_state',
+                                 setter = ''))
         self.put_attr(Collection(name = 'binding',
                                  element_type = VtepBinding,
-                                 list_method = '',
+                                 list_method = 'get_bindings',
                                  getter = '',
                                  factory_method = 'add_binding'))
 
@@ -2244,7 +2248,7 @@ class VtepBinding(ObjectType):
         self.clear_attrs()
         self.put_attr(SingleAttr(name = 'management-ip',
                                  value_type = IPv4Address(),
-                                 getter = 'get_management_ip'))
+                                 getter = 'get_mgmt_ip'))
         self.put_attr(SingleAttr(name = 'physical-port',
                                  value_type = StringType(),
                                  setter = 'port_name',
@@ -2343,7 +2347,7 @@ class Midonet(ObjectType):
         self.put_attr(Collection(name = 'vtep',
                                  element_type = Vtep,
                                  list_method = 'get_vteps',
-                                 getter = '',
+                                 getter = 'get_vtep',
                                  factory_method = 'add_vtep'))
 
 

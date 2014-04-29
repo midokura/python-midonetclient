@@ -73,6 +73,15 @@ class Vtep(ResourceBase):
         self.dto['tunnelZoneId'] = tunnel_zone_id
         return self
 
+    def get_bindings(self):
+        query = {}
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_VTEP_BINDING_COLLECTION_JSON}
+        return self.get_children(self.dto['bindings'],
+                                 query,
+                                 headers,
+                                 VtepBinding)
+
     def add_binding(self):
         return VtepBinding(self.dto['bindings'],
                            {'mgmtIp': self.get_management_ip()},
