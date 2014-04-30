@@ -18,9 +18,7 @@ BuildRoot:  /var/tmp/%{name}-buildroot
 # since rpm doesn't know about packages installed via dpkg. Leaving it
 # commented out until someone can test on an RPM system.
 # BuildRequires: python, python-support, python-unittest2, python-all-dev, ruby-ronn
-# Commented these out because they work in RHEL but CentOS still hasn't
-# got those packages available.
-# Requires: python >= 2.6, python-webob, python-eventlet, python-httplib2
+Requires: python >= 2.6, python-webob, python-eventlet, python-httplib2
 
 %description
 Python client for MidoNet REST API.
