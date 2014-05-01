@@ -39,16 +39,9 @@ http_errors = dict((str(e.code), e) for e in
                    webob.exc.HTTPServerError.__subclasses__())
 
 
-def is_http_error(status, content):
-    """check if http status is error and return Error object or else None"""
-    return http_errors[status](content) if int(status) > 300 else False
-
-
-def fail_if(err):
-    """write log and raise exception if err is not None"""
-    if err:
-        LOG.error("http error => raising exception (%r): %r" % (err, str(err)))
-        raise err
+def is_http_error(status):
+    """return True if http status is error or else False"""
+    return True if int(status) > 300 else False
 
 
 def from_json(content):
@@ -87,6 +80,13 @@ def do_request(uri, method, body=None, query=None, headers=None):
 
     LOG.debug("do_request: response=%s | content=%s" % (response, content))
 
-    fail_if(is_http_error(response['status'], content))
+    if is_http_error(response['status']):
+	err = http_errors[response['status']](content)
+        LOG.error("Got http error(response=%r, content=%r) for "
+                  "request(uri=%r, method=%r, body=%r, query=%r,headers=%r). " 
+                  "Raising exception=%r" % (response, content, 
+                                            uri, method, body, query, headers,
+                                            err))
+	raise err
 
     return response, from_json(content)
