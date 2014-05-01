@@ -81,12 +81,11 @@ def do_request(uri, method, body=None, query=None, headers=None):
     LOG.debug("do_request: response=%s | content=%s" % (response, content))
 
     if is_http_error(response['status']):
-	err = http_errors[response['status']](content)
+        err = http_errors[response['status']](content)
         LOG.error("Got http error(response=%r, content=%r) for "
-                  "request(uri=%r, method=%r, body=%r, query=%r,headers=%r). " 
-                  "Raising exception=%r" % (response, content, 
+                  "request(uri=%r, method=%r, body=%r, query=%r,headers=%r). "
+                  "Raising exception=%r" % (response, content,
                                             uri, method, body, query, headers,
                                             err))
-	raise err
-
+        raise err
     return response, from_json(content)

@@ -60,6 +60,7 @@ class Auth:
                 if self.project_id is not None:
                     headers['X-Auth-Project'] = self.project_id
 
+                LOG.info("Logging in to MidoNet API server")
                 resp, _body = api_lib.do_request(self.uri, 'POST', body={},
                                                  headers=headers)
                 set_cookie = resp['set-cookie']
@@ -103,6 +104,7 @@ class Auth:
                                       query=query, headers=headers)
         except exc.HTTPUnauthorized:
             # Try one more time after logging in
+            LOG.info("Got HTTPUnauthorized error, try logging in again")
             self.set_header_token(headers, force=True)
             return api_lib.do_request(uri, method, body=body, query=query,
                                       headers=headers)
