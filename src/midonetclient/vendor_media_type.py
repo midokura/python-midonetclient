@@ -19,7 +19,7 @@
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
 
-APPLICATION_JSON_V3 = "application/vnd.org.midonet.Application-v3+json"
+APPLICATION_JSON_V4 = "application/vnd.org.midonet.Application-v4+json"
 APPLICATION_ERROR_JSON = "application/vnd.org.midonet.Error-v1+json"
 APPLICATION_TENANT_JSON = "application/vnd.org.midonet.Tenant-v1+json"
 APPLICATION_TENANT_COLLECTION_JSON = \
