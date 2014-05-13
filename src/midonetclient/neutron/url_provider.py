@@ -68,3 +68,9 @@ class NetworkUrlProviderMixin(UrlProviderMixin):
 
     def subnets_url(self):
         return self.resource_url("subnets")
+
+    def port_url(self, id):
+        return self.template_url("port_template", id)
+
+    def ports_url(self):
+        return self.resource_url("ports")
