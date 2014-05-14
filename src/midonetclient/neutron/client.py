@@ -36,6 +36,11 @@ class NetworkClientMixin(url_provider.NetworkUrlProviderMixin):
         return self.client.post(self.networks_url(), media_type.NETWORK,
                                 body=network)
 
+    def create_network_bulk(self, networks):
+        LOG.info("create_network_bulk entered")
+        return self.client.post(self.networks_url(), media_type.NETWORKS,
+                                body=networks)
+
     def delete_network(self, id):
         LOG.info("delete_network %r", id)
         self.client.delete(self.network_url(id))
@@ -60,6 +65,11 @@ class NetworkClientMixin(url_provider.NetworkUrlProviderMixin):
         return self.client.post(self.subnets_url(), media_type.SUBNET,
                                 body=subnet)
 
+    def create_subnet_bulk(self, subnets):
+        LOG.info("create_subnet_bulk entered")
+        return self.client.post(self.subnets_url(), media_type.SUBNETS,
+                                body=subnets)
+
     def delete_subnet(self, id):
         LOG.info("delete_subnet %r", id)
         self.client.delete(self.subnet_url(id))
@@ -78,8 +88,11 @@ class NetworkClientMixin(url_provider.NetworkUrlProviderMixin):
 
     def create_port(self, port):
         LOG.info("create_port %r", port)
-        return self.client.post(self.ports_url(), media_type.PORT,
-                                body=port)
+        return self.client.post(self.ports_url(), media_type.PORT, body=port)
+
+    def create_port_bulk(self, ports):
+        LOG.info("create_port_bulk entered")
+        return self.client.post(self.ports_url(), media_type.PORTS, body=ports)
 
     def delete_port(self, id):
         LOG.info("delete_port %r", id)
