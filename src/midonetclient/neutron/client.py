@@ -76,6 +76,27 @@ class NetworkClientMixin(url_provider.NetworkUrlProviderMixin):
         LOG.info("update_subnet %r", subnet)
         return self.client.put(self.subnet_url(id), media_type.SUBNET, subnet)
 
+    def create_port(self, port):
+        LOG.info("create_port %r", port)
+        return self.client.post(self.ports_url(), media_type.PORT,
+                                body=port)
+
+    def delete_port(self, id):
+        LOG.info("delete_port %r", id)
+        self.client.delete(self.port_url(id))
+
+    def get_port(self, id):
+        LOG.info("get_port %r", id)
+        return self.client.get(self.port_url(id), media_type.PORT)
+
+    def get_ports(self):
+        LOG.info("get_ports")
+        return self.client.get(self.ports_url(), media_type.PORTS)
+
+    def update_port(self, id, port):
+        LOG.info("update_port %r", port)
+        return self.client.put(self.port_url(id), media_type.PORT, port)
+
 
 class MidonetClient(NetworkClientMixin):
     """Main MidoNet client class
