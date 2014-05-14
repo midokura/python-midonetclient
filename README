@@ -26,7 +26,6 @@ Package dependencies
 
 Examples
 
-'''
 
     # Instantiate a client.  Project ID is required when the API
     # is integrated with Keystone.
@@ -61,5 +60,4 @@ Examples
     # Delete network
     client.delete_network(net_id)
 
-'''
 
