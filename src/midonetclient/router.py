@@ -52,6 +52,10 @@ class Router(ResourceBase, AdminStateUpMixin):
     def get_load_balancer_id(self):
         return self.dto['loadBalancerId']
 
+    def id(self, id):
+        self.dto['id'] = id
+        return self
+
     def name(self, name):
         self.dto['name'] = name
         return self

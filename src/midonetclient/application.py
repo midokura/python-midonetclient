@@ -47,7 +47,7 @@ from midonetclient.pool_statistic import PoolStatistic
 
 class Application(ResourceBase):
 
-    media_type = vendor_media_type.APPLICATION_JSON_V4
+    media_type = vendor_media_type.APPLICATION_JSON_V5
     ID_TOKEN = '{id}'
 
     def __init__(self, uri, dto, auth):
