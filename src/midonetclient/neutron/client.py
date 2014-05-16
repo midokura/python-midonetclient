@@ -112,6 +112,37 @@ class NetworkClientMixin(url_provider.NetworkUrlProviderMixin):
         return self.client.put(self.port_url(port_id), media_type.PORT, port)
 
 
+class L3ClientMixin(url_provider.L3UrlProviderMixin):
+    """L3 operation mixin
+
+    Mixin that defines all the Neutron L3 operations in MidoNet API.
+    """
+
+    def create_router(self, router):
+        LOG.info("create_router %r", router)
+        return self.client.post(self.routers_url(), media_type.ROUTER,
+                                body=router)
+
+    def delete_router(self, net_id):
+        LOG.info("delete_router %r", net_id)
+        self.client.delete(self.router_url(net_id))
+
+    def get_router(self, net_id, fields=None):
+        LOG.info("get_router %r", net_id)
+        return self.client.get(self.router_url(net_id), media_type.ROUTER)
+
+    def get_routers(self, filters=None, fields=None,
+                     sorts=None, limit=None, marker=None,
+                     page_reverse=False):
+        LOG.info("get_routers")
+        return self.client.get(self.routers_url(), media_type.ROUTERS)
+
+    def update_router(self, net_id, router):
+        LOG.info("update_router %r", router)
+        return self.client.put(self.router_url(net_id), media_type.ROUTER,
+                               router)
+
+
 class SecurityGroupClientMixin(url_provider.SecurityGroupUrlProviderMixin):
     """Security group operation mixin
 
@@ -171,7 +202,8 @@ class SecurityGroupClientMixin(url_provider.SecurityGroupUrlProviderMixin):
                                media_type.SG_RULE)
 
 
-class MidonetClient(NetworkClientMixin, SecurityGroupClientMixin):
+class MidonetClient(NetworkClientMixin, L3ClientMixin,
+                    SecurityGroupClientMixin):
     """Main MidoNet client class
 
     The main class for MidoNet client.  Instantiate this class to make API
