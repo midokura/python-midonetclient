@@ -43,12 +43,14 @@ from midonetclient.pool import Pool
 from midonetclient.pool_member import PoolMember
 from midonetclient.health_monitor import HealthMonitor
 from midonetclient.pool_statistic import PoolStatistic
+from midonetclient.vtep import Vtep
 
 
 class Application(ResourceBase):
 
     media_type = vendor_media_type.APPLICATION_JSON_V5
     ID_TOKEN = '{id}'
+    IP_ADDR_TOKEN = '{ipAddr}'
 
     def __init__(self, uri, dto, auth):
         super(Application, self).__init__(uri, dto, auth)
@@ -91,6 +93,9 @@ class Application(ResourceBase):
 
     def get_tunnel_zone_template(self):
         return self.dto['tunnelZoneTemplate']
+
+    def get_vtep_template(self):
+        return self.dto['vtepTemplate']
 
     def get_write_version_uri(self):
         return self.dto['writeVersion']
@@ -331,6 +336,12 @@ class Application(ResourceBase):
                                              id_)
         self.auth.do_request(uri, 'DELETE')
 
+    def _delete_resource_by_ip_addr(self, template, ip_address):
+        uri = self._create_uri_from_template(template,
+                                             self.IP_ADDR_TOKEN,
+                                             ip_address)
+        self.auth.do_request(uri, 'DELETE')
+
     #L4LB resources
     def get_load_balancers(self, query):
         headers = {'Accept':
@@ -437,3 +448,15 @@ class Application(ResourceBase):
 
     def add_pool_statistic(self):
         return PoolStatistic(self.dto['poolStatistics'], {}, self.auth)
+
+    def get_vteps(self):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_VTEP_COLLECTION_JSON}
+        return self.get_children(self.dto['vteps'], {}, headers, Vtep)
+
+    def add_vtep(self):
+        return Vtep(self.dto['vteps'], {}, self.auth)
+
+    def delete_vtep(self, mgmt_ip):
+        return self._delete_resource_by_ip_addr(self.get_vtep_template(),
+                                                mgmt_ip)
