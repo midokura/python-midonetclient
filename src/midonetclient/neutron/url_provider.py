@@ -88,6 +88,12 @@ class L3UrlProviderMixin(UrlProviderMixin):
     def routers_url(self):
         return self.resource_url("routers")
 
+    def add_router_interface_url(self, router_id):
+        return self.template_url("add_router_interface_template", router_id)
+
+    def remove_router_interface_url(self, router_id):
+        return self.template_url("remove_router_interface_template", router_id)
+
 
 class SecurityGroupUrlProviderMixin(UrlProviderMixin):
     """SG URL provider mixin

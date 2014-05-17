@@ -25,8 +25,14 @@ SUBNET = "application/vnd.org.midonet.neutron.Subnet-v1+json"
 SUBNETS = "application/vnd.org.midonet.neutron.Subnets-v1+json"
 PORT = "application/vnd.org.midonet.neutron.Port-v1+json"
 PORTS = "application/vnd.org.midonet.neutron.Ports-v1+json"
+
+# L3 Extension
 ROUTER = "application/vnd.org.midonet.neutron.Router-v1+json"
 ROUTERS = "application/vnd.org.midonet.neutron.Routers-v1+json"
+ROUTER_INTERFACE = \
+    "application/vnd.org.midonet.neutron.RouterInterface-v1+json"
+
+# Security Groups extension
 SECURITY_GROUP = "application/vnd.org.midonet.neutron.SecurityGroup-v1+json"
 SECURITY_GROUPS = "application/vnd.org.midonet.neutron.SecurityGroups-v1+json"
 SG_RULE = "application/vnd.org.midonet.neutron.SecurityGroupRule-v1+json"
