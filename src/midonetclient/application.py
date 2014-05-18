@@ -330,6 +330,13 @@ class Application(ResourceBase):
                                              id_)
         return self._get_resource(clazz, create_uri, uri)
 
+    def _get_resource_by_ip_addr(self, clazz, create_uri,
+                                 template, ip_address):
+        uri = self._create_uri_from_template(template,
+                                             self.IP_ADDR_TOKEN,
+                                             ip_address)
+        return self._get_resource(clazz, create_uri, uri)
+
     def _delete_resource_by_id(self, template, id_):
         uri = self._create_uri_from_template(template,
                                              self.ID_TOKEN,
@@ -456,6 +463,12 @@ class Application(ResourceBase):
 
     def add_vtep(self):
         return Vtep(self.dto['vteps'], {}, self.auth)
+
+    def get_vtep(self, mgmt_ip):
+        return self._get_resource_by_ip_addr(Vtep,
+                                             self.dto['vteps'],
+                                             self.get_vtep_template(),
+                                             mgmt_ip)
 
     def delete_vtep(self, mgmt_ip):
         return self._delete_resource_by_ip_addr(self.get_vtep_template(),

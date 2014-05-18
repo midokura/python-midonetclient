@@ -512,6 +512,10 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.add_vtep()
 
+    def get_vtep(self, mgmt_ip):
+        self._ensure_application()
+        return self.app.get_vtep(mgmt_ip)
+
     def delete_vtep(self, mgmt_ip):
         self._ensure_application()
         return self.app.delete_vtep(mgmt_ip)

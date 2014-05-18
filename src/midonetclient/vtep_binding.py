@@ -22,8 +22,8 @@ class VtepBinding(ResourceBase):
     def __init__(self, uri, dto, auth):
         super(VtepBinding, self).__init__(uri, dto, auth)
 
-    def get_management_ip(self):
-        return self.dto['mgmtIP']
+    def get_mgmt_ip(self):
+        return self.dto['mgmtIp']
 
     def get_port_name(self):
         return self.dto['portName']
@@ -33,6 +33,10 @@ class VtepBinding(ResourceBase):
 
     def get_network_id(self):
         return self.dto['networkId']
+
+    def mgmt_ip(self, management_ip):
+        self.dto['mgmtIP'] = management_ip
+        return self
 
     def port_name(self, port_name):
         self.dto['portName'] = port_name
