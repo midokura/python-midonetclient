@@ -74,3 +74,22 @@ class NetworkUrlProviderMixin(UrlProviderMixin):
 
     def ports_url(self):
         return self.resource_url("ports")
+
+
+class SecurityGroupUrlProviderMixin(UrlProviderMixin):
+    """SG URL provider mixin
+
+    This mixin provides URLs for SG and SG rules.
+    """
+
+    def security_group_url(self, id):
+        return self.template_url("security_group_template", id)
+
+    def security_groups_url(self):
+        return self.resource_url("security_groups")
+
+    def security_group_rule_url(self, id):
+        return self.template_url("security_group_rule_template", id)
+
+    def security_group_rules_url(self):
+        return self.resource_url("security_group_rules")

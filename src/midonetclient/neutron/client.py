@@ -41,13 +41,13 @@ class NetworkClientMixin(url_provider.NetworkUrlProviderMixin):
         return self.client.post(self.networks_url(), media_type.NETWORKS,
                                 body=networks)
 
-    def delete_network(self, id):
-        LOG.info("delete_network %r", id)
-        self.client.delete(self.network_url(id))
+    def delete_network(self, net_id):
+        LOG.info("delete_network %r", net_id)
+        self.client.delete(self.network_url(net_id))
 
-    def get_network(self, id, fields=None):
-        LOG.info("get_network %r", id)
-        return self.client.get(self.network_url(id), media_type.NETWORK)
+    def get_network(self, net_id, fields=None):
+        LOG.info("get_network %r", net_id)
+        return self.client.get(self.network_url(net_id), media_type.NETWORK)
 
     def get_networks(self, filters=None, fields=None,
                      sorts=None, limit=None, marker=None,
@@ -55,9 +55,9 @@ class NetworkClientMixin(url_provider.NetworkUrlProviderMixin):
         LOG.info("get_networks")
         return self.client.get(self.networks_url(), media_type.NETWORKS)
 
-    def update_network(self, id, network):
+    def update_network(self, net_id, network):
         LOG.info("update_network %r", network)
-        return self.client.put(self.network_url(id), media_type.NETWORK,
+        return self.client.put(self.network_url(net_id), media_type.NETWORK,
                                network)
 
     def create_subnet(self, subnet):
@@ -70,21 +70,22 @@ class NetworkClientMixin(url_provider.NetworkUrlProviderMixin):
         return self.client.post(self.subnets_url(), media_type.SUBNETS,
                                 body=subnets)
 
-    def delete_subnet(self, id):
-        LOG.info("delete_subnet %r", id)
-        self.client.delete(self.subnet_url(id))
+    def delete_subnet(self, sub_id):
+        LOG.info("delete_subnet %r", sub_id)
+        self.client.delete(self.subnet_url(sub_id))
 
-    def get_subnet(self, id):
-        LOG.info("get_subnet %r", id)
-        return self.client.get(self.subnet_url(id), media_type.SUBNET)
+    def get_subnet(self, sub_id):
+        LOG.info("get_subnet %r", sub_id)
+        return self.client.get(self.subnet_url(sub_id), media_type.SUBNET)
 
     def get_subnets(self):
         LOG.info("get_subnets")
         return self.client.get(self.subnets_url(), media_type.SUBNETS)
 
-    def update_subnet(self, id, subnet):
+    def update_subnet(self, sub_id, subnet):
         LOG.info("update_subnet %r", subnet)
-        return self.client.put(self.subnet_url(id), media_type.SUBNET, subnet)
+        return self.client.put(self.subnet_url(sub_id), media_type.SUBNET,
+                               subnet)
 
     def create_port(self, port):
         LOG.info("create_port %r", port)
@@ -94,24 +95,83 @@ class NetworkClientMixin(url_provider.NetworkUrlProviderMixin):
         LOG.info("create_port_bulk entered")
         return self.client.post(self.ports_url(), media_type.PORTS, body=ports)
 
-    def delete_port(self, id):
-        LOG.info("delete_port %r", id)
-        self.client.delete(self.port_url(id))
+    def delete_port(self, port_id):
+        LOG.info("delete_port %r", port_id)
+        self.client.delete(self.port_url(port_id))
 
-    def get_port(self, id):
-        LOG.info("get_port %r", id)
-        return self.client.get(self.port_url(id), media_type.PORT)
+    def get_port(self, port_id):
+        LOG.info("get_port %r", port_id)
+        return self.client.get(self.port_url(port_id), media_type.PORT)
 
     def get_ports(self):
         LOG.info("get_ports")
         return self.client.get(self.ports_url(), media_type.PORTS)
 
-    def update_port(self, id, port):
+    def update_port(self, port_id, port):
         LOG.info("update_port %r", port)
-        return self.client.put(self.port_url(id), media_type.PORT, port)
+        return self.client.put(self.port_url(port_id), media_type.PORT, port)
 
 
-class MidonetClient(NetworkClientMixin):
+class SecurityGroupClientMixin(url_provider.SecurityGroupUrlProviderMixin):
+    """Security group operation mixin
+
+    Mixin that defines all the Neutron Sg operations in MidoNet API.
+    """
+
+    def create_security_group(self, security_group):
+        LOG.info("create_security_group %r", security_group)
+        return self.client.post(self.security_groups_url(),
+                                media_type.SECURITY_GROUP,
+                                body=security_group)
+
+    def create_security_group_bulk(self, security_groups):
+        LOG.info("create_security_group_bulk entered")
+        return self.client.post(self.security_groups_url(),
+                                media_type.SECURITY_GROUPS,
+                                body=security_groups)
+
+    def delete_security_group(self, sg_id):
+        LOG.info("delete_security_group %r", sg_id)
+        self.client.delete(self.security_group_url(sg_id))
+
+    def get_security_group(self, sg_id):
+        LOG.info("get_security_group %r", sg_id)
+        return self.client.get(self.security_group_url(sg_id),
+                               media_type.SECURITY_GROUP)
+
+    def get_security_groups(self):
+        LOG.info("get_security_groups")
+        return self.client.get(self.security_groups_url(),
+                               media_type.SECURITY_GROUPS)
+
+    def update_security_group(self, sg_id, security_group):
+        LOG.info("update_security_group %r", security_group)
+        return self.client.put(self.security_group_url(sg_id),
+                               media_type.SECURITY_GROUP, security_group)
+
+    def create_security_group_rule(self, security_group_rule):
+        LOG.info("create_security_group_rule %r", security_group_rule)
+        return self.client.post(self.security_group_rules_url(),
+                                media_type.SG_RULE,
+                                body=security_group_rule)
+
+    def create_security_group_rule_bulk(self, security_group_rules):
+        LOG.info("create_security_group_rule_bulk entered")
+        return self.client.post(self.security_group_rules_url(),
+                                media_type.SG_RULES,
+                                body=security_group_rules)
+
+    def delete_security_group_rule(self, rule_id):
+        LOG.info("delete_security_group_rule %r", rule_id)
+        self.client.delete(self.security_group_rule_url(rule_id))
+
+    def get_security_group_rule(self, rule_id):
+        LOG.info("get_security_group_rule %r", rule_id)
+        return self.client.get(self.security_group_rule_url(rule_id),
+                               media_type.SG_RULE)
+
+
+class MidonetClient(NetworkClientMixin, SecurityGroupClientMixin):
     """Main MidoNet client class
 
     The main class for MidoNet client.  Instantiate this class to make API
