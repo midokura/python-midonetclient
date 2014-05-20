@@ -76,6 +76,19 @@ class NetworkUrlProviderMixin(UrlProviderMixin):
         return self.resource_url("ports")
 
 
+class L3UrlProviderMixin(UrlProviderMixin):
+    """L3 URL provider mixin
+
+    This mixin provides URLs for L3 constructs.
+    """
+
+    def router_url(self, id):
+        return self.template_url("router_template", id)
+
+    def routers_url(self):
+        return self.resource_url("routers")
+
+
 class SecurityGroupUrlProviderMixin(UrlProviderMixin):
     """SG URL provider mixin
 
