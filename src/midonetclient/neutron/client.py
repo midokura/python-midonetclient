@@ -142,6 +142,16 @@ class L3ClientMixin(url_provider.L3UrlProviderMixin):
         return self.client.put(self.router_url(net_id), media_type.ROUTER,
                                router)
 
+    def add_router_interface(self, router_id, interface_info):
+        LOG.info("add_router_interface %r %r", (router_id, interface_info))
+        return self.client.put(self.add_router_interface_url(router_id),
+                               media_type.ROUTER_INTERFACE, interface_info)
+
+    def remove_router_interface(self, router_id, interface_info):
+        LOG.info("remove_router_interface %r %r", (router_id, interface_info))
+        return self.client.put(self.remove_router_interface_url(router_id),
+                               media_type.ROUTER_INTERFACE, interface_info)
+
 
 class SecurityGroupClientMixin(url_provider.SecurityGroupUrlProviderMixin):
     """Security group operation mixin
