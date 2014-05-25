@@ -94,6 +94,12 @@ class L3UrlProviderMixin(UrlProviderMixin):
     def remove_router_interface_url(self, router_id):
         return self.template_url("remove_router_interface_template", router_id)
 
+    def floating_ip_url(self, id):
+        return self.template_url("floating_ip_template", id)
+
+    def floating_ips_url(self):
+        return self.resource_url("floating_ips")
+
 
 class SecurityGroupUrlProviderMixin(UrlProviderMixin):
     """SG URL provider mixin

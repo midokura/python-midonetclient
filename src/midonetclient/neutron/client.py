@@ -123,23 +123,23 @@ class L3ClientMixin(url_provider.L3UrlProviderMixin):
         return self.client.post(self.routers_url(), media_type.ROUTER,
                                 body=router)
 
-    def delete_router(self, net_id):
-        LOG.info("delete_router %r", net_id)
-        self.client.delete(self.router_url(net_id))
+    def delete_router(self, router_id):
+        LOG.info("delete_router %r", router_id)
+        self.client.delete(self.router_url(router_id))
 
-    def get_router(self, net_id, fields=None):
-        LOG.info("get_router %r", net_id)
-        return self.client.get(self.router_url(net_id), media_type.ROUTER)
+    def get_router(self, router_id, fields=None):
+        LOG.info("get_router %r", router_id)
+        return self.client.get(self.router_url(router_id), media_type.ROUTER)
 
     def get_routers(self, filters=None, fields=None,
-                     sorts=None, limit=None, marker=None,
-                     page_reverse=False):
+                    sorts=None, limit=None, marker=None,
+                    page_reverse=False):
         LOG.info("get_routers")
         return self.client.get(self.routers_url(), media_type.ROUTERS)
 
-    def update_router(self, net_id, router):
+    def update_router(self, router_id, router):
         LOG.info("update_router %r", router)
-        return self.client.put(self.router_url(net_id), media_type.ROUTER,
+        return self.client.put(self.router_url(router_id), media_type.ROUTER,
                                router)
 
     def add_router_interface(self, router_id, interface_info):
@@ -151,6 +151,30 @@ class L3ClientMixin(url_provider.L3UrlProviderMixin):
         LOG.info("remove_router_interface %r %r", (router_id, interface_info))
         return self.client.put(self.remove_router_interface_url(router_id),
                                media_type.ROUTER_INTERFACE, interface_info)
+
+    def create_floating_ip(self, floating_ip):
+        LOG.info("create_floating_ip %r", floating_ip)
+        return self.client.post(self.floating_ips_url(),
+                                media_type.FLOATING_IP, body=floating_ip)
+
+    def delete_floating_ip(self, id):
+        LOG.info("delete_floating_ip %r", id)
+        self.client.delete(self.floating_ip_url(id))
+
+    def get_floating_ip(self, id):
+        LOG.info("get_floating_ip %r", id)
+        return self.client.get(self.floating_ip_url(id),
+                               media_type.FLOATING_IP)
+
+    def get_floating_ips(self):
+        LOG.info("get_floating_ips")
+        return self.client.get(self.floating_ips_url(),
+                               media_type.FLOATING_IPS)
+
+    def update_floating_ip(self, id, floating_ip):
+        LOG.info("update_floating_ip %r", floating_ip)
+        return self.client.put(self.floating_ip_url(id),
+                               media_type.FLOATING_IP, floating_ip)
 
 
 class SecurityGroupClientMixin(url_provider.SecurityGroupUrlProviderMixin):

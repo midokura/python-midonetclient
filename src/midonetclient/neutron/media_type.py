@@ -31,6 +31,8 @@ ROUTER = "application/vnd.org.midonet.neutron.Router-v1+json"
 ROUTERS = "application/vnd.org.midonet.neutron.Routers-v1+json"
 ROUTER_INTERFACE = \
     "application/vnd.org.midonet.neutron.RouterInterface-v1+json"
+FLOATING_IP = "application/vnd.org.midonet.neutron.FloatingIp-v1+json"
+FLOATING_IPS = "application/vnd.org.midonet.neutron.FloatingIps-v1+json"
 
 # Security Groups extension
 SECURITY_GROUP = "application/vnd.org.midonet.neutron.SecurityGroup-v1+json"
