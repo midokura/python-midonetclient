@@ -49,14 +49,3 @@ class VtepBinding(ResourceBase):
     def network_id(self, network_id):
         self.dto['networkId'] = network_id
         return self
-
-    def create(self, headers=None):
-        """Does REST POST at some uri followed by REST GET at new location"""
-        headers = headers or dict()
-        self._ensure_content_type(headers)
-
-        self.auth.do_request(self.uri, 'POST', body=self.dto, headers=headers)
-        # TODO(tomohiko) This method override is a temporary workaround for
-        # unimplemented MidoNet API VTEP binding GET. Remove this once the GET
-        # is implemented.
-        return self
