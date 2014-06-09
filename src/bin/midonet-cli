@@ -2039,7 +2039,7 @@ class VIP(ObjectType):
                                  getter = 'get_protocol_port',
                                  setter = 'protocol_port'))
         self.put_attr(EnumAttr(name = 'persistence',
-                               mappings = {'SOURCE_IP': 'SOURCE_IP', 'NONE', None},
+                               mappings = {'SOURCE_IP': 'SOURCE_IP', 'NONE': None},
                                getter = 'get_session_persistence',
                                setter = 'session_persistence',
                                optional = True))
