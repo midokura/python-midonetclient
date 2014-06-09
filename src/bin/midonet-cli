@@ -438,7 +438,7 @@ class EnumAttr(SingleAttr):
     def set(self, obj, value):
         v = self.set_inv(obj, value)
         api_val = self._cli_to_api(v)
-        if not api_val:
+        if (not self.optional) and not api_val:
             raise Exception("Invalid value field %s: %s" % (self.name, api_val))
         func = obj.reflect(self.setter)
         func(api_val)
@@ -1541,6 +1541,7 @@ class Router(ObjectType):
                                  value_type = ObjectRef('load-balancer'),
                                  getter = 'get_load_balancer_id',
                                  setter = 'load_balancer_id',
+                                 unsetter = 'load_balancer_id',
                                  optional = True))
 
     def type_name(self):
@@ -2038,7 +2039,7 @@ class VIP(ObjectType):
                                  getter = 'get_protocol_port',
                                  setter = 'protocol_port'))
         self.put_attr(EnumAttr(name = 'persistence',
-                               mappings = {'SOURCE_IP': 'SOURCE_IP'},
+                               mappings = {'SOURCE_IP': 'SOURCE_IP', 'NONE', None},
                                getter = 'get_session_persistence',
                                setter = 'session_persistence',
                                optional = True))
