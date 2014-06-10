@@ -38,8 +38,8 @@ class TunnelZone(ResourceBase):
             return self.tunnel_zone_host_media_type
         elif self.dto['type'] == 'gre':
             return vendor_media_type.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON
-        elif self.dto['type'] == 'capwap':
-            return vendor_media_type.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON
+        elif self.dto['type'] == 'vxlan':
+            return vendor_media_type.APPLICATION_TUNNEL_ZONE_HOST_JSON
 
     def _get_tunnel_zone_host_list_media_type(self):
         if self.tunnel_zone_host_list_media_type:
@@ -48,9 +48,9 @@ class TunnelZone(ResourceBase):
             return vendor_media_type.\
                 APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON
 
-        elif self.dto['type'] == 'capwap':
+        elif self.dto['type'] == 'vxlan':
             return vendor_media_type.\
-                APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON
+                APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON
 
     def name(self, name):
         self.dto['name'] = name
