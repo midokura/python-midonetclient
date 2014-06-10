@@ -116,8 +116,8 @@ class Port(resource_base.ResourceBase, AdminStateUpMixin):
         self.dto['networkLength'] = network_length
         return self
 
-    def mac_address(self, portMac):
-        self.dto['portMac'] = portMac
+    def port_mac(self, port_mac):
+        self.dto['portMac'] = port_mac
         return self
 
     def type(self, type_):
