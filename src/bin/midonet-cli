@@ -2267,6 +2267,14 @@ class VtepBinding(ObjectType):
         return "binding"
 
 
+def _port_resolver(port):
+    # This function dispatches the appropriate port class depending on the
+    # given port's type and instantiate it.
+    resolved_element_type = RouterPort
+    if (port is not None) and port.get_type() == "Bridge":
+        resolved_element_type = BridgePort
+    return resolved_element_type(port)
+
 class Midonet(ObjectType):
     """ This is the root context for the CLI. At the beggining of matching on a
         command pattern the `MatchingContext` is initialized with an instance of
@@ -2299,6 +2307,15 @@ class Midonet(ObjectType):
                                  getter = 'get_bridge',
                                  list_with_tenant = True,
                                  factory_method = 'add_bridge'))
+        # A port can be a RouterPort OR a BridgePort, so we can't specify the
+        # class in element_type. Hence a function dipatches the appropriate
+        # class dependingg on the type of the port, is passed to element_type,
+        # which is _port_resolver.
+        self.put_attr(Collection(name = 'port',
+                                 element_type = _port_resolver,
+                                 list_method = 'get_ports',
+                                 getter = 'get_port',
+                                 list_with_tenant = True))
         self.put_attr(Collection(name = 'chain',
                                  element_type = Chain,
                                  list_method = 'get_chains',

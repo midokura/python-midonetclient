@@ -119,6 +119,9 @@ class Application(ResourceBase):
     def get_pool_members_uri(self):
         return self.dto['poolMembers']
 
+    def get_ports_uri(self):
+        return self.dto['ports']
+
     def get_health_monitors_uri(self):
         return self.dto['healthMonitors']
 
@@ -157,6 +160,11 @@ class Application(ResourceBase):
         headers = {'Accept':
                    vendor_media_type.APPLICATION_BRIDGE_COLLECTION_JSON}
         return self.get_children(self.dto['bridges'], query, headers, Bridge)
+
+    def get_ports(self, query):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_PORT_V2_COLLECTION_JSON}
+        return self.get_children(self.dto['ports'], query, headers, Port)
 
     def get_port_groups(self, query):
         headers = {'Accept':

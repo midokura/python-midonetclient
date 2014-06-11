@@ -64,6 +64,10 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.get_bridges(query)
 
+    def get_ports(self, query):
+        self._ensure_application()
+        return self.app.get_ports(query)
+
     def delete_port_group(self, id_):
         self._ensure_application()
         return self.app.delete_port_group(id_)
