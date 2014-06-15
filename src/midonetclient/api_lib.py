@@ -89,3 +89,31 @@ def do_request(uri, method, body=None, query=None, headers=None):
                                             err))
         raise err
     return response, from_json(content)
+
+def do_upload(uri, body=None, query=None, headers=None):
+    """Processes an HTTP POST request with a binary input and output JSON.
+    Returns a 2-tuple made of HTTP response, and content deserialized into an
+    object.
+    """
+
+    LOG.debug("do upload: uri=%s" % uri)
+    LOG.debug("do upload: body=%r" % len(body))
+    LOG.debug("do upload: headers=%s" % headers)
+
+    try:
+        response, content = httplib2.Http().request(uri, 'POST', body,
+                                                    headers=headers)
+    except socket_error as serr:
+        if serr[1] == "ECONNREFUSED":
+            raise exc.MidoApiConnectionRefused()
+        raise
+
+    if is_http_error(response['status']):
+        err = http_errors[response['status']](content)
+        LOG.error("Got HTTP error(response=%r content=%r) for "
+                  "request(uri=%r, body=%r, query=%r, headers=%r)."
+                  "Raising exception=%r" % (response, content,
+                                            uri, body, query, headers,
+                                            err))
+        raise err
+    return response, from_json(content)

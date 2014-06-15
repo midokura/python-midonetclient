@@ -50,6 +50,17 @@ class ResourceBase(object):
                                              headers=headers)
         return self
 
+    def upload(self, uri, body, headers=None):
+        """ Does REST POST with a binary body at some URI """
+
+        headers = headers or dict()
+        self._ensure_content_type(headers)
+
+        resp, self.dto = self.auth.do_upload(uri, body=body, headers=headers)
+        self._ensure_accept(headers)
+
+        return self
+
     def get(self, headers=None, **kwargs):
         """Does REST GET at some uri"""
         headers = headers or dict()

@@ -846,6 +846,8 @@ class Collection(Attr):
                  getter = None,
                  sort_by = None,
                  factory_method = None,
+                 install_method = None,
+                 status_method = None,
                  show = True):
         self.name = name
         self.element_type = element_type
@@ -853,6 +855,8 @@ class Collection(Attr):
         self.getter = getter
         self.list_with_tenant = list_with_tenant
         self.factory_method = factory_method
+        self.install_method = install_method
+        self.status_method = status_method
         self.show = show
         self.sort_by = sort_by
 
@@ -2266,6 +2270,54 @@ class VtepBinding(ObjectType):
     def type_name(self):
         return "binding"
 
+class License(ObjectType):
+    def __init__(self, obj):
+        super(License, self).__init__(obj)
+        self.clear_attrs()
+        self.put_attr(SingleAttr(name = 'id',
+                                 value_type= UUID(),
+                                 getter = 'get_id'))
+        self.put_attr(SingleAttr(name = 'issuer',
+                                 value_type=StringType(),
+                                 getter = 'get_issuer'))
+        self.put_attr(SingleAttr(name = 'holder',
+                                 value_type=StringType(),
+                                 getter = 'get_holder'))
+        self.put_attr(SingleAttr(name = 'start_date',
+                                 value_type=StringType(),
+                                 getter = 'get_start_date'))
+        self.put_attr(SingleAttr(name = 'end_date',
+                                 value_type=StringType(),
+                                 getter = 'get_end_date'))
+        self.put_attr(SingleAttr(name = 'product',
+                                 value_type=StringType(),
+                                 getter = 'get_product'))
+        self.put_attr(SingleAttr(name = 'description',
+                                 value_type=StringType(),
+                                 getter = 'get_description'))
+        self.put_attr(SingleAttr(name = 'agent_quota',
+                                 value_type=ValueType(),
+                                 getter = 'get_agent_quota'))
+        self.put_attr(SingleAttr(name = 'valid',
+                                 value_type=BooleanType(),
+                                 getter = 'is_valid'))
+
+    def type_name(self):
+        return "license"
+
+class LicenseStatus(ObjectType):
+    def __init__(self, obj):
+        super(LicenseStatus, self).__init__(obj)
+        self.clear_attrs()
+        self.put_attr(SingleAttr(name = 'valid',
+                                 value_type = BooleanType(),
+                                 getter = 'is_valid'))
+        self.put_attr(SingleAttr(name = 'message',
+                                 value_type = StringType(),
+                                 getter = 'get_message'))
+
+    def type_name(self):
+        return "LicenseStatus"
 
 def _port_resolver(port):
     # This function dispatches the appropriate port class depending on the
@@ -2367,6 +2419,15 @@ class Midonet(ObjectType):
                                  list_method = 'get_vteps',
                                  getter = 'get_vtep',
                                  factory_method = 'add_vtep'))
+        self.put_attr(Collection(name = 'license',
+                                 element_type = License,
+                                 list_method = 'get_licenses',
+                                 getter = 'get_license',
+                                 install_method = 'install_license',
+                                 status_method= 'status_license'))
+        self.put_attr(Collection(name = 'license_status',
+                                 element_type = LicenseStatus,
+                                 list_method = None))
 
 
 ################################################################################
@@ -3717,6 +3778,125 @@ class List(Command):
             else:
                 print o.describe()
 
+class Install(Command):
+    """install - Installs an existing object from file
+
+    Usage: install <TYPE> <FILE>
+           <TYPE> install <FILE>
+
+    Examples:
+           install license <file-name>
+           license install <file-name>
+    """
+
+    def patterns(self):
+        install = Verb('install', partial_match = False, set_command = self)
+        col_type = CollectionByType()
+
+        patterns = install + col_type + SingleValue(StringType())
+        patterns |= col_type + install + SingleValue(StringType())
+        return patterns
+
+    def help(self):
+        print self.__doc__
+
+    def name(self):
+        return 'install'
+
+    def do(self, tokens):
+        assert(len(tokens) == 3)
+        collection = None
+        file = None
+        for tok in tokens:
+            if isinstance(tok, Collection):
+                 collection = tok
+            elif isinstance(tok, SingleValue):
+                file = tok
+        assert(collection is not None and file is not None)
+
+        if collection is None:
+            raise Exception("Bug in command pattern definition")
+
+        if not collection.install_method:
+            raise Exception("Installing elements of this type is not possible")
+
+        object_chain = []
+
+        attr = app.attrs()['license']
+        install = app.reflect(collection.install_method)
+        obj = install(file)
+        ref = attr.element_type(obj)
+
+        if isinstance(ref, ObjectType):
+            object_chain.append(ref)
+
+        alias_chain = aliases.add(*object_chain)
+
+        if alias_chain:
+            alias = alias_chain.pop()
+            print "%s %s %s" % (ref.type_name(), alias, ref.describe())
+        else:
+            print "%s %s" % (ref.type_name(), ref.describe())
+
+class Status(Command):
+    """status - Shows the status of the specified object
+
+    Usage: status <TYPE>
+           <TYPE> status
+
+    Example:
+           status license
+           license status
+    """
+
+    def patterns(self):
+        status = Verb('status', partial_match = False, set_command = self)
+        col_type = CollectionByType()
+
+        patterns = status + col_type
+        patterns |= col_type + status
+        return patterns
+
+    def help(self):
+        print self.__doc__
+
+    def name(self):
+        return 'status'
+
+    def do(self, tokens):
+        assert(len(tokens) == 2)
+        collection = None
+        for tok in tokens:
+            if isinstance(tok, Collection):
+                collection = tok
+        assert(collection is not None)
+
+        if collection is None:
+            raise Exception("Bug in command pattern definition.")
+
+        if not collection.status_method:
+            raise Exception("Checking the status for elements of this type is"
+                            "not possible");
+
+        object_chain = []
+
+        attr = app.attrs()['license_status']
+        status = app.reflect(collection.status_method)
+        obj = status()
+        ref = attr.element_type(obj)
+
+        if isinstance(ref, ObjectType):
+            object_chain.append(ref)
+
+        alias_chain = aliases.add(*object_chain)
+
+        if alias_chain:
+            alias = alias_chain.pop()
+            print "%s %s %s" % (ref.type_name(), alias, ref.describe())
+        else:
+            print "%s %s" % (ref.type_name(), ref.describe())
+
+
 ################################################################################
 # Autocomplete cache
 ################################################################################
@@ -3771,7 +3951,8 @@ class MidonetCLI(cmd.Cmd):
         cmd.Cmd.__init__(self)
         self._root = root
         self._ops = [Show(), List(), Create(), Delete(), Set(), Clear(),
-                     Describe(), Debug(), PushTenant(), PopTenant()]
+                     Describe(), Debug(), PushTenant(), PopTenant(), Install(),
+                     Status()]
         for op in self._ops:
             if op.name() is not None:
                 setattr(self, "help_%s" % op.name(), op.help)
