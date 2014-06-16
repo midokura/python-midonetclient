@@ -171,7 +171,7 @@ APPLICATION_VTEP_BINDING_COLLECTION_JSON = \
 APPLICATION_LICENSE_JSON_V1 = \
             "application/vnd.org.midonet.License-v1+json"
 APPLICATION_LICENSE_COLLECTION_JSON_V1 = \
-            "application/vnd.org.midonet.LicenseList-v1+json"
+            "application/vnd.org.midonet.collection.License-v1+json"
 APPLICATION_LICENSE_STATUS_JSON_V1 = \
             "application/vnd.org.midonet.LicenseStatus-v1+json"
 
