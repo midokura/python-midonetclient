@@ -3555,16 +3555,21 @@ class Delete(Command):
            delete router router0 name 'new name for router'
            router router0 port port0 delete
            router router0 delete port port0
+           vtep management-ip 192.168.0.1 delete binding vlan xxx
+           vtep management-ip 192.168.0.1 binding delete vlan xxx
     """
 
     def patterns(self):
         delete = Verb('delete', min_match = 'del', set_command = self)
         obj_from_col = ObjectFromCollection()
         obj = ObjectById()
+        col_type = CollectionByType()
 
         patterns = delete + obj("+") + obj_from_col("*")
         patterns |= obj("+") + delete + obj("*") + obj_from_col("*")
         patterns |= obj("+") + obj_from_col("*") + delete + obj_from_col("*")
+        patterns |= obj_from_col("+") + delete + col_type + ListFilter()("+")
+        patterns |= obj_from_col("+") + col_type + delete + ListFilter()("+")
         return patterns
 
     def help(self):
@@ -3576,11 +3581,22 @@ class Delete(Command):
     def do(self, tokens):
         assert(len(tokens) >= 2)
         obj = None
+        collection = None
+        list_filter = []
         for tok in tokens:
             if isinstance(tok, ObjectType):
                 obj = tok
+            elif isinstance(tok, Collection):
+                collection = tok
+            elif isinstance(tok, list):
+                list_filter = tok
         assert(obj is not None)
-        obj.object().delete()
+        if collection:
+            for o in obj.fetch_all_for_type(collection.name, list_filter):
+                o.object().delete()
+        else:
+            obj.object().delete()
+
 
 class Show(Command):
     """show - Show an object or field
@@ -3596,6 +3612,7 @@ class Show(Command):
            show router router0
            sh router router0 port port2
            router router0 port port2 show infilter
+           vtep management-ip 192.168.0.1 show name
     """
 
     def patterns(self):
@@ -3614,6 +3631,7 @@ class Show(Command):
         patterns |= obj("+") + show + obj_in_col("?") + field("?")
         patterns |= show + obj("+") + obj_in_col("?") + field("?")
         patterns |= obj("+") + obj_in_col("?") + field("?") + show
+        patterns |= obj_in_col("+") + show + field("+")
         return patterns
 
     def name(self):
