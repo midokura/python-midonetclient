@@ -1310,7 +1310,7 @@ class TunnelZone(ObjectType):
                                  setter = 'name'))
         self.put_attr(EnumAttr(name = 'type',
                                mappings = {'gre': 'gre',
-                                           'capwap': 'capwap'},
+                                           'vxlan': 'vxlan'},
                                getter = 'get_type',
                                setter = 'type',
                                optional = False))

@@ -90,18 +90,10 @@ APPLICATION_TUNNEL_ZONE_HOST_JSON = \
     "application/vnd.org.midonet.TunnelZoneHost-v1+json"
 APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.TunnelZoneHost-v1+json"
-APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON = \
-    "application/vnd.org.midonet.CapwapTunnelZoneHost-v1+json"
-APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON = \
-    "application/vnd.org.midonet.collection.CapwapTunnelZoneHost-v1+json"
 APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON = \
     "application/vnd.org.midonet.GreTunnelZoneHost-v1+json"
 APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.GreTunnelZoneHost-v1+json"
-APPLICATION_IPSEC_TUNNEL_ZONE_HOST_JSON = \
-    "application/vnd.org.midonet.IpsecTunnelZoneHost-v1+json"
-APPLICATION_IPSEC_TUNNEL_ZONE_HOST_COLLECTION_JSON = \
-    "application/vnd.org.midonet.collection.IpsecTunnelZoneHost-v1+json"
 APPLICATION_HOST_INTERFACE_PORT_JSON = \
     "application/vnd.org.midonet.HostInterfacePort-v1+json"
 APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON = \

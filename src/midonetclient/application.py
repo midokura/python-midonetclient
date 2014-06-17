@@ -302,13 +302,6 @@ class Application(ResourceBase):
             vendor_media_type.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON,
             vendor_media_type.APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON)
 
-    def add_capwap_tunnel_zone(self):
-        return TunnelZone(
-            self.dto['tunnelZones'], {'type': 'capwap'}, self.auth,
-            vendor_media_type.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON,
-            vendor_media_type.
-            APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON)
-
     def get_write_version(self):
         return self._get_resource(WriteVersion, None,
                                   self.get_write_version_uri())
