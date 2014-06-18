@@ -108,3 +108,22 @@ class Auth:
             self.set_header_token(headers, force=True)
             return api_lib.do_request(uri, method, body=body, query=query,
                                       headers=headers)
+
+    def do_upload(self, uri, body=None, query=None, headers=None):
+        ''' Wrapper for api_lib.do_upload that includes auth logic.
+        '''
+        query = query or dict()
+        headers = headers or dict()
+
+        # Username will be None if user has opted to skip authorization.
+        if self.username is not None:
+            self.set_header_token(headers)
+        try:
+            return api_lib.do_upload(uri, body=body, query=query,
+                                     headers=headers)
+        except exc.HTTPUnauthorized:
+            # Try one more time after logging in
+            LOG.info("Got HTTPUnauthorized error, try logging in again")
+            self.set_header_token(headers, force=True)
+            return api_lib.do_upload(uri, body=body, query=query,
+                                     headers=headers)

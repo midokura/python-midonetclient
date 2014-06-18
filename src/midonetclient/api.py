@@ -529,6 +529,21 @@ class MidonetApi(object):
                 self.app = None
                 raise
 
+    def install_license(self, file):
+        self._ensure_application()
+        return self.app.install_license(file)
+
+    def get_licenses(self):
+        self._ensure_application()
+        return self.app.get_licenses()
+
+    def get_license(self, id_):
+        self._ensure_application()
+        return self.app.get_license(id_)
+
+    def get_license_status(self):
+        self._ensure_application()
+        return self.app.get_license_status()
 
 # just for testing
 if __name__ == '__main__':
