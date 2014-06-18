@@ -61,7 +61,7 @@ class Session(object):
 
     def push_tenant(self, tenant_id):
         if not self.do_eval:
-            if not is_valid_hex_uuid(tenant_id):
+            if (tenant_id is not None) and not is_valid_hex_uuid(tenant_id):
                 print ("WARNING!: tenant_id=%s is not a 32-char hex string, "
                        "which is used in Keystone for project id format"
                        % tenant_id)
@@ -172,8 +172,6 @@ class Session(object):
             raise Exception("Missing: username")
         if self.do_auth and self.project_id is None:
             raise Exception("Missing: Midonet Project ID")
-        if self.tenant_id is None:
-            raise Exception("Missing: tenant id")
         if self.do_auth and self.password is None:
             raise Exception("No password given (add it to ~/.midonetrc or "+
                             "get a prompt using the -p option)")
@@ -1179,7 +1177,11 @@ class ObjectType(object):
             return []
         func = self.reflect(attr.list_method)
         if attr.list_with_tenant:
-            api_objects = func({'tenant_id':session.current_tenant()})
+            if session.current_tenant() is not None:
+                query = {'tenant_id': session.current_tenant()}
+            else:
+                query = {}
+            api_objects = func(query)
         else:
             api_objects = func()
         cli_objects = map(lambda elem: attr.element_type(elem), api_objects)
@@ -3697,6 +3699,31 @@ class PopTenant(Command):
         session.pop_tenant()
         session.print_current_tenant()
 
+class ClearTenant(Command):
+    """cleart - Clear the tenant ID pushing the empty value to the top of the
+    tenant ID stack.
+
+    Usage: cleart
+
+    Examples:
+           cleart
+           list router
+           popt
+    """
+
+    def patterns(self):
+        return Verb('cleart', partial_match = False, set_command = self)
+
+    def name(self):
+        return 'cleart'
+
+    def help(self):
+        print self.__doc__
+
+    def do(self, tokens):
+        session.push_tenant(None)
+        session.print_current_tenant()
+
 class Debug(Command):
     """debug - Toggle debug mode
 
@@ -3898,7 +3925,8 @@ class MidonetCLI(cmd.Cmd):
         cmd.Cmd.__init__(self)
         self._root = root
         self._ops = [Show(), List(), Create(), Delete(), Set(), Clear(),
-                     Describe(), Debug(), PushTenant(), PopTenant(), Install()]
+                     Describe(), Debug(), PushTenant(), PopTenant(), Install(),
+                     ClearTenant()]
         for op in self._ops:
             if op.name() is not None:
                 setattr(self, "help_%s" % op.name(), op.help)
