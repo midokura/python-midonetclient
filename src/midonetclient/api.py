@@ -545,9 +545,9 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.get_license(id_)
 
-    def status_license(self):
+    def get_license_status(self):
         self._ensure_application()
-        return self.app.status_license()
+        return self.app.get_license_status()
 
 # just for testing
 if __name__ == '__main__':

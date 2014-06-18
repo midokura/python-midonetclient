@@ -504,7 +504,7 @@ class Application(ResourceBase):
         return self._get_resource_by_id(License, None,
                                         self.dto['licenseTemplate'], id_)
 
-    def status_license(self):
+    def get_license_status(self):
         return self._get_resource(LicenseStatus, None,
                                   self.dto['licenseStatus'])
 
