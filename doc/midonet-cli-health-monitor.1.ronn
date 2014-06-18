@@ -44,6 +44,8 @@ A health monitor has these attributes:
     Timeout value for the health check in seconds.
   * `max-retries` [!]<INTEGER>
     Number of times to retry for health check.
+  * `type` [!] `TCP`
+    A type of the health monitor checking protocol.
 
 ## COPYRIGHT
 

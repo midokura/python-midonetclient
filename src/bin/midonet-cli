@@ -2066,7 +2066,8 @@ class Pool(ObjectType):
         self.put_attr(SingleAttr(name = 'health-monitor',
                                  value_type = ObjectRef('health-monitor'),
                                  getter = 'get_health_monitor_id',
-                                 setter = 'health_monitor_id'))
+                                 setter = 'health_monitor_id',
+                                 unsetter = 'health_monitor_id'))
         self.put_attr(EnumAttr(name = 'lb-method',
                                mappings = {'ROUND_ROBIN': 'ROUND_ROBIN'},
                                getter = 'get_lb_method',
