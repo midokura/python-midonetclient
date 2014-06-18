@@ -160,7 +160,7 @@ class Application(ResourceBase):
 
     def get_bridges(self, query):
         headers = {'Accept':
-                   vendor_media_type.APPLICATION_BRIDGE_COLLECTION_V2_JSON}
+                   vendor_media_type.APPLICATION_BRIDGE_COLLECTION_JSON}
         return self.get_children(self.dto['bridges'], query, headers, Bridge)
 
     def get_ports(self, query):
