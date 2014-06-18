@@ -71,6 +71,10 @@ collections:
   * `popt`:
   Sets the currently active tenant ID to the previous one.
 
+  * `cleart`:
+  Clear the currently active tenant ID pushing the empty value to the stack of
+  the tenant ID. You can pop it and go back to the previous tenant with "popt".
+
   * `debug` `on`|`off`:
   Toggles debug mode.
 
