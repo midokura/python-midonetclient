@@ -1,6 +1,4 @@
-# vim: tabstop=4 shiftwidth=4 softtabstop=4
-
-# Copyright 2013 Midokura PTE LTD.
+# Copyright 2013, 2014 Midokura SARL, All Rights Reserved.
 # All Rights Reserved
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -42,12 +40,12 @@ class ResourceBase(object):
         headers = headers or dict()
         self._ensure_content_type(headers)
 
-        resp, data = self.auth.do_request(self.uri, 'POST', body=self.dto,
-                                          headers=headers)
+        resp, _ = self.auth.do_request(self.uri, 'POST', body=self.dto,
+                                       headers=headers)
 
         self._ensure_accept(headers)
-        res, self.dto = self.auth.do_request(resp['location'], 'GET',
-                                             headers=headers)
+        _, self.dto = self.auth.do_request(resp['location'], 'GET',
+                                           headers=headers)
         return self
 
     def get(self, headers=None, **kwargs):
@@ -55,15 +53,15 @@ class ResourceBase(object):
         headers = headers or dict()
         self._ensure_accept(headers)
         uri = self.dto['uri']
-        res, self.dto = self.auth.do_request(uri, 'GET', headers=headers)
+        _, self.dto = self.auth.do_request(uri, 'GET', headers=headers)
         return self
 
     def get_children(self, uri, query, headers, clazz, extra_args=None):
         """Does GET at uri and create objects found in server answer"""
         self._ensure_accept(headers)
 
-        res, dtos = self.auth.do_request(uri, 'GET', query=query,
-                                         headers=headers)
+        _, dtos = self.auth.do_request(uri, 'GET', query=query,
+                                       headers=headers)
 
         return map(
             lambda dto: clazz(uri, dto, self.auth, *(extra_args or [])),
@@ -80,19 +78,18 @@ class ResourceBase(object):
 
         self._ensure_content_type(headers)
 
-        resp, body = self.auth.do_request(self.dto['uri'], 'PUT',
-                                          body=self.dto,
-                                          headers=headers)
+        self.auth.do_request(self.dto['uri'], 'PUT',
+                             body=self.dto,
+                             headers=headers)
 
         headers['Accept'] = self.media_type
-        resp, self.dto = self.auth.do_request(self.dto['uri'], 'GET',
-                                              headers=headers)
+        _, self.dto = self.auth.do_request(self.dto['uri'], 'GET',
+                                           headers=headers)
         return self
 
     def delete(self, headers={}):
         """Does DELETE at own uri"""
-        resp, junk = self.auth.do_request(self.dto['uri'], 'DELETE',
-                                          headers=headers)
+        self.auth.do_request(self.dto['uri'], 'DELETE', headers=headers)
         return None
 
     def __repr__(self):
