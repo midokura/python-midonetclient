@@ -1,5 +1,3 @@
-# vim: tabstop=4 shiftwidth=4 softtabstop=4
-
 # Copyright 2013 Midokura PTE LTD.
 # All Rights Reserved
 #
@@ -25,6 +23,9 @@ from midonetclient import bgp
 from midonetclient import port_group_port
 from midonetclient.admin_state_up_mixin import AdminStateUpMixin
 from vendor_media_type import APPLICATION_PORTGROUP_PORT_COLLECTION_JSON
+
+
+PORT_TYPE_VXLAN = 'Vxlan'
 
 
 class Port(resource_base.ResourceBase, AdminStateUpMixin):
@@ -59,6 +60,8 @@ class Port(resource_base.ResourceBase, AdminStateUpMixin):
         return self.dto['interfaceName']
 
     def get_vlan_id(self):
+        if self.dto['type'] == PORT_TYPE_VXLAN:
+            return None
         return self.dto['vlanId']
 
     def get_peer_id(self):
