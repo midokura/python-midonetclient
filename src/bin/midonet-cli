@@ -98,6 +98,8 @@ class Session(object):
             self.project_id = cfg.get('cli', 'project_id');
         if cfg.has_option('cli', 'tenant'):
             self.tenant_id = cfg.get('cli', 'tenant')
+        else:
+            self.tenant_id = ''
 
     def _load_from_env(self):
         import os
@@ -105,6 +107,8 @@ class Session(object):
             self.api_url = os.environ['MIDO_API_URL']
         if os.environ.has_key('MIDO_USER'):
             self.username = os.environ['MIDO_USER']
+        if os.environ.has_key('MIDO_PASSWORD'):
+            self.username = os.environ['MIDO_PASSWORD']
         if os.environ.has_key('MIDO_PROJECT_ID'):
             self.project_id = os.environ['MIDO_PROJECT_ID']
         if os.environ.has_key('MIDO_TENANT'):
@@ -1177,7 +1181,7 @@ class ObjectType(object):
             return []
         func = self.reflect(attr.list_method)
         if attr.list_with_tenant:
-            if session.current_tenant() is not None:
+            if session.current_tenant():
                 query = {'tenant_id': session.current_tenant()}
             else:
                 query = {}
@@ -3739,7 +3743,7 @@ class ClearTenant(Command):
         print self.__doc__
 
     def do(self, tokens):
-        session.push_tenant(None)
+        session.push_tenant('')
         session.print_current_tenant()
 
 class Debug(Command):
