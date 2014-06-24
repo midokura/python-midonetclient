@@ -1,6 +1,4 @@
-# vim: tabstop=4 shiftwidth=4 softtabstop=4
-
-# Copyright 2013 Midokura PTE LTD.
+# Copyright 2013, 2014 Midokura SARL, All Rights Reserved.
 # All Rights Reserved
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
