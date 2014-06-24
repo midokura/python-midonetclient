@@ -108,7 +108,7 @@ class Session(object):
         if os.environ.has_key('MIDO_USER'):
             self.username = os.environ['MIDO_USER']
         if os.environ.has_key('MIDO_PASSWORD'):
-            self.username = os.environ['MIDO_PASSWORD']
+            self.password = os.environ['MIDO_PASSWORD']
         if os.environ.has_key('MIDO_PROJECT_ID'):
             self.project_id = os.environ['MIDO_PROJECT_ID']
         if os.environ.has_key('MIDO_TENANT'):
