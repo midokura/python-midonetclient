@@ -2230,8 +2230,8 @@ class Vtep(ObjectType):
                                  value_type = L4PortNumber(),
                                  getter = 'get_management_port',
                                  setter = 'management_port'))
-        self.put_attr(SingleAttr(name = 'tunnel-zone-id',
-                                 value_type = UUID(),
+        self.put_attr(SingleAttr(name = 'tunnel-zone',
+                                 value_type = ObjectRef('tunnel-zone'),
                                  getter = 'get_tunnel_zone_id',
                                  setter = 'tunnel_zone_id'))
         self.put_attr(SingleAttr(name = 'connection-state',
