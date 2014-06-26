@@ -20,6 +20,7 @@
 # @author: Artem Dmytrenko <art@midokura.com>, Midokura
 
 import logging
+from socket import error as socket_error
 
 from midonetclient import auth_lib
 from midonetclient.application import Application
@@ -412,13 +413,13 @@ class MidonetApi(object):
             port.unlink()
             self.delete_port(peer_id)
 
-    def add_router_route(self, router, route_type='Normal',
+    def add_router_route(self, router, type='Normal',
                          src_network_addr=None, src_network_length=None,
                          dst_network_addr=None, dst_network_length=None,
                          next_hop_port=None, next_hop_gateway=None,
                          weight=100):
         """Add a route to a router."""
-        route = router.add_route().type(route_type)
+        route = router.add_route().type(type)
         route = route.src_network_addr(src_network_addr).src_network_length(
             src_network_length).dst_network_addr(
                 dst_network_addr).dst_network_length(dst_network_length)
@@ -549,6 +550,7 @@ class MidonetApi(object):
 if __name__ == '__main__':
 
     import uuid
+    import time
     import sys
 
     if len(sys.argv) < 4:
