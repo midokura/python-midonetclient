@@ -321,8 +321,8 @@ class Rule(ResourceBase):
         self.dto['tpDst'] = tp_dst
         return self
 
-    def type(self, rule_type):
-        self.dto['type'] = rule_type
+    def type(self, type):
+        self.dto['type'] = type
         return self
 
     def inv_dl_src(self, inv_dl_src):
