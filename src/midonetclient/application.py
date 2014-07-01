@@ -304,6 +304,12 @@ class Application(ResourceBase):
             vendor_media_type.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON,
             vendor_media_type.APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON)
 
+    def add_vxlan_tunnel_zone(self):
+        return TunnelZone(
+            self.dto['tunnelZones'], {'type': 'vxlan'}, self.auth,
+            vendor_media_type.APPLICATION_TUNNEL_ZONE_HOST_JSON,
+            vendor_media_type.APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON)
+
     def get_write_version(self):
         return self._get_resource(WriteVersion, None,
                                   self.get_write_version_uri())
