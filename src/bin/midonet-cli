@@ -29,7 +29,7 @@ from webob import exc
 from midonetclient.api import MidonetApi
 
 ################################################################################
-# Utility functions
+# Utilities
 ################################################################################
 
 uuid_pattern = re.compile("^[0-F]{8}-[0-F]{4}-[0-F]{4}-[0-F]{4}-[0-F]{12}$", re.I)
@@ -39,6 +39,13 @@ def is_valid_uuid(value):
 hex_uuid_pattern = re.compile("^[0-F]{32}$", re.I)
 def is_valid_hex_uuid(value):
     return True if hex_uuid_pattern.match(value) is not None else False
+
+class UserException(Exception):
+    """An exception / error handling triggered by a bad user input."""
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
 
 ################################################################################
 # Session initialization
@@ -344,6 +351,17 @@ class SingleAttr(Attr):
                  inv_getter = None,
                  inv_setter = None,
                  unsetter = None):
+        """Initializes a single value attribute.
+        Args:
+            name - An attribute name.
+            value_type - An attribute value type.
+            getter - A getter name.
+            setter - A setter name.
+            writeable - If the attribute is read/write or read-only.
+            optional - If the attribute is optional or not.
+            inv_getter - An inverse getter name.
+            inv_setter - An inverse setter name.
+        """
         self.name = name
         self.value_type = value_type
         self.getter = getter
@@ -376,7 +394,17 @@ class SingleAttr(Attr):
             pass
         return v
 
+    def throw_user_exception_if_read_only(self):
+        """Checks if the attribute is writable. If not, throws an exception.
+
+        Throws:
+            UserException - if the attribute is not writable.
+        """
+        if not self.writeable:
+            raise UserException("%s is a read-only attribute." % self.name)
+
     def set(self, obj, value):
+        self.throw_user_exception_if_read_only()
         v = self.set_inv(obj, value)
         if not self.value_type.is_valid(v):
             raise Exception("Invalid value field %s: %s" % (self.name, v))
@@ -384,6 +412,7 @@ class SingleAttr(Attr):
         func(v)
 
     def unset(self, obj):
+        self.throw_user_exception_if_read_only()
         func = obj.reflect(self.unsetter)
 
         # if the unset function takes in one arg (besides self), which
@@ -394,6 +423,7 @@ class SingleAttr(Attr):
             func()
 
     def set_inv(self, obj, value):
+        self.throw_user_exception_if_read_only()
         v = value
         if self.inv_setter is not None:
             inv = False
@@ -2215,12 +2245,12 @@ class Vtep(ObjectType):
         self.clear_attrs()
         self.put_attr(SingleAttr(name = 'name',
                                  value_type = StringType(),
-                                 setter = 'name',
-                                 getter = 'get_name'))
+                                 getter = 'get_name',
+                                 writeable = False))
         self.put_attr(SingleAttr(name = 'description',
                                  value_type = StringType(),
-                                 setter = 'description',
-                                 getter = 'get_description'))
+                                 getter = 'get_description',
+                                 writeable = False))
         self.put_attr(SingleAttr(name = 'management-ip',
                                  value_type = IPv4Address(),
                                  getter = 'get_management_ip',
@@ -4028,6 +4058,8 @@ class MidonetCLI(cmd.Cmd):
             if session.debug:
                 print 'Caught socket.error: %s' % str(err)
             return True
+        except UserException as ue:
+            print "User error: %s" % ue
         except Exception as e:
             import traceback
             if session.debug:
