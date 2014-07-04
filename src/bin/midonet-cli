@@ -2215,13 +2215,12 @@ class Vtep(ObjectType):
         self.clear_attrs()
         self.put_attr(SingleAttr(name = 'name',
                                  value_type = StringType(),
-                                 setter = '',
+                                 setter = 'name',
                                  getter = 'get_name'))
-        # Description field is not implemented.
-        #self.put_attr(SingleAttr(name = 'description',
-        #                         value_type = StringType(),
-        #                         setter = 'description',
-        #                         getter = 'get_description'))
+        self.put_attr(SingleAttr(name = 'description',
+                                 value_type = StringType(),
+                                 setter = 'description',
+                                 getter = 'get_description'))
         self.put_attr(SingleAttr(name = 'management-ip',
                                  value_type = IPv4Address(),
                                  getter = 'get_management_ip',
