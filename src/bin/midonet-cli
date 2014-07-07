@@ -2219,13 +2219,12 @@ class Vtep(ObjectType):
         self.clear_attrs()
         self.put_attr(SingleAttr(name = 'name',
                                  value_type = StringType(),
-                                 setter = '',
+                                 setter = 'name',
                                  getter = 'get_name'))
-        # Description field is not implemented.
-        #self.put_attr(SingleAttr(name = 'description',
-        #                         value_type = StringType(),
-        #                         setter = 'description',
-        #                         getter = 'get_description'))
+        self.put_attr(SingleAttr(name = 'description',
+                                 value_type = StringType(),
+                                 setter = 'description',
+                                 getter = 'get_description'))
         self.put_attr(SingleAttr(name = 'management-ip',
                                  value_type = IPv4Address(),
                                  getter = 'get_management_ip',
@@ -2234,8 +2233,8 @@ class Vtep(ObjectType):
                                  value_type = L4PortNumber(),
                                  getter = 'get_management_port',
                                  setter = 'management_port'))
-        self.put_attr(SingleAttr(name = 'tunnel-zone-id',
-                                 value_type = UUID(),
+        self.put_attr(SingleAttr(name = 'tunnel-zone',
+                                 value_type = ObjectRef('tunnel-zone'),
                                  getter = 'get_tunnel_zone_id',
                                  setter = 'tunnel_zone_id'))
         self.put_attr(SingleAttr(name = 'connection-state',
@@ -3557,10 +3556,12 @@ class Delete(Command):
 
     Examples:
            delete router router0 name 'new name for router'
+           delete vtep management-ip 192.168.0.1
+           delete vtep management-ip 192.168.0.1 binding vlan xxx
            router router0 port port0 delete
            router router0 delete port port0
+           vtep management-ip 192.168.0.1 delete
            vtep management-ip 192.168.0.1 delete binding vlan xxx
-           vtep management-ip 192.168.0.1 binding delete vlan xxx
     """
 
     def patterns(self):
@@ -3570,10 +3571,18 @@ class Delete(Command):
         col_type = CollectionByType()
 
         patterns = delete + obj("+") + obj_from_col("*")
+        # The below covers both
+        #   a. delete object-coll
+        #     -- c.f. delete vtep management-ip x.x.x.x
+        #   b. delete parent-object-coll child-object-coll
+        #     -- c.f. delete vtep management-ip x.x.x.x binding vlan Y ....
+        patterns |= delete + obj_from_col("+")
         patterns |= obj("+") + delete + obj("*") + obj_from_col("*")
         patterns |= obj("+") + obj_from_col("*") + delete + obj_from_col("*")
-        patterns |= obj_from_col("+") + delete + col_type + ListFilter()("+")
-        patterns |= obj_from_col("+") + col_type + delete + ListFilter()("+")
+        # E.g.
+        #   vtep management-ip x.x.x.x delete
+        #   vtep management-ip x.x.x.x delete binding vlan Y ....
+        patterns |= obj_from_col("+") + delete + obj_from_col("*")
         return patterns
 
     def help(self):
@@ -3585,21 +3594,11 @@ class Delete(Command):
     def do(self, tokens):
         assert(len(tokens) >= 2)
         obj = None
-        collection = None
-        list_filter = []
         for tok in tokens:
             if isinstance(tok, ObjectType):
                 obj = tok
-            elif isinstance(tok, Collection):
-                collection = tok
-            elif isinstance(tok, list):
-                list_filter = tok
         assert(obj is not None)
-        if collection:
-            for o in obj.fetch_all_for_type(collection.name, list_filter):
-                o.object().delete()
-        else:
-            obj.object().delete()
+        obj.object().delete()
 
 
 class Show(Command):

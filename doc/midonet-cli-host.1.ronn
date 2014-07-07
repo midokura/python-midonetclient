@@ -21,7 +21,7 @@ A host has these attributes:
 
   * `name` <STRING>
   * `alive` <BOOLEAN>
-  * `addreses` <IP_ADDRESS[,IP_ADRESS...]>
+  * `addreses` <IP_ADDRESS[,IP_ADDRESS...]>
 
 It contains these subcollections of elements:
 

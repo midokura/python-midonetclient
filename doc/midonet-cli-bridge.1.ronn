@@ -62,6 +62,8 @@ Attributes:
   * `outfilter` <CHAIN>
   * `vlan` <VLAN_ID>
   * `peer` <PORT>
+  * `management-ip` <IP_ADDRESS> (only for a VXLAN port)
+  * `vni` <INTEGER> (only for a VXLAN port)
 
 ## COPYRIGHT
 
