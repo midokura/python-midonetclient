@@ -2347,7 +2347,7 @@ class LicenseStatus(ObjectType):
                                  getter = 'get_message'))
 
     def type_name(self):
-        return "license_status"
+        return "license-status"
 
 def _port_resolver(port):
     # This function dispatches the appropriate port class depending on the
@@ -2454,7 +2454,7 @@ class Midonet(ObjectType):
                                  list_method = 'get_licenses',
                                  getter = 'get_license',
                                  install_method = 'install_license'))
-        self.put_attr(Collection(name = 'license_status',
+        self.put_attr(Collection(name = 'license-status',
                                  element_type = LicenseStatus,
                                  list_method = None,
                                  getter = 'get_license_status'))
@@ -4130,8 +4130,10 @@ if __name__ == '__main__':
         root = session.connect()
         try:
             # Test the credential by making an API call first before starting a
-            # command loop.
-            root.get_tunnel_zones()
+            # command loop, and validate the current license status.
+            status = root.get_license_status()
+            if not status.is_valid():
+                sys.stdout.write("LICENSE WARNING: %s\n" % status.get_message())
         # Those except clauses are duplicitous. Cf. MidontCLI.default().
         except exc.HTTPUnauthorized as err:
             sys.stderr.write("Invalid credential. Wrong username/password. "
