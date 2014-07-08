@@ -4137,7 +4137,7 @@ if __name__ == '__main__':
             # command loop, and validate the current license status.
             status = root.get_license_status()
             if not status.is_valid():
-                sys.stdout.write("LICENSE WARNING: %s\n" % status.get_message())
+                sys.stderr.write("LICENSE WARNING: %s\n" % status.get_message())
         # Those except clauses are duplicitous. Cf. MidontCLI.default().
         except exc.HTTPUnauthorized as err:
             sys.stderr.write("Invalid credential. Wrong username/password. "
