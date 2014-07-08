@@ -1560,7 +1560,7 @@ class Router(ObjectType):
                                  value_type = StringType(),
                                  getter = 'get_name',
                                  setter = 'name',
-                                 writeable = False,
+                                 writeable = True,
                                  optional = True))
         self.put_attr(AdminStateAttr(name = 'state',
                                  getter = 'get_admin_state_up',
