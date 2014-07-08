@@ -30,7 +30,7 @@ from midonetclient.admin_state_up_mixin import AdminStateUpMixin
 
 class Bridge(ResourceBase, AdminStateUpMixin):
 
-    media_type = vendor_media_type.APPLICATION_BRIDGE_JSON
+    media_type = vendor_media_type.APPLICATION_BRIDGE_V2_JSON
 
     def __init__(self, uri, dto, auth):
         super(Bridge, self).__init__(uri, dto, auth)
