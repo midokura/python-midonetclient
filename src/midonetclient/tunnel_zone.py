@@ -40,6 +40,8 @@ class TunnelZone(ResourceBase):
             return vendor_media_type.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON
         elif self.dto['type'] == 'vxlan':
             return vendor_media_type.APPLICATION_TUNNEL_ZONE_HOST_JSON
+        elif self.dto['type'] == 'vtep':
+            return vendor_media_type.APPLICATION_TUNNEL_ZONE_HOST_JSON
 
     def _get_tunnel_zone_host_list_media_type(self):
         if self.tunnel_zone_host_list_media_type:
@@ -49,6 +51,10 @@ class TunnelZone(ResourceBase):
                 APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON
 
         elif self.dto['type'] == 'vxlan':
+            return vendor_media_type.\
+                APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON
+
+        elif self.dto['type'] == 'vtep':
             return vendor_media_type.\
                 APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON
 
