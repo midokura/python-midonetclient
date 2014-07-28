@@ -20,6 +20,13 @@ BuildRoot:  /var/tmp/%{name}-buildroot
 # BuildRequires: python, python-support, python-unittest2, python-all-dev, ruby-ronn
 Requires: python >= 2.6, python-webob, python-eventlet, python-httplib2
 
+# Don't let rpmbuild to add hard dependency on python runtime
+# version used to build RPM
+AutoReq: no
+# Disable python byte compiling
+# See: http://www.redhat.com/archives/rpm-list/2007-November/msg00020.html
+%define __os_install_post  true
+
 %description
 Python client for MidoNet REST API.
 
