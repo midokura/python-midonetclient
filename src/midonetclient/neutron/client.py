@@ -236,8 +236,80 @@ class SecurityGroupClientMixin(url_provider.SecurityGroupUrlProviderMixin):
                                media_type.SG_RULE)
 
 
+class LoadBalancerClientMixin(url_provider.LoadBalancerUrlProviderMixin):
+    """LoadBalancer operation mixin
+
+    Mixin that defines all the Neutron Load Balancer operations in MidoNet API.
+    """
+
+    def create_vip(self, vip):
+        LOG.info("create_vip %r", vip)
+        return self.client.post(self.vips_url(), media_type.VIP, body=vip)
+
+    def delete_vip(self, id):
+        LOG.info("delete_vip %r", id)
+        self.client.delete(self.vip_url(id))
+
+    def update_vip(self, vip_id, vip):
+        LOG.info("update_vip %r", vip)
+        return self.client.put(self.vip_url(vip_id), media_type.VIP, vip)
+
+    def create_pool(self, pool):
+        LOG.info("create_pool %r", pool)
+        return self.client.post(self.pools_url(), media_type.POOL, body=pool)
+
+    def delete_pool(self, id):
+        LOG.info("delete_pool %r", id)
+        self.client.delete(self.pool_url(id))
+
+    def update_pool(self, pool_id, pool):
+        LOG.info("update_pool %r", pool)
+        return self.client.put(self.pool_url(pool_id), media_type.POOL, pool)
+
+    def create_member(self, member):
+        LOG.info("create_member %r", member)
+        return self.client.post(self.members_url(), media_type.MEMBER,
+                                body=member)
+
+    def delete_member(self, id):
+        LOG.info("delete_member %r", id)
+        self.client.delete(self.member_url(id))
+
+    def update_member(self, member_id, member):
+        LOG.info("update_member %r", member)
+        return self.client.put(self.member_url(member_id), media_type.MEMBER,
+                               member)
+
+    def create_health_monitor(self, health_monitor):
+        LOG.info("create_health_monitor %r", health_monitor)
+        return self.client.post(self.health_monitors_url(),
+                                media_type.HEALTH_MONITOR,
+                                body=health_monitor)
+
+    def delete_health_monitor(self, id):
+        LOG.info("delete_health_monitor %r", id)
+        self.client.delete(self.health_monitor_url(id))
+
+    def update_health_monitor(self, health_monitor_id, health_monitor):
+        LOG.info("update_health_monitor %r", health_monitor)
+        return self.client.put(self.health_monitor_url(health_monitor_id),
+                               media_type.HEALTH_MONITOR,
+                               health_monitor)
+
+    def create_pool_health_monitor(self, health_monitor, pool_id):
+        LOG.info("create_pool_health_monitor %r, %r", health_monitor, pool_id)
+        return self.client.post(self.members_url(),
+                                media_type.POOL_HEALTH_MONITOR,
+                                body=member)
+
+    def delete_pool_health_monitor(self, health_monitor_id, pool_id):
+        LOG.info("create_pool_health_monitor %r, %r", health_monitor_id,
+                 pool_id)
+        self.client.delete(self.member_url(id))
+
+
 class MidonetClient(NetworkClientMixin, L3ClientMixin,
-                    SecurityGroupClientMixin):
+                    SecurityGroupClientMixin, LoadBalancerClientMixin):
     """Main MidoNet client class
 
     The main class for MidoNet client.  Instantiate this class to make API

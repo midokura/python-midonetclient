@@ -47,8 +47,14 @@ class UrlProviderMixin(object):
     def resource_url(self, name):
         return self._neutron_url()[name]
 
+    def load_balancer_resource_url(self, name):
+        return self.resource_url("load_balancer")[name]
+
     def template_url(self, name, id):
         return self._neutron_url()[name].replace("{id}", id)
+
+    def load_balancer_template_url(self, name, id):
+        return load_balancer_resource_url(name).replace("{id}", id)
 
 
 class NetworkUrlProviderMixin(UrlProviderMixin):
@@ -118,3 +124,37 @@ class SecurityGroupUrlProviderMixin(UrlProviderMixin):
 
     def security_group_rules_url(self):
         return self.resource_url("security_group_rules")
+
+
+class LoadBalancerUrlProviderMixin(UrlProviderMixin):
+    """Load Balancer URL provider mixin
+
+    This mixin provides URLs for Load Balancer resources
+    """
+
+    def vips_url(self):
+        return self.load_balancer_resource_url("vips")
+
+    def vip_url(self, id):
+        return self.load_balancer_template_url("vip_template", id)
+
+    def pools_url(self):
+        return self.load_balancer_resource_url("pools")
+
+    def pool_url(self, id):
+        return self.load_balancer_template_url("pool_template", id)
+
+    def members_url(self):
+        return self.load_balancer_resource_url("members")
+
+    def member_url(self, id):
+        return self.load_balancer_template_url("member_template", id)
+
+    def health_monitors_url(self):
+        return self.load_balancer_resource_url("health_monitors")
+
+    def health_monitor_url(self, id):
+        return self.load_balancer_template_url("health_monitor_template", id)
+
+    def pool_health_monitor_url(self, id):
+        return self.load_balancer_resource_url("pool_health_monitor", id)
