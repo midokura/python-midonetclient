@@ -399,6 +399,10 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.add_vxlan_tunnel_zone()
 
+    def add_vtep_tunnel_zone(self):
+        self._ensure_application()
+        return self.app.add_vtep_tunnel_zone()
+
     def add_bridge_port(self, bridge):
         return bridge.add_port()
 
