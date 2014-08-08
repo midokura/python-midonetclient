@@ -54,7 +54,7 @@ class UrlProviderMixin(object):
         return self._neutron_url()[name].replace("{id}", id)
 
     def load_balancer_template_url(self, name, id):
-        return load_balancer_resource_url(name).replace("{id}", id)
+        return self.load_balancer_resource_url(name).replace("{id}", id)
 
 
 class NetworkUrlProviderMixin(UrlProviderMixin):
@@ -156,5 +156,8 @@ class LoadBalancerUrlProviderMixin(UrlProviderMixin):
     def health_monitor_url(self, id):
         return self.load_balancer_template_url("health_monitor_template", id)
 
-    def pool_health_monitor_url(self, id):
-        return self.load_balancer_resource_url("pool_health_monitor", id)
+    def create_pool_health_monitor_url(self, pool_id):
+        return self.pool_url(pool_id) + "/health_monitors"
+
+    def delete_pool_health_monitor_url(self, pool_id, health_monitor_id):
+        return self.pool_url(pool_id) + "/health_monitors/" + health_monitor_id

@@ -298,14 +298,15 @@ class LoadBalancerClientMixin(url_provider.LoadBalancerUrlProviderMixin):
 
     def create_pool_health_monitor(self, health_monitor, pool_id):
         LOG.info("create_pool_health_monitor %r, %r", health_monitor, pool_id)
-        return self.client.post(self.members_url(),
+        return self.client.post(self.create_pool_health_monitor_url(pool_id),
                                 media_type.POOL_HEALTH_MONITOR,
-                                body=member)
+                                body=health_monitor)
 
     def delete_pool_health_monitor(self, health_monitor_id, pool_id):
         LOG.info("create_pool_health_monitor %r, %r", health_monitor_id,
                  pool_id)
-        self.client.delete(self.member_url(id))
+        self.client.delete(self.delete_pool_health_monitor_url(pool_id,
+            health_monitor_id))
 
 
 class MidonetClient(NetworkClientMixin, L3ClientMixin,
