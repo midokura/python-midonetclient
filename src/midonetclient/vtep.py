@@ -45,10 +45,6 @@ class Vtep(ResourceBase):
     def get_tunnel_zone_id(self):
         return self.dto['tunnelZoneId']
 
-    def name(self, name):
-        self.dto['name'] = name
-        return self
-
     def description(self, desc):
         self.dto['description'] = desc
         return self
