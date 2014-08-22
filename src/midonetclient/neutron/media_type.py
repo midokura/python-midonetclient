@@ -18,7 +18,7 @@
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
 
-NEUTRON = "application/vnd.org.midonet.neutron.Neutron-v1+json"
+NEUTRON = "application/vnd.org.midonet.neutron.Neutron-v2+json"
 NETWORK = "application/vnd.org.midonet.neutron.Network-v1+json"
 NETWORKS = "application/vnd.org.midonet.neutron.Networks-v1+json"
 SUBNET = "application/vnd.org.midonet.neutron.Subnet-v1+json"
