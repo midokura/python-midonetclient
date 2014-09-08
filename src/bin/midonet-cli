@@ -1395,6 +1395,9 @@ class PortGroup(ObjectType):
                                  element_type = PortGroupPort,
                                  list_method = 'get_ports',
                                  factory_method = 'add_port_group_port'))
+        self.put_attr(BooleanAttr(name = 'stateful',
+                                  getter = 'is_stateful',
+                                  setter = 'stateful'))
 
 class PortGroupPort(ObjectType):
     def type_name(self):

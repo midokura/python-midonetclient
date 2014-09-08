@@ -46,6 +46,13 @@ class PortGroup(ResourceBase):
     def get_id(self):
         return self.dto['id']
 
+    def is_stateful(self):
+        return self.dto['stateful']
+
+    def stateful(self, v):
+        self.dto['stateful'] = v
+        return self
+
     def get_ports(self, query=None):
         headers = {'Accept': APPLICATION_PORTGROUP_PORT_COLLECTION_JSON}
         return self.get_children(self.dto['ports'], query, headers,
