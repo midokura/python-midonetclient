@@ -38,6 +38,7 @@ Attributes:
 
   * `gw` <IP_ADDRESS>
   * `subnet` <CIDR>
+  * `interface-mtu` <INTEGER>
   * `opt121-routes` <CIDR[,CIDR...]>
 
 It contains these subcollections of elements:

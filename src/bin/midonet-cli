@@ -1478,6 +1478,10 @@ class Dhcp(ObjectType):
                                mask_getter = 'get_subnet_length',
                                addr_setter = 'subnet_prefix',
                                mask_setter = 'subnet_length'))
+        self.put_attr(SingleAttr(name = 'interface-mtu',
+                                 value_type = StringType(),
+                                 getter = 'get_interface_mtu',
+                                 setter = 'interface_mtu'))
         self.put_attr(SingleAttr(name = 'opt121-routes',
                                  value_type = StringType(),
                                  getter = 'get_opt121_routes',

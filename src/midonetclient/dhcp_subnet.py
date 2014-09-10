@@ -46,6 +46,9 @@ class DhcpSubnet(ResourceBase):
     def get_subnet_length(self):
         return self.dto['subnetLength']
 
+    def get_interface_mtu(self):
+        return self.dto['interfaceMTU']
+
     def get_opt121_routes(self):
         return self.dto['opt121Routes']
 
@@ -70,6 +73,10 @@ class DhcpSubnet(ResourceBase):
 
     def subnet_length(self, length):
         self.dto['subnetLength'] = length
+        return self
+
+    def interface_mtu(self, mtu):
+        self.dto['interfaceMTU'] = mtu
         return self
 
     def opt121_routes(self, routes):
