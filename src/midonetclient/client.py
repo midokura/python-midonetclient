@@ -19,6 +19,7 @@
 
 import logging
 from midonetclient import httpclient
+from midonetclient.neutron import host
 from midonetclient.neutron import l3
 from midonetclient.neutron import loadbalancer as lb
 from midonetclient.neutron import network as net
@@ -27,8 +28,11 @@ from midonetclient.neutron import securitygroup as sg
 LOG = logging.getLogger(__name__)
 
 
-class MidonetClient(net.NetworkClientMixin, l3.L3ClientMixin,
-                    sg.SecurityGroupClientMixin, lb.LoadBalancerClientMixin):
+class MidonetClient(net.NetworkClientMixin,
+                    l3.L3ClientMixin,
+                    sg.SecurityGroupClientMixin,
+                    lb.LoadBalancerClientMixin,
+                    host.HostClientMixin):
     """Main MidoNet client class
 
     The main class for MidoNet client.  Instantiate this class to make API
