@@ -47,14 +47,8 @@ class UrlProviderMixin(object):
     def resource_url(self, name):
         return self._neutron_url()[name]
 
-    def load_balancer_resource_url(self, name):
-        return self.resource_url("load_balancer")[name]
-
     def template_url(self, name, id):
         return self._neutron_url()[name].replace("{id}", id)
-
-    def load_balancer_template_url(self, name, id):
-        return self.load_balancer_resource_url(name).replace("{id}", id)
 
 
 class NetworkUrlProviderMixin(UrlProviderMixin):
@@ -131,6 +125,12 @@ class LoadBalancerUrlProviderMixin(UrlProviderMixin):
 
     This mixin provides URLs for Load Balancer resources
     """
+
+    def load_balancer_resource_url(self, name):
+        return self.resource_url("load_balancer")[name]
+
+    def load_balancer_template_url(self, name, id):
+        return self.load_balancer_resource_url(name).replace("{id}", id)
 
     def vips_url(self):
         return self.load_balancer_resource_url("vips")
