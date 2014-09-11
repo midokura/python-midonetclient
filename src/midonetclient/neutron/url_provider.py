@@ -17,26 +17,19 @@
 #
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
+from midonetclient import url_provider
 from midonetclient.neutron import media_type
-from midonetclient import vendor_media_type
 
 
-class UrlProviderMixin(object):
-    """Base URL provider mixin
+class NeutronUrlProviderMixin(url_provider.UrlProviderMixin):
+    """Base Neutron URL provider mixin
 
-    In MidoNet API, a response contains URIs that are used to discover the
-    available endpoints. This mixin contains methods to provide URLs.
+    This mixin provides URLs for Neutron constructs.
     """
 
     def __init__(self):
-        self.app = None
         self.neutron = None
-
-    def _application_url(self):
-        if self.app is None:
-            self.app = self.client.get(self.base_uri,
-                                       vendor_media_type.APPLICATION_JSON_V5)
-        return self.app
+        super(NeutronUrlProviderMixin, self).__init__()
 
     def _neutron_url(self):
         if self.neutron is None:
@@ -44,90 +37,92 @@ class UrlProviderMixin(object):
             self.neutron = self.client.get(app["neutron"], media_type.NEUTRON)
         return self.neutron
 
-    def resource_url(self, name):
+    def neutron_resource_url(self, name):
         return self._neutron_url()[name]
 
-    def template_url(self, name, id):
+    def neutron_template_url(self, name, id):
         return self._neutron_url()[name].replace("{id}", id)
 
 
-class NetworkUrlProviderMixin(UrlProviderMixin):
+class NetworkUrlProviderMixin(NeutronUrlProviderMixin):
     """Network URL provider mixin
 
     This mixin provides URLs for networks.
     """
 
     def network_url(self, id):
-        return self.template_url("network_template", id)
+        return self.neutron_template_url("network_template", id)
 
     def networks_url(self):
-        return self.resource_url("networks")
+        return self.neutron_resource_url("networks")
 
     def subnet_url(self, id):
-        return self.template_url("subnet_template", id)
+        return self.neutron_template_url("subnet_template", id)
 
     def subnets_url(self):
-        return self.resource_url("subnets")
+        return self.neutron_resource_url("subnets")
 
     def port_url(self, id):
-        return self.template_url("port_template", id)
+        return self.neutron_template_url("port_template", id)
 
     def ports_url(self):
-        return self.resource_url("ports")
+        return self.neutron_resource_url("ports")
 
 
-class L3UrlProviderMixin(UrlProviderMixin):
+class L3UrlProviderMixin(NeutronUrlProviderMixin):
     """L3 URL provider mixin
 
     This mixin provides URLs for L3 constructs.
     """
 
     def router_url(self, id):
-        return self.template_url("router_template", id)
+        return self.neutron_template_url("router_template", id)
 
     def routers_url(self):
-        return self.resource_url("routers")
+        return self.neutron_resource_url("routers")
 
     def add_router_interface_url(self, router_id):
-        return self.template_url("add_router_interface_template", router_id)
+        return self.neutron_template_url("add_router_interface_template",
+                                         router_id)
 
     def remove_router_interface_url(self, router_id):
-        return self.template_url("remove_router_interface_template", router_id)
+        return self.neutron_template_url("remove_router_interface_template",
+                                         router_id)
 
     def floating_ip_url(self, id):
-        return self.template_url("floating_ip_template", id)
+        return self.neutron_template_url("floating_ip_template", id)
 
     def floating_ips_url(self):
-        return self.resource_url("floating_ips")
+        return self.neutron_resource_url("floating_ips")
 
 
-class SecurityGroupUrlProviderMixin(UrlProviderMixin):
+class SecurityGroupUrlProviderMixin(NeutronUrlProviderMixin):
     """SG URL provider mixin
 
     This mixin provides URLs for SG and SG rules.
     """
 
     def security_group_url(self, id):
-        return self.template_url("security_group_template", id)
+        return self.neutron_template_url("security_group_template", id)
 
     def security_groups_url(self):
-        return self.resource_url("security_groups")
+        return self.neutron_resource_url("security_groups")
 
     def security_group_rule_url(self, id):
-        return self.template_url("security_group_rule_template", id)
+        return self.neutron_template_url("security_group_rule_template", id)
 
     def security_group_rules_url(self):
-        return self.resource_url("security_group_rules")
+        return self.neutron_resource_url("security_group_rules")
 
 
-class LoadBalancerUrlProviderMixin(UrlProviderMixin):
+class LoadBalancerUrlProviderMixin(NeutronUrlProviderMixin):
     """Load Balancer URL provider mixin
 
     This mixin provides URLs for Load Balancer resources
     """
 
     def load_balancer_resource_url(self, name):
-        return self.resource_url("load_balancer")[name]
+        return self.neutron_resource_url("load_balancer")[name]
 
     def load_balancer_template_url(self, name, id):
         return self.load_balancer_resource_url(name).replace("{id}", id)
