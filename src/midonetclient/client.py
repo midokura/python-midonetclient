@@ -17,20 +17,26 @@
 #
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
-from midonetclient import client
+import logging
+from midonetclient import httpclient
+from midonetclient.neutron import l3
+from midonetclient.neutron import loadbalancer as lb
+from midonetclient.neutron import network as net
+from midonetclient.neutron import securitygroup as sg
+
+LOG = logging.getLogger(__name__)
 
 
-class MidonetClient(client.MidonetClient):
+class MidonetClient(net.NetworkClientMixin, l3.L3ClientMixin,
+                    sg.SecurityGroupClientMixin, lb.LoadBalancerClientMixin):
     """Main MidoNet client class
 
     The main class for MidoNet client.  Instantiate this class to make API
     calls to MidoNet API.
-
-    This class is deprecated.  Use the class with the same name in
-    'midonetclient.client' module.  This class exists only to not break
-    backward compatibility.
     """
 
     def __init__(self, base_uri, username, password, project_id=None):
-        super(MidonetClient, self).__init__(base_uri, username, password,
+        self.base_uri = base_uri
+        self.client = httpclient.HttpClient(base_uri, username, password,
                                             project_id=project_id)
+        super(MidonetClient, self).__init__()
