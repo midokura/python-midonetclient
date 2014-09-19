@@ -59,6 +59,9 @@ collections:
   Creates a new object under a parent object, or at the root, and assigns values
   to some of its members.
 
+  * `install` <TYPE> <FILE>:
+  Creates a new object of the specified object type from a given file.
+
   * `set` <OBJECT> {<FIELD> <VALUE>}:
   Updates values for members of an existing object.
 
