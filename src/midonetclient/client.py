@@ -41,6 +41,7 @@ class MidonetClient(net.NetworkClientMixin,
 
     def __init__(self, base_uri, username, password, project_id=None):
         self.base_uri = base_uri
-        self.client = httpclient.HttpClient(base_uri, username, password,
-                                            project_id=project_id)
+        self.client = httpclient.CaseAwareHttpClient(base_uri, username,
+                                                     password,
+                                                     project_id=project_id)
         super(MidonetClient, self).__init__()
