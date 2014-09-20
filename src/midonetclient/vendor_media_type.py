@@ -112,8 +112,8 @@ APPLICATION_HOST_VERSION_JSON = \
     "application/vnd.org.midonet.HostVersion-v1+json"
 
 # Port media types
-APPLICATION_PORT_V2_JSON = "application/vnd.org.midonet.Port-v2+json"
-APPLICATION_PORT_V2_COLLECTION_JSON = \
+APPLICATION_PORT_JSON = "application/vnd.org.midonet.Port-v2+json"
+APPLICATION_PORT_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Port-v2+json"
 
 APPLICATION_IP_ADDR_GROUP_JSON = \

@@ -30,7 +30,7 @@ PORT_TYPE_VXLAN = 'Vxlan'
 
 class Port(resource_base.ResourceBase, AdminStateUpMixin):
 
-    media_type = vendor_media_type.APPLICATION_PORT_V2_JSON
+    media_type = vendor_media_type.APPLICATION_PORT_JSON
 
     def __init__(self, uri, dto, auth):
         super(Port, self).__init__(uri, dto, auth)

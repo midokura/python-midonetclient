@@ -165,7 +165,7 @@ class Application(ResourceBase):
 
     def get_ports(self, query):
         headers = {'Accept':
-                   vendor_media_type.APPLICATION_PORT_V2_COLLECTION_JSON}
+                   vendor_media_type.APPLICATION_PORT_COLLECTION_JSON}
         return self.get_children(self.dto['ports'], query, headers, Port)
 
     def get_port_groups(self, query):

@@ -24,6 +24,7 @@ from midonetclient.neutron import host
 from midonetclient.neutron import l3
 from midonetclient.neutron import loadbalancer as lb
 from midonetclient.neutron import network as net
+from midonetclient.neutron import port
 from midonetclient.neutron import router as rtr
 from midonetclient.neutron import securitygroup as sg
 from midonetclient.neutron import system
@@ -38,6 +39,7 @@ class MidonetClient(net.NetworkClientMixin,
                     lb.LoadBalancerClientMixin,
                     br.BridgeClientMixin,
                     host.HostClientMixin,
+                    port.PortClientMixin,
                     rtr.RouterClientMixin,
                     system.SystemClientMixin,
                     tz.TunnelZoneClientMixin):

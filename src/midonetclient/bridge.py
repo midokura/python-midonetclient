@@ -69,7 +69,7 @@ class Bridge(ResourceBase, AdminStateUpMixin):
         if query is None:
             query = {}
         headers = {'Accept':
-                   vendor_media_type.APPLICATION_PORT_V2_COLLECTION_JSON}
+                   vendor_media_type.APPLICATION_PORT_COLLECTION_JSON}
         ports = self.get_children(self.dto['ports'], query, headers, Port)
 
         vxlan_port = self.get_vxlan_port()
@@ -86,14 +86,14 @@ class Bridge(ResourceBase, AdminStateUpMixin):
         if not vxlan_port_dto: return None 
 
         vxlan_port = Port(vxlan_port_dto, {'uri': vxlan_port_dto}, self.auth)
-        vxlan_port.get({'Accept': vendor_media_type.APPLICATION_PORT_V2_JSON})
+        vxlan_port.get({'Accept': vendor_media_type.APPLICATION_PORT_JSON})
         return vxlan_port
 
     def get_peer_ports(self, query=None):
         if query is None:
             query = {}
         headers = {'Accept':
-                   vendor_media_type.APPLICATION_PORT_V2_COLLECTION_JSON}
+                   vendor_media_type.APPLICATION_PORT_COLLECTION_JSON}
         _, peer_ports = self.auth.do_request(self.dto['peerPorts'], 'GET',
                                                headers=headers, query=query)
         res = []
