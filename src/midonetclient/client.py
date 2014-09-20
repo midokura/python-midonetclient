@@ -19,6 +19,7 @@
 
 import logging
 from midonetclient import httpclient
+from midonetclient.neutron import bridge as br
 from midonetclient.neutron import host
 from midonetclient.neutron import l3
 from midonetclient.neutron import loadbalancer as lb
@@ -34,6 +35,7 @@ class MidonetClient(net.NetworkClientMixin,
                     l3.L3ClientMixin,
                     sg.SecurityGroupClientMixin,
                     lb.LoadBalancerClientMixin,
+                    br.BridgeClientMixin,
                     host.HostClientMixin,
                     system.SystemClientMixin,
                     tz.TunnelZoneClientMixin):

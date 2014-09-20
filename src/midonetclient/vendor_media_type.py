@@ -29,8 +29,8 @@ APPLICATION_ROUTER_V2_JSON = \
     "application/vnd.org.midonet.Router-v2+json"
 APPLICATION_ROUTER_COLLECTION_V2_JSON = \
     "application/vnd.org.midonet.collection.Router-v2+json"
-APPLICATION_BRIDGE_V2_JSON = "application/vnd.org.midonet.Bridge-v2+json"
-APPLICATION_BRIDGE_COLLECTION_V2_JSON = \
+APPLICATION_BRIDGE_JSON = "application/vnd.org.midonet.Bridge-v2+json"
+APPLICATION_BRIDGE_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Bridge-v2+json"
 APPLICATION_HOST_JSON = "application/vnd.org.midonet.Host-v2+json"
 APPLICATION_HOST_COLLECTION_JSON = \
