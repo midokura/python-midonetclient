@@ -25,7 +25,7 @@ from midonetclient.resource_base import ResourceBase
 
 class Rule(ResourceBase):
 
-    media_type = vendor_media_type.APPLICATION_RULE_V2_JSON
+    media_type = vendor_media_type.APPLICATION_RULE_JSON
 
     def __init__(self, uri, dto, auth):
         super(Rule, self).__init__(uri, dto, auth)

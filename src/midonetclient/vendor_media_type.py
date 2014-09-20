@@ -56,8 +56,8 @@ APPLICATION_CHAIN_JSON = "application/vnd.org.midonet.Chain-v1+json"
 APPLICATION_CHAIN_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Chain-v1+json"
 
-APPLICATION_RULE_V2_JSON = "application/vnd.org.midonet.Rule-v2+json"
-APPLICATION_RULE_COLLECTION_V2_JSON = \
+APPLICATION_RULE_JSON = "application/vnd.org.midonet.Rule-v2+json"
+APPLICATION_RULE_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Rule-v2+json"
 
 APPLICATION_BGP_JSON = "application/vnd.org.midonet.Bgp-v1+json"
