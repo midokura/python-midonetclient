@@ -29,7 +29,7 @@ from midonetclient.admin_state_up_mixin import AdminStateUpMixin
 
 class Router(ResourceBase, AdminStateUpMixin):
 
-    media_type = vendor_media_type.APPLICATION_ROUTER_V2_JSON
+    media_type = vendor_media_type.APPLICATION_ROUTER_JSON
 
     def __init__(self, uri, dto, auth):
         super(Router, self).__init__(uri, dto, auth)

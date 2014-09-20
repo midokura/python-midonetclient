@@ -25,9 +25,8 @@ APPLICATION_ERROR_JSON = "application/vnd.org.midonet.Error-v1+json"
 APPLICATION_TENANT_JSON = "application/vnd.org.midonet.Tenant-v1+json"
 APPLICATION_TENANT_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Tenant-v1+json"
-APPLICATION_ROUTER_V2_JSON = \
-    "application/vnd.org.midonet.Router-v2+json"
-APPLICATION_ROUTER_COLLECTION_V2_JSON = \
+APPLICATION_ROUTER_JSON = "application/vnd.org.midonet.Router-v2+json"
+APPLICATION_ROUTER_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Router-v2+json"
 APPLICATION_BRIDGE_JSON = "application/vnd.org.midonet.Bridge-v2+json"
 APPLICATION_BRIDGE_COLLECTION_JSON = \

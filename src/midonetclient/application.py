@@ -155,7 +155,7 @@ class Application(ResourceBase):
 
     def get_routers(self, query):
         headers = {'Accept':
-                   vendor_media_type.APPLICATION_ROUTER_COLLECTION_V2_JSON}
+                   vendor_media_type.APPLICATION_ROUTER_COLLECTION_JSON}
         return self.get_children(self.dto['routers'], query, headers, Router)
 
     def get_bridges(self, query):
