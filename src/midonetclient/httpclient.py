@@ -17,23 +17,7 @@
 #
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 
-from midonetclient import auth_lib, util
-
-
-def convert_case(f):
-    def wrapper(*args, **kwargs):
-        new_args = list()
-        for arg in args:
-            new_args.append(util.convert_dict_keys(arg, util.snake_to_camel))
-
-        new_kwargs = dict()
-        for k, v in kwargs.iteritems():
-            new_kwargs[k] = util.convert_dict_keys(v, util.snake_to_camel)
-
-        return util.convert_dict_keys(f(*new_args, **new_kwargs),
-                                      util.camel_to_snake)
-
-    return wrapper
+from midonetclient import auth_lib
 
 
 class HttpClient(object):
@@ -62,23 +46,3 @@ class HttpClient(object):
         resp, data = self.auth_lib.do_request(uri, 'PUT', body=body,
                                               headers=headers)
         return data
-
-
-class CaseAwareHttpClient(HttpClient):
-    """Temporary class that converts input and output dictionary keys between
-    camel and snake cases to bridge between MidoNet and Neutron APIs.  When
-    the MidoNet API or cluster change to handle the snake case, remove this."""
-
-    @convert_case
-    def get(self, uri, media_type, params=None):
-        return super(CaseAwareHttpClient, self).get(uri, media_type,
-                                                    params=params)
-
-    @convert_case
-    def post(self, uri, media_type, body=None):
-        return super(CaseAwareHttpClient, self).post(uri, media_type,
-                                                     body=body)
-
-    @convert_case
-    def put(self, uri, media_type, body=None):
-        return super(CaseAwareHttpClient, self).put(uri, media_type, body=body)

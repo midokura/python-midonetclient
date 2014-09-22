@@ -19,7 +19,7 @@
 
 import logging
 
-from midonetclient import url_provider
+from midonetclient import url_provider, util
 from midonetclient import vendor_media_type as mt
 
 LOG = logging.getLogger(__name__)
@@ -32,7 +32,7 @@ class HostUrlProviderMixin(url_provider.UrlProviderMixin):
     """
 
     def host_url(self, id):
-        return self.template_url("host_template", id)
+        return self.template_url("hostTemplate", id)
 
     def hosts_url(self):
         return self.resource_url("hosts")
@@ -44,11 +44,13 @@ class HostClientMixin(HostUrlProviderMixin):
     Mixin that defines all the Neutron host operations in MidoNet API.
     """
 
+    @util.convert_case
     def get_host(self, host_id, fields=None):
         LOG.info("get_host %r", host_id)
         return self.client.get(self.host_url(host_id),
                                mt.APPLICATION_HOST_JSON)
 
+    @util.convert_case
     def get_hosts(self, filters=None, fields=None, sorts=None, limit=None,
                   marker=None, page_reverse=False):
         LOG.info("get_hosts")
