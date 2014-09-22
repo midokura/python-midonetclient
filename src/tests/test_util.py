@@ -68,6 +68,21 @@ class TestUtil(unittest.TestCase):
         output = util.convert_dict_keys(input, to_upper)
         self.assertTrue(cmp(expected, output) == 0)
 
+    @data(
+        ({"foo_bar": 0}, {"fooBar": 0}),
+        ([{"foo_bar": 0}, {"foo_baz": 1}], [{"fooBar": 0}, {"fooBaz": 1}])
+    )
+    def test_convert_case_decorator(self, d):
+        inp, expected = d
+
+        @util.convert_case
+        def test_method(arg):
+            self.assertTrue(cmp(expected, arg) == 0)
+            return arg
+
+        ret = test_method(inp)
+        self.assertTrue(cmp(inp, ret) == 0)
+
 
 def main():
     unittest.main()

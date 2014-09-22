@@ -49,3 +49,18 @@ def convert_dict_keys(x, converter):
         return new_list
     else:
         return x
+
+
+def convert_case(f):
+    def wrapper(*args, **kwargs):
+        new_args = list()
+        for arg in args:
+            new_args.append(convert_dict_keys(arg, snake_to_camel))
+
+        new_kwargs = dict()
+        for k, v in kwargs.iteritems():
+            new_kwargs[k] = convert_dict_keys(v, snake_to_camel)
+
+        return convert_dict_keys(f(*new_args, **new_kwargs), camel_to_snake)
+
+    return wrapper
