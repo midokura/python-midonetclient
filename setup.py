@@ -57,6 +57,6 @@ setup(name=MODULE_NAME,
           "webob",
           ],
       zip_safe=False,
-      tests_require=["nose"],
+      tests_require=["nose", "ddt", "mock"],
       test_suite="nose.collector",
       license="Apache License, Version 2.0")
