@@ -27,6 +27,7 @@ from midonetclient.neutron import loadbalancer as lb
 from midonetclient.neutron import network as net
 from midonetclient.neutron import port
 from midonetclient.neutron import router as rtr
+from midonetclient.neutron import routing_table as rt
 from midonetclient.neutron import securitygroup as sg
 from midonetclient.neutron import system
 from midonetclient.neutron import tunnel_zone as tz
@@ -43,6 +44,7 @@ class MidonetClient(net.NetworkClientMixin,
                     host.HostClientMixin,
                     port.PortClientMixin,
                     rtr.RouterClientMixin,
+                    rt.RoutingTableClientMixin,
                     system.SystemClientMixin,
                     tz.TunnelZoneClientMixin):
     """Main MidoNet client class
