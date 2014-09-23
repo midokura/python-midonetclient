@@ -139,4 +139,4 @@ class LoadBalancerClientMixin(LoadBalancerUrlProviderMixin):
         LOG.info("create_pool_health_monitor %r, %r", health_monitor_id,
                  pool_id)
         self.client.delete(self.delete_pool_health_monitor_url(pool_id,
-            health_monitor_id))
+                           health_monitor_id))

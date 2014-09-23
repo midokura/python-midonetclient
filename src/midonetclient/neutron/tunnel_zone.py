@@ -74,16 +74,17 @@ class TunnelZoneClientMixin(TunnelZoneUrlProviderMixin):
                                mt.APPLICATION_TUNNEL_ZONE_COLLECTION_JSON)
 
     @util.convert_case
-    def update_tunnel_zone(self, tz_id, tz):
+    def update_tunnel_zone(self, tz):
         LOG.info("update_tunnel_zone %r", tz)
-        return self.client.put(self.tunnel_zone_url(tz_id),
+        return self.client.put(self.tunnel_zone_url(tz["id"]),
                                mt.APPLICATION_TUNNEL_ZONE_JSON, tz)
 
     @util.convert_case
     def create_tunnel_zone_host(self, tz_host):
         LOG.info("create_tunnel_zone_host %r", tz_host)
+        # convert_case converted to camel
         return self.client.post(
-            self.tunnel_zone_hosts_url(tz_host["tunnel_zone_id"]),
+            self.tunnel_zone_hosts_url(tz_host["tunnelZoneId"]),
             mt.APPLICATION_TUNNEL_ZONE_HOST_JSON, body=tz_host)
 
     def delete_tunnel_zone_host(self, tz_id, host_id):

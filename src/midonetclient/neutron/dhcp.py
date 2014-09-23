@@ -123,24 +123,24 @@ class DhcpClientMixin(DhcpUrlProviderMixin):
 
     @util.convert_case
     def create_dhcp_host(self, br_id, cidr, host):
-        LOG.info("create_dhcp_port %r %r %r", (br_id, cidr, host))
+        LOG.info("create_dhcp_host %r %r %r", (br_id, cidr, host))
         return self.client.post(
             self.dhcp_hosts_url(br_id, cidr),
             mt.APPLICATION_DHCP_HOST_JSON, body=host)
 
     def delete_dhcp_host(self, br_id, cidr, mac):
-        LOG.info("delete_dhcp_port %r %r %r", (br_id, cidr, mac))
+        LOG.info("delete_dhcp_host %r %r %r", (br_id, cidr, mac))
         self.client.delete(self.dhcp_host_url(br_id, cidr, mac))
 
     @util.convert_case
     def get_dhcp_host(self, br_id, cidr, mac):
-        LOG.info("get_dhcp_port %r %r %r", (br_id, cidr, mac))
+        LOG.info("get_dhcp_host %r %r %r", (br_id, cidr, mac))
         return self.client.get(self.dhcp_host_url(br_id, cidr, mac),
                                mt.APPLICATION_DHCP_HOST_JSON)
 
     @util.convert_case
     def get_dhcp_hosts(self, br_id, cidr):
-        LOG.info("get_dhcp_ports %r %r", (br_id, cidr))
+        LOG.info("get_dhcp_hosts %r %r", (br_id, cidr))
         return self.client.get(self.dhcp_hosts_url(br_id, cidr),
                                mt.APPLICATION_DHCP_HOST_COLLECTION_JSON)
 

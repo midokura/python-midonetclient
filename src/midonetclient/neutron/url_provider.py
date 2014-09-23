@@ -42,4 +42,3 @@ class NeutronUrlProviderMixin(url_provider.UrlProviderMixin):
 
     def neutron_template_url(self, name, id):
         return self._neutron_url()[name].replace("{id}", id)
-

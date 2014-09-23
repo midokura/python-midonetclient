@@ -58,10 +58,11 @@ class PortClientMixin(PortUrlProviderMixin):
     @util.convert_case
     def create_port(self, port):
         LOG.info("create_port %r", port)
+        # convert_case converted to camel
         if port["type"].lower() == "router":
-            url = self.router_ports_url(port["device_id"])
+            url = self.router_ports_url(port["deviceId"])
         else:
-            url = self.bridge_ports_url(port["device_id"])
+            url = self.bridge_ports_url(port["deviceId"])
         return self.client.post(url, mt.APPLICATION_PORT_JSON, body=port)
 
     def delete_port(self, port_id):
@@ -82,15 +83,16 @@ class PortClientMixin(PortUrlProviderMixin):
                                mt.APPLICATION_PORT_COLLECTION_JSON)
 
     @util.convert_case
-    def update_port(self, port_id, port):
+    def update_port(self, port):
         LOG.info("update_port %r", port)
-        return self.client.put(self.port_url(port_id),
+        return self.client.put(self.port_url(port["id"]),
                                mt.APPLICATION_PORT_JSON, port)
 
     @util.convert_case
     def link_port(self, link):
         LOG.info("link_port %r", link)
-        return self.client.post(self.link_url(link["port_id"]),
+        # convert_case converted to camel
+        return self.client.post(self.link_url(link["portId"]),
                                 mt.APPLICATION_PORT_LINK_JSON, body=link)
 
     def unlink_port(self, port_id):

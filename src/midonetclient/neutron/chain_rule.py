@@ -56,14 +56,14 @@ class ChainRuleClientMixin(ChainRuleUrlProviderMixin):
         return self.client.post(self.chains_url(),
                                 mt.APPLICATION_CHAIN_JSON, body=chain)
 
-    def delete_chain(self, rtr_id):
-        LOG.info("delete_chain %r", rtr_id)
-        self.client.delete(self.chain_url(rtr_id))
+    def delete_chain(self, chain_id):
+        LOG.info("delete_chain %r", chain_id)
+        self.client.delete(self.chain_url(chain_id))
 
     @util.convert_case
-    def get_chain(self, rtr_id, fields=None):
-        LOG.info("get_chain %r", rtr_id)
-        return self.client.get(self.chain_url(rtr_id),
+    def get_chain(self, chain_id, fields=None):
+        LOG.info("get_chain %r", chain_id)
+        return self.client.get(self.chain_url(chain_id),
                                mt.APPLICATION_CHAIN_JSON)
 
     @util.convert_case
@@ -74,15 +74,16 @@ class ChainRuleClientMixin(ChainRuleUrlProviderMixin):
                                mt.APPLICATION_CHAIN_COLLECTION_JSON)
 
     @util.convert_case
-    def update_chain(self, rtr_id, chain):
+    def update_chain(self, chain):
         LOG.info("update_chain %r", chain)
-        return self.client.put(self.chain_url(rtr_id),
+        return self.client.put(self.chain_url(chain["id"]),
                                mt.APPLICATION_CHAIN_JSON, chain)
 
     @util.convert_case
     def create_chain_rule(self, rule):
         LOG.info("create_chain_rule %r", rule)
-        return self.client.post(self.rules_url(rule["chain_id"]),
+        # convert_case converted to camel
+        return self.client.post(self.rules_url(rule["chainId"]),
                                 mt.APPLICATION_RULE_JSON, body=rule)
 
     def delete_chain_rule(self, rule_id):

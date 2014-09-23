@@ -68,7 +68,7 @@ class BridgeClientMixin(BridgeUrlProviderMixin):
                                mt.APPLICATION_BRIDGE_COLLECTION_JSON)
 
     @util.convert_case
-    def update_bridge(self, br_id, bridge):
+    def update_bridge(self, bridge):
         LOG.info("update_bridge %r", bridge)
-        return self.client.put(self.bridge_url(br_id),
+        return self.client.put(self.bridge_url(bridge["id"]),
                                mt.APPLICATION_BRIDGE_JSON, bridge)

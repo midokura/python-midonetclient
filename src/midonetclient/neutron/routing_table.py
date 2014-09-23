@@ -53,18 +53,18 @@ class RoutingTableClientMixin(RoutingTableUrlProviderMixin):
                                 mt.APPLICATION_ROUTE_JSON, body=route)
 
     def delete_route(self, rt_id):
-        LOG.info("delete_routing_table %r", rt_id)
+        LOG.info("delete_route %r", rt_id)
         self.client.delete(self.route_url(rt_id))
 
     @util.convert_case
     def get_route(self, rt_id, fields=None):
-        LOG.info("get_routing_table %r", rt_id)
+        LOG.info("get_route %r", rt_id)
         return self.client.get(self.route_url(rt_id),
                                mt.APPLICATION_ROUTE_JSON)
 
     @util.convert_case
-    def get_routes(self, rtr_id, filters=None, fields=None, sorts=None,
-                   limit=None, marker=None, page_reverse=False):
-        LOG.info("get_routing_tables %r" % rtr_id)
-        return self.client.get(self.routes_url(rtr_id),
+    def get_routes(self, filters=None, fields=None, sorts=None, limit=None,
+                   marker=None, page_reverse=False):
+        LOG.info("get_routes")
+        return self.client.get(self.routes_url(),
                                mt.APPLICATION_ROUTE_COLLECTION_JSON)

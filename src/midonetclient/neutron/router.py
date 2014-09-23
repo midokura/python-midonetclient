@@ -68,7 +68,7 @@ class RouterClientMixin(RouterUrlProviderMixin):
                                mt.APPLICATION_ROUTER_COLLECTION_JSON)
 
     @util.convert_case
-    def update_router(self, rtr_id, router):
+    def update_router(self, router):
         LOG.info("update_router %r", router)
-        return self.client.put(self.router_url(rtr_id),
+        return self.client.put(self.router_url(router["id"]),
                                mt.APPLICATION_ROUTER_JSON, router)
