@@ -35,8 +35,10 @@ class HttpClient(object):
                                               headers=headers)
         return data
 
-    def post(self, uri, media_type, body=None):
-        headers = {"Content-Type": media_type, "Accept": media_type}
+    def post(self, uri, media_type, body=None, accept=None):
+        if accept is None:
+            accept = media_type
+        headers = {"Content-Type": media_type, "Accept": accept}
         resp, data = self.auth_lib.do_request(uri, 'POST', body=body,
                                               headers=headers)
         return data

@@ -495,14 +495,14 @@ class Application(ResourceBase):
 
     def install_license(self, file):
         body = open(file.value, 'rb').read()
-        headers = {'Accept': vendor_media_type.APPLICATION_LICENSE_JSON_V1,
+        headers = {'Accept': vendor_media_type.APPLICATION_LICENSE_JSON,
                    'Content-Type': vendor_media_type.APPLICATION_OCTET_STREAM}
         uri = self.dto['licenses']
         return self._upload_resource(License, uri, None, body, headers)
 
     def get_licenses(self):
         headers = {'Accept':
-                   vendor_media_type.APPLICATION_LICENSE_COLLECTION_JSON_V1}
+                   vendor_media_type.APPLICATION_LICENSE_COLLECTION_JSON}
         return self.get_children(self.dto['licenses'], {}, headers, License)
 
     def get_license(self, id_):

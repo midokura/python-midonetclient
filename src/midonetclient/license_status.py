@@ -22,7 +22,7 @@ from midonetclient.resource_base import ResourceBase
 
 class LicenseStatus(ResourceBase):
 
-    media_type =  vendor_media_type.APPLICATION_LICENSE_STATUS_JSON_V1
+    media_type =  vendor_media_type.APPLICATION_LICENSE_STATUS_JSON
 
     def __init__(self, uri, dto, auth):
         super(LicenseStatus, self).__init__(uri, dto, auth)

@@ -19,7 +19,7 @@
 # @author: Ryu Ishimoto <ryu@midokura.com>, Midokura
 # @author: Alex Bikfalvi <alex.bikfalvi@midokura.com>, Midokura
 
-APPLICATION_OCTET_STREAM = "application/octet-stream";
+APPLICATION_OCTET_STREAM = "application/octet-stream"
 APPLICATION_JSON_V5 = "application/vnd.org.midonet.Application-v5+json"
 APPLICATION_ERROR_JSON = "application/vnd.org.midonet.Error-v1+json"
 APPLICATION_TENANT_JSON = "application/vnd.org.midonet.Tenant-v1+json"
@@ -166,10 +166,9 @@ APPLICATION_VTEP_BINDING_COLLECTION_JSON = \
             "application/vnd.org.midonet.collection.VTEPBinding-v1+json"
 
 # License
-APPLICATION_LICENSE_JSON_V1 = \
-            "application/vnd.org.midonet.License-v1+json"
-APPLICATION_LICENSE_COLLECTION_JSON_V1 = \
-            "application/vnd.org.midonet.collection.License-v1+json"
-APPLICATION_LICENSE_STATUS_JSON_V1 = \
-            "application/vnd.org.midonet.LicenseStatus-v1+json"
+APPLICATION_LICENSE_JSON = "application/vnd.org.midonet.License-v1+json"
+APPLICATION_LICENSE_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.License-v1+json"
+APPLICATION_LICENSE_STATUS_JSON = \
+    "application/vnd.org.midonet.LicenseStatus-v1+json"
 
