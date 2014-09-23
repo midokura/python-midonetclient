@@ -27,6 +27,7 @@ from midonetclient.neutron import l3
 from midonetclient.neutron import loadbalancer as lb
 from midonetclient.neutron import network as net
 from midonetclient.neutron import port
+from midonetclient.neutron import port_group as pg
 from midonetclient.neutron import router as rtr
 from midonetclient.neutron import routing_table as rt
 from midonetclient.neutron import securitygroup as sg
@@ -45,6 +46,7 @@ class MidonetClient(net.NetworkClientMixin,
                     cr.ChainRuleClientMixin,
                     host.HostClientMixin,
                     port.PortClientMixin,
+                    pg.PortGroupClientMixin,
                     rtr.RouterClientMixin,
                     rt.RoutingTableClientMixin,
                     system.SystemClientMixin,
