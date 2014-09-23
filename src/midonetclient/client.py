@@ -19,6 +19,7 @@
 
 import logging
 from midonetclient import httpclient
+from midonetclient.neutron import bgp
 from midonetclient.neutron import bridge as br
 from midonetclient.neutron import chain_rule as cr
 from midonetclient.neutron import host
@@ -39,6 +40,7 @@ class MidonetClient(net.NetworkClientMixin,
                     l3.L3ClientMixin,
                     sg.SecurityGroupClientMixin,
                     lb.LoadBalancerClientMixin,
+                    bgp.BgpClientMixin,
                     br.BridgeClientMixin,
                     cr.ChainRuleClientMixin,
                     host.HostClientMixin,
