@@ -62,15 +62,16 @@ function build_man_pages() {
 function package_rpm() {
     RPM_BUILD_DIR=build/rpm/
     mkdir -p  $RPM_BUILD_DIR/usr/lib/python2.6/site-packages/
+    mkdir -p  $RPM_BUILD_DIR/usr/lib/python2.7/site-packages/
     mkdir -p  $RPM_BUILD_DIR/usr/bin/
     mkdir -p  $RPM_BUILD_DIR/usr/share/man/man1
 
     cp -r  src/midonetclient $RPM_BUILD_DIR/usr/lib/python2.6/site-packages/
+    cp -r  src/midonetclient $RPM_BUILD_DIR/usr/lib/python2.7/site-packages/
     cp src/bin/midonet-cli $RPM_BUILD_DIR/usr/bin/
     cp doc/*.gz $RPM_BUILD_DIR/usr/share/man/man1/
     RPM_ARGS="$RPM_ARGS -C build/rpm"
-    RPM_ARGS="$RPM_ARGS --provides python2.6-midonetclient"
-    RPM_ARGS="$RPM_ARGS -d 'python >= 2.6'"
+    RPM_ARGS="$RPM_ARGS -d 'python >= 2.6' -d 'python < 2.8'"
     RPM_ARGS="$RPM_ARGS --epoch 1"
     eval fpm $FPM_BASE_ARGS $RPM_ARGS -t rpm .
 }
