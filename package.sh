@@ -87,7 +87,6 @@ function package_deb() {
     cp doc/*.gz $DEB_BUILD_DIR/usr/share/man/man1/
 
     DEB_ARGS="$DEB_ARGS -C build/deb"
-    DEB_ARGS="$DEB_ARGS --provides python2.7-midonetclient"
     DEB_ARGS="$DEB_ARGS --deb-priority optional"
     eval fpm $FPM_BASE_ARGS $DEB_ARGS -t deb .
 }
