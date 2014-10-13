@@ -165,10 +165,4 @@ APPLICATION_VTEP_BINDING_JSON = "application/vnd.org.midonet.VTEPBinding-v1+json
 APPLICATION_VTEP_BINDING_COLLECTION_JSON = \
             "application/vnd.org.midonet.collection.VTEPBinding-v1+json"
 
-# License
-APPLICATION_LICENSE_JSON = "application/vnd.org.midonet.License-v1+json"
-APPLICATION_LICENSE_COLLECTION_JSON = \
-    "application/vnd.org.midonet.collection.License-v1+json"
-APPLICATION_LICENSE_STATUS_JSON = \
-    "application/vnd.org.midonet.LicenseStatus-v1+json"
 

@@ -45,8 +45,6 @@ from midonetclient.pool_member import PoolMember
 from midonetclient.health_monitor import HealthMonitor
 from midonetclient.pool_statistic import PoolStatistic
 from midonetclient.vtep import Vtep
-from midonetclient.license import License
-from midonetclient.license_status import LicenseStatus
 
 class Application(ResourceBase):
 
@@ -492,24 +490,4 @@ class Application(ResourceBase):
     def delete_vtep(self, mgmt_ip):
         return self._delete_resource_by_ip_addr(self.get_vtep_template(),
                                                 mgmt_ip)
-
-    def install_license(self, file):
-        body = open(file.value, 'rb').read()
-        headers = {'Accept': vendor_media_type.APPLICATION_LICENSE_JSON,
-                   'Content-Type': vendor_media_type.APPLICATION_OCTET_STREAM}
-        uri = self.dto['licenses']
-        return self._upload_resource(License, uri, None, body, headers)
-
-    def get_licenses(self):
-        headers = {'Accept':
-                   vendor_media_type.APPLICATION_LICENSE_COLLECTION_JSON}
-        return self.get_children(self.dto['licenses'], {}, headers, License)
-
-    def get_license(self, id_):
-        return self._get_resource_by_id(License, None,
-                                        self.dto['licenseTemplate'], id_)
-
-    def get_license_status(self):
-        return self._get_resource(LicenseStatus, None,
-                                  self.dto['licenseStatus'])
 
