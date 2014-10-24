@@ -20,7 +20,7 @@ script.
 
 `midonet-cli` is a client to MidoNet's REST API server, therefore it requires
 credentials to authenticate before the REST API. These credentials and other
-settings such as the REST API's URL can be set via a config file, environment 
+settings such as the REST API's URL can be set via a config file, environment
 variables or command line options, in increasing order of precedence.
 
 MidoNet's virtual topology is organized in a tree-like hierarchy that can be
@@ -68,15 +68,11 @@ collections:
   * `delete` <OBJECT>:
   Deletes an existing object.
 
-  * `pusht` <TENANT>:
-  Changes the currently active tenant ID.
-
-  * `popt`:
-  Sets the currently active tenant ID to the previous one.
+  * `sett` <TENANT>:
+  Sets the currently active tenant ID.
 
   * `cleart`:
-  Clear the currently active tenant ID pushing the empty value to the stack of
-  the tenant ID. You can pop it and go back to the previous tenant with "popt".
+  Clears the currently active tenant ID.
 
   * `debug` `on`|`off`:
   Toggles debug mode.
@@ -88,7 +84,7 @@ or copy & paste object UUIDs.
 
 In interactive mode, `midonet-cli` will automatically generate object aliases
 for every object that it learns about. The CLI will learn about objects when
-the user lists them, shows them or creates them. 
+the user lists them, shows them or creates them.
 
 For example, listing the routers in a virtual topology will create an alias for
 each of them, they can be used later interchangeably anywhere a UUID would be
@@ -183,14 +179,14 @@ Authentication options:
 Miscellaneous options:
 
   * `-e` <COMMAND>, `--eval` <COMMAND>:
-    Execute <COMMAND> in non-interactive mode and exit. 
+    Execute <COMMAND> in non-interactive mode and exit.
 
   * `-d`, `--debug`:
     Enable debug mode.
 
   * `-h`, `--help`:
     Print a brief help message.
-    
+
 ## ENVIRONMENT
 
   * `MIDO_API_URL`:
