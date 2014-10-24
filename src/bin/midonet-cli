@@ -58,32 +58,23 @@ class Session(object):
         self.password = None
         self.project_id = None
         self.tenant_id = None
-        self.tenant_stack = []
         self.enable_alias_manager = True
         self.do_eval = False
         self.debug = False
 
     def print_current_tenant(self):
-        print "tenant_id: %s" % (self.current_tenant())
+        print "tenant_id: %s" % self.tenant_id
 
-    def push_tenant(self, tenant_id):
+    def set_tenant(self, tenant_id):
         if not self.do_eval:
             if (tenant_id is not None) and not is_valid_hex_uuid(tenant_id):
                 print ("WARNING!: tenant_id=%s is not a 32-char hex string, "
                        "which is used in Keystone for project id format"
                        % tenant_id)
+        self.tenant_id = tenant_id
 
-        self.tenant_stack.append(tenant_id)
-
-    def pop_tenant(self):
-        if self.tenant_stack:
-            self.tenant_stack.pop()
-
-    def current_tenant(self):
-        if not self.tenant_stack:
-            return self.tenant_id
-        else:
-            return self.tenant_stack[-1]
+    def clear_tenant(self):
+        self.tenant_id = None
 
     def _load_from_config_file(self):
         import ConfigParser
@@ -1211,8 +1202,8 @@ class ObjectType(object):
             return []
         func = self.reflect(attr.list_method)
         if attr.list_with_tenant:
-            if session.current_tenant():
-                query = {'tenant_id': session.current_tenant()}
+            if session.tenant_id:
+                query = {'tenant_id': session.tenant_id}
             else:
                 query = {}
             api_objects = func(query)
@@ -3427,7 +3418,7 @@ class Create(Command):
         new_object = factory()
         wrapper = collection.element_type(new_object)
         if wrapper.has_field('tenant'):
-            wrapper.set_field('tenant', session.current_tenant())
+            wrapper.set_field('tenant', session.tenant_id)
         for f in fields:
             wrapper.set_field(f.name, f.value)
         wrapper = collection.element_type(new_object.create())
@@ -3647,23 +3638,24 @@ class Show(Command):
         else:
             print "%s %s" % (ref.type_name(), ref.describe())
 
-class PushTenant(Command):
-    """pusht - Adds a tenant id to the top of the tenant id stack
 
-    Usage: pusht <TENANT_ID>
+class SetTenant(Command):
+    """sett - Sets a tenant id to the session
+
+    Usage: sett <TENANT_ID>
 
     Examples:
-           pusht <TENANT_ID_A>
+           sett <TENANT_ID_A>
            list router
-           popt
+           cleart
     """
 
     def patterns(self):
-        pusht = Verb('pusht', partial_match = False, set_command = self)
-        return pusht + SingleValue(StringType())
+        sett = Verb('sett', partial_match = False, set_command = self)
+        return sett + SingleValue(StringType())
 
     def name(self):
-        return 'pusht'
+        return 'sett'
 
     def help(self):
         print self.__doc__
@@ -3673,43 +3665,19 @@ class PushTenant(Command):
             if isinstance(tok, Verb):
                 continue
             elif isinstance(tok, SingleValue):
-                session.push_tenant(tok.value)
+                session.set_tenant(tok.value)
                 session.print_current_tenant()
 
-class PopTenant(Command):
-    """popt - Removes a tenant for the top of the tenant stack
-
-    Usage: popt
-
-    Examples:
-           pusht <TENANT_ID_A>
-           list router
-           popt
-    """
-
-    def patterns(self):
-        return Verb('popt', partial_match = False, set_command = self)
-
-    def name(self):
-        return 'popt'
-
-    def help(self):
-        print self.__doc__
-
-    def do(self, tokens):
-        session.pop_tenant()
-        session.print_current_tenant()
 
 class ClearTenant(Command):
-    """cleart - Clear the tenant ID pushing the empty value to the top of the
-    tenant ID stack.
+    """cleart - Clears the current tenant from session
 
     Usage: cleart
 
     Examples:
-           cleart
+           sett <TENANT_ID_A>
            list router
-           popt
+           cleart
     """
 
     def patterns(self):
@@ -3722,8 +3690,9 @@ class ClearTenant(Command):
         print self.__doc__
 
     def do(self, tokens):
-        session.push_tenant('')
+        session.clear_tenant()
         session.print_current_tenant()
+
 
 class Debug(Command):
     """debug - Toggle debug mode
@@ -3868,8 +3837,7 @@ class MidonetCLI(cmd.Cmd):
         cmd.Cmd.__init__(self)
         self._root = root
         self._ops = [Show(), List(), Create(), Delete(), Set(), Clear(),
-                     Describe(), Debug(), PushTenant(), PopTenant(),
-                     ClearTenant()]
+                     Describe(), Debug(), SetTenant(), ClearTenant()]
         for op in self._ops:
             if op.name() is not None:
                 setattr(self, "help_%s" % op.name(), op.help)
