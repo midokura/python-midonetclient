@@ -150,7 +150,8 @@ the `[cli]` section:
 
   * `tenant`:
     The virtual topology tenant to start the session with, it may later be
-    changed at will in the middle of an interactive session.
+    changed at will in the middle of an interactive session.  To not load
+    any tenant, set it to an empty string.
 
 ## OPTIONS
 
