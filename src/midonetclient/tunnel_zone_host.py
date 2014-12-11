@@ -36,12 +36,12 @@ class TunnelZoneHost(ResourceBase):
         self.dto['ipAddress'] = ip_address
         return self
 
-    def netmask(self, netmask):
-        self.dto['netmask'] = netmask
+    def prefix_length(self, prefix_length):
+        self.dto['prefixLength'] = prefix_length
         return self
 
-    def gateway(self, gateway):
-        self.dto['gateway'] = gateway
+    def routes(self, routes):
+        self.dto['routes'] = routes
         return self
 
     def interface_name(self, interface_name):
@@ -61,11 +61,11 @@ class TunnelZoneHost(ResourceBase):
     def get_ip_address(self):
         return self.dto['ipAddress']
 
-    def get_netmask(self):
-        return self.dto['netmask']
+    def get_prefix_length(self):
+        return self.dto['prefixLength']
 
-    def get_gateway(self):
-        return self.dto['gateway']
+    def get_routes(self):
+        return self.dto['routes']
 
     def get_interface_name():
         return self.dto['interfaceName']
